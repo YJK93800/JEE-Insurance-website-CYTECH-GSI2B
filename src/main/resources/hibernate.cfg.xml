@@ -7,14 +7,8 @@
 
         <!-- ===== Connexion à la base (MySQL) ===== -->
         <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
-        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/assurance?useSSL=false&amp;serverTimezone=Europe/Paris&amp;allowPublicKeyRetrieval=true</property>
-        <property name="hibernate.connection.username">root</property>
-        <property name="hibernate.connection.password">motdepasse</property>
-
-        <!-- Pour PostgreSQL, remplacer les 2 premières lignes par :
-        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
-        <property name="hibernate.connection.url">jdbc:postgresql://localhost:5432/assurance</property>
-        -->
+        <!-- URL, utilisateur et mot de passe : dans db.properties, lus par DbConfig
+             et ajoutés dans HibernateUtil. Rien de secret dans ce fichier. -->
 
         <!-- Hibernate 6+ détecte le dialecte tout seul : pas besoin de hibernate.dialect -->
 
@@ -27,7 +21,7 @@
         <!-- Création / mise à jour automatique des tables à partir des entités.
              update   : garde les données, ajoute les colonnes manquantes (dev)
              validate : vérifie seulement que les tables correspondent (rendu final) -->
-        <property name="hibernate.hbm2ddl.auto">update</property>
+        <property name="hibernate.hbm2ddl.auto">validate</property>
 
         <!-- Affiche le SQL dans la console Tomcat (pratique pour déboguer) -->
         <property name="hibernate.show_sql">true</property>
@@ -35,14 +29,14 @@
 
         <!-- ===== Entités ===== -->
         <!-- Chaque membre du groupe ajoute ici les siennes -->
-        <mapping class="com.assurance.model.Role"/>
-        <mapping class="com.assurance.model.Utilisateur"/>
+        <!-- Role est un enum (@Enumerated) : pas de mapping pour lui -->
+        <mapping class="fr.cytech.assurance.model.User"/>
         <!--
-        <mapping class="com.assurance.model.TypeAssurance"/>
-        <mapping class="com.assurance.model.Garantie"/>
-        <mapping class="com.assurance.model.Contrat"/>
-        <mapping class="com.assurance.model.Sinistre"/>
-        <mapping class="com.assurance.model.Paiement"/>
+        <mapping class="fr.cytech.assurance.model.TypeAssurance"/>
+        <mapping class="fr.cytech.assurance.model.Garantie"/>
+        <mapping class="fr.cytech.assurance.model.Contrat"/>
+        <mapping class="fr.cytech.assurance.model.Sinistre"/>
+        <mapping class="fr.cytech.assurance.model.Paiement"/>
         -->
 
     </session-factory>
