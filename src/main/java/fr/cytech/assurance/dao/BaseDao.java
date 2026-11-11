@@ -1,8 +1,5 @@
 package fr.cytech.assurance.dao;
 
-import fr.cytech.assurance.util.HibernateUtil;
-import org.hibernate.Session;
-
 import java.util.List;
 import java.util.Optional;
 
