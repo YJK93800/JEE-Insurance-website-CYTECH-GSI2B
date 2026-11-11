@@ -27,7 +27,7 @@ public abstract class HibernateDao<T, ID> implements BaseDao<T, ID> {
     }
 
     public List<T> findAll(){
-        return session().createSelectionQuery("from" + type.getSimpleName(), type).getResultList();
+        return session().createSelectionQuery("from " + type.getSimpleName(), type).getResultList();
     }
 
     public T update(T e){
