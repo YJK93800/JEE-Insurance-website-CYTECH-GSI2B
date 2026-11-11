@@ -10,9 +10,11 @@ import java.io.IOException;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
+    private static final String VIEW = "/WEB-INF/views/auth/login.jsp";
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doGet(req, resp);
+        req.getRequestDispatcher(VIEW).forward(req, resp);
     }
 
     @Override
