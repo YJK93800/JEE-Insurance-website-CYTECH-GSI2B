@@ -99,13 +99,13 @@
               <form class="form" method="post" action="${ctx}/agent/sinistres/traiter" novalidate data-validate>
                 <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
                 <input type="hidden" name="sinistreId" value="${sin.id}">
-                <label class="field ${not empty erreurs.statut ? 'has-error' : ''}">Nouveau statut
+                <label class="field ${not empty errors.statut ? 'has-error' : ''}">Nouveau statut
                   <select name="statut" required data-toggle-indemnisation>
                     <c:forEach items="${statuts}" var="st">
                       <option value="${st}" ${sin.statut == st ? 'selected' : ''}>${st}</option>
                     </c:forEach>
                   </select>
-                  <c:if test="${not empty erreurs.statut}"><span class="field-error"><c:out value="${erreurs.statut}" /></span></c:if>
+                  <c:if test="${not empty errors.statut}"><span class="field-error"><c:out value="${errors.statut}" /></span></c:if>
                 </label>
                 <ui:champ nom="montantIndemnisation" libelle="Montant d'indemnisation (€)" type="number"
                           valeur="${sin.montantIndemnisation}" extra="min='0' step='0.01' data-indemnisation"

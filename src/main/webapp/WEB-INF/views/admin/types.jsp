@@ -5,7 +5,7 @@
      POST /admin/types/supprimer  (id) -> refusé par la servlet si des contrats utilisent ce type
      Attributs : types List<TypeAssurance>{id, nom, description, prixBase, garanties, nbContrats}
                  type TypeAssurance en cours de modification (null en création)
-                 garanties List<Garantie>   erreurs Map<String,String>
+                 garanties List<Garantie>   errors Map<String,String>
      Ajouter un nouveau type d'assurance = une ligne en base, aucun code à modifier. --%>
 <c:set var="titre" value="Types d'assurance" />
 <c:set var="t0" value="${type}" />
@@ -55,9 +55,9 @@
           <input type="hidden" name="id" value="${t0.id}">
           <h2>${empty t0 ? 'Nouveau type' : 'Modifier le type'}</h2>
           <ui:champ nom="nom" libelle="Nom *" requis="true" valeur="${not empty param.nom ? param.nom : t0.nom}" extra="maxlength='80' placeholder='Ex. : Assurance habitation'" />
-          <label class="field ${not empty erreurs.description ? 'has-error' : ''}">Description
+          <label class="field ${not empty errors.description ? 'has-error' : ''}">Description
             <textarea name="description" rows="3" maxlength="500"><c:out value="${not empty param.description ? param.description : t0.description}" /></textarea>
-            <c:if test="${not empty erreurs.description}"><span class="field-error"><c:out value="${erreurs.description}" /></span></c:if>
+            <c:if test="${not empty errors.description}"><span class="field-error"><c:out value="${errors.description}" /></span></c:if>
           </label>
           <ui:champ nom="prixBase" libelle="Prix de base mensuel (€) *" type="number" requis="true" valeur="${not empty param.prixBase ? param.prixBase : t0.prixBase}" extra="min='0.01' step='0.01'" />
           <fieldset>
@@ -70,7 +70,7 @@
               </c:if>
               <label class="choice small"><input type="checkbox" name="garantieIds" value="${g.id}" ${coche ? 'checked' : ''}> <c:out value="${g.nom}" /></label>
             </c:forEach>
-            <c:if test="${not empty erreurs.garanties}"><span class="field-error"><c:out value="${erreurs.garanties}" /></span></c:if>
+            <c:if test="${not empty errors.garanties}"><span class="field-error"><c:out value="${errors.garanties}" /></span></c:if>
           </fieldset>
           <div class="inline">
             <button type="submit" class="btn btn-primary">${empty t0 ? 'Créer' : 'Enregistrer'}</button>

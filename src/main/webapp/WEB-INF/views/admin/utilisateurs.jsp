@@ -5,7 +5,7 @@
      POST /admin/utilisateurs/statut   (id, actif=true|false) -> activer / désactiver un compte
      Attributs : utilisateurs List<Utilisateur>{id, prenom, nom, email, role, actif, dateInscription}
                  utilisateur Utilisateur en cours de modification (null en création)
-                 roles Role[]   erreurs Map<String,String> --%>
+                 roles Role[]   errors Map<String,String> --%>
 <c:set var="titre" value="Utilisateurs et rôles" />
 <c:set var="u0" value="${utilisateur}" />
 <c:set var="vRole" value="${not empty param.role ? param.role : u0.role}" />
@@ -71,11 +71,11 @@
             <ui:champ nom="nom" libelle="Nom *" requis="true" valeur="${not empty param.nom ? param.nom : u0.nom}" />
           </div>
           <ui:champ nom="email" libelle="E-mail *" type="email" requis="true" valeur="${not empty param.email ? param.email : u0.email}" />
-          <label class="field ${not empty erreurs.role ? 'has-error' : ''}">Rôle *
+          <label class="field ${not empty errors.role ? 'has-error' : ''}">Rôle *
             <select name="role" required>
               <c:forEach items="${roles}" var="r"><option value="${r}" ${fn:trim(vRole) == r.name() ? 'selected' : ''}>${r}</option></c:forEach>
             </select>
-            <c:if test="${not empty erreurs.role}"><span class="field-error"><c:out value="${erreurs.role}" /></span></c:if>
+            <c:if test="${not empty errors.role}"><span class="field-error"><c:out value="${errors.role}" /></span></c:if>
           </label>
           <ui:champ nom="motDePasse" libelle="${empty u0 ? 'Mot de passe *' : 'Nouveau mot de passe'}" type="password"
                     requis="${empty u0}" aide="${empty u0 ? '8 caractères minimum.' : 'Laisser vide pour ne pas changer.'}" extra="minlength='8' autocomplete='new-password'" />

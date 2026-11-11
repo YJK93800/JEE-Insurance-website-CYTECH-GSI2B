@@ -8,9 +8,9 @@
 <%@ attribute name="extra" description="attributs HTML supplémentaires : placeholder, min, step…" %>
 <%@ taglib prefix="c"  uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<%-- La servlet place une Map<String,String> "erreurs" dans la requête : erreurs.put("email", "Email invalide").
+<%-- La servlet place une Map<String,String> "errors" dans la requête : errors.put("email", "Email invalide").
      La valeur ressaisie est cherchée dans "valeur", sinon dans le paramètre de la requête. --%>
-<c:set var="err" value="${requestScope.erreurs[nom]}" />
+<c:set var="err" value="${requestScope.errors[nom]}" />
 <c:set var="v" value="${not empty valeur ? valeur : param[nom]}" />
 <label class="field ${not empty err ? 'has-error' : ''}">${libelle}
   <input type="${empty type ? 'text' : type}" name="${nom}" id="f-${nom}"

@@ -8,7 +8,7 @@
                  typesAssurance  List<TypeAssurance>{id, nom, prixBase, garanties List<Garantie>}
                  garanties       List<Garantie> (toutes)
                  statuts         StatutContrat[]
-                 erreurs         Map<String,String>
+                 errors         Map<String,String>
      Le numéro de contrat est généré par le serveur. --%>
 <c:set var="creation" value="${empty contrat}" />
 <c:set var="titre" value="${creation ? 'Nouveau contrat' : 'Modifier le contrat'}" />
@@ -36,16 +36,16 @@
         <input type="hidden" name="id" value="${contrat.id}">
 
         <div class="grid-2">
-          <label class="field ${not empty erreurs.clientId ? 'has-error' : ''}">Client *
+          <label class="field ${not empty errors.clientId ? 'has-error' : ''}">Client *
             <select name="clientId" required>
               <option value="">— Choisir un client —</option>
               <c:forEach items="${clients}" var="cl">
                 <option value="${cl.id}" ${fn:trim(vClient) == fn:trim(cl.id) ? 'selected' : ''}><c:out value="${cl.nom} ${cl.prenom}" /> · <c:out value="${cl.email}" /></option>
               </c:forEach>
             </select>
-            <c:if test="${not empty erreurs.clientId}"><span class="field-error"><c:out value="${erreurs.clientId}" /></span></c:if>
+            <c:if test="${not empty errors.clientId}"><span class="field-error"><c:out value="${errors.clientId}" /></span></c:if>
           </label>
-          <label class="field ${not empty erreurs.typeAssuranceId ? 'has-error' : ''}">Type d'assurance *
+          <label class="field ${not empty errors.typeAssuranceId ? 'has-error' : ''}">Type d'assurance *
             <select name="typeAssuranceId" required data-type-assurance>
               <option value="">— Choisir un type —</option>
               <c:forEach items="${typesAssurance}" var="ta">
@@ -53,7 +53,7 @@
                 <option value="${ta.id}" data-prix="${ta.prixBase}" data-garanties="${gIds}" ${fn:trim(vType) == fn:trim(ta.id) ? 'selected' : ''}><c:out value="${ta.nom}" /></option>
               </c:forEach>
             </select>
-            <c:if test="${not empty erreurs.typeAssuranceId}"><span class="field-error"><c:out value="${erreurs.typeAssuranceId}" /></span></c:if>
+            <c:if test="${not empty errors.typeAssuranceId}"><span class="field-error"><c:out value="${errors.typeAssuranceId}" /></span></c:if>
           </label>
         </div>
 
@@ -64,11 +64,11 @@
                     extra="min='0.01' step='0.01' data-prime" aide="Pré-remplie avec le prix de base du type d'assurance." />
         </div>
 
-        <label class="field ${not empty erreurs.statut ? 'has-error' : ''}">Statut
+        <label class="field ${not empty errors.statut ? 'has-error' : ''}">Statut
           <select name="statut">
             <c:forEach items="${statuts}" var="st"><option value="${st}" ${fn:trim(vStatut) == st.name() ? 'selected' : ''}>${st}</option></c:forEach>
           </select>
-          <c:if test="${not empty erreurs.statut}"><span class="field-error"><c:out value="${erreurs.statut}" /></span></c:if>
+          <c:if test="${not empty errors.statut}"><span class="field-error"><c:out value="${errors.statut}" /></span></c:if>
         </label>
 
         <fieldset>
@@ -87,7 +87,7 @@
               </label>
             </c:forEach>
           </div>
-          <c:if test="${not empty erreurs.garanties}"><span class="field-error"><c:out value="${erreurs.garanties}" /></span></c:if>
+          <c:if test="${not empty errors.garanties}"><span class="field-error"><c:out value="${errors.garanties}" /></span></c:if>
         </fieldset>
 
         <div class="form-actions">

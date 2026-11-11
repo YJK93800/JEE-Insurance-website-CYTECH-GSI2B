@@ -5,7 +5,7 @@
      Paramètres : contratId, typeSinistre, dateSinistre (aaaa-mm-jj), montantEstime, description, pieces (fichiers)
      Attributs : contratsActifs  List<Contrat>   (seuls les contrats ACTIF du client)
                  typesSinistre   TypeSinistre[]  (enum avec getLibelle() et getDocumentsRequis() : List<String>)
-                 erreurs         Map<String,String>  en cas d'échec de validation côté servlet --%>
+                 errors         Map<String,String>  en cas d'échec de validation côté servlet --%>
 <c:set var="titre" value="Déclarer un sinistre" />
 <c:set var="contratChoisi" value="${not empty param.contratId ? param.contratId : param.contrat}" />
 <!DOCTYPE html>
@@ -23,8 +23,8 @@
       </header>
 
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
-      <c:if test="${not empty erreurs}">
-        <div class="alert alert-error" role="alert"><span>Le formulaire contient ${fn:length(erreurs)} erreur(s). Corrigez les champs signalés.</span></div>
+      <c:if test="${not empty errors}">
+        <div class="alert alert-error" role="alert"><span>Le formulaire contient ${fn:length(errors)} erreur(s). Corrigez les champs signalés.</span></div>
       </c:if>
 
       <c:choose>
@@ -37,7 +37,7 @@
               enctype="multipart/form-data" novalidate data-validate id="form-sinistre">
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
 
-          <fieldset class="${not empty erreurs.contratId ? 'has-error' : ''}">
+          <fieldset class="${not empty errors.contratId ? 'has-error' : ''}">
             <legend>Contrat concerné *</legend>
             <c:forEach items="${contratsActifs}" var="ct" varStatus="i">
               <label class="choice">
@@ -51,7 +51,7 @@
                 </span>
               </label>
             </c:forEach>
-            <c:if test="${not empty erreurs.contratId}"><span class="field-error"><c:out value="${erreurs.contratId}" /></span></c:if>
+            <c:if test="${not empty errors.contratId}"><span class="field-error"><c:out value="${errors.contratId}" /></span></c:if>
             <span class="field-help">Seuls vos contrats actifs sont proposés.</span>
           </fieldset>
 
@@ -69,7 +69,7 @@
                 </label>
               </c:forEach>
             </div>
-            <c:if test="${not empty erreurs.typeSinistre}"><span class="field-error"><c:out value="${erreurs.typeSinistre}" /></span></c:if>
+            <c:if test="${not empty errors.typeSinistre}"><span class="field-error"><c:out value="${errors.typeSinistre}" /></span></c:if>
           </fieldset>
 
           <div class="grid-2">
@@ -78,10 +78,10 @@
                       extra="min='0.01' step='0.01' inputmode='decimal'" />
           </div>
 
-          <label class="field ${not empty erreurs.description ? 'has-error' : ''}">Description de l'événement *
+          <label class="field ${not empty errors.description ? 'has-error' : ''}">Description de l'événement *
             <textarea name="description" rows="5" maxlength="1000" required data-counter="compteur-desc"
                       placeholder="Que s'est-il passé ? Où ? Quels biens sont endommagés ?"><c:out value="${param.description}" /></textarea>
-            <c:if test="${not empty erreurs.description}"><span class="field-error"><c:out value="${erreurs.description}" /></span></c:if>
+            <c:if test="${not empty errors.description}"><span class="field-error"><c:out value="${errors.description}" /></span></c:if>
             <span class="field-help" id="compteur-desc">0 / 1000 caractères</span>
           </label>
 
@@ -93,7 +93,7 @@
               <span class="xsmall muted">PDF, JPG ou PNG · 10 Mo max par fichier · 5 fichiers max</span>
               <input type="file" name="pieces" multiple accept=".pdf,.jpg,.jpeg,.png" data-max-size="10485760" data-max-files="5">
             </label>
-            <c:if test="${not empty erreurs.pieces}"><span class="field-error"><c:out value="${erreurs.pieces}" /></span></c:if>
+            <c:if test="${not empty errors.pieces}"><span class="field-error"><c:out value="${errors.pieces}" /></span></c:if>
             <ul class="file-list" data-file-list aria-live="polite"></ul>
           </div>
 

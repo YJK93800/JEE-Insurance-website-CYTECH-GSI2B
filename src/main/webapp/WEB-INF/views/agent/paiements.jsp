@@ -3,7 +3,7 @@
 <%-- GET  /agent/paiements?filtre=effectues|attente|echeances&q=CTR-…
      POST /agent/paiements (contratId, montant, datePaiement, modePaiement, statut) -> enregistrer un paiement
      Attributs : paiements List<Paiement>  contratsActifs List<Contrat>  modesPaiement ModePaiement[]
-                 statutsPaiement StatutPaiement[]  erreurs Map<String,String> --%>
+                 statutsPaiement StatutPaiement[]  errors Map<String,String> --%>
 <c:set var="titre" value="Paiements" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -59,14 +59,14 @@
         <form class="card form col-side" method="post" action="${ctx}/agent/paiements" novalidate data-validate>
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <h2>Enregistrer un paiement</h2>
-          <label class="field ${not empty erreurs.contratId ? 'has-error' : ''}">Contrat *
+          <label class="field ${not empty errors.contratId ? 'has-error' : ''}">Contrat *
             <select name="contratId" required data-contrat-prime>
               <option value="">— Choisir —</option>
               <c:forEach items="${contratsActifs}" var="ct">
                 <option value="${ct.id}" data-prime="${ct.prime}" ${param.contratId == fn:trim(ct.id) ? 'selected' : ''}><c:out value="${ct.numero}" /> · <c:out value="${ct.client.nom}" /></option>
               </c:forEach>
             </select>
-            <c:if test="${not empty erreurs.contratId}"><span class="field-error"><c:out value="${erreurs.contratId}" /></span></c:if>
+            <c:if test="${not empty errors.contratId}"><span class="field-error"><c:out value="${errors.contratId}" /></span></c:if>
           </label>
           <div class="grid-2">
             <ui:champ nom="montant" libelle="Montant (€) *" type="number" requis="true" extra="min='0.01' step='0.01' data-prime-cible" />

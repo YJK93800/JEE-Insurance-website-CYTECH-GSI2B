@@ -3,7 +3,7 @@
 <%-- GET  /client/profil -> cette vue (attribut "client" : Client connecté)
      POST /client/profil  (action=infos : prenom, nom, telephone, adresse)
                           (action=motdepasse : ancien, motDePasse, confirmation)
-     Erreurs : Map<String,String> "erreurs". L'e-mail n'est pas modifiable ici. --%>
+     Erreurs : Map<String,String> "errors". L'e-mail n'est pas modifiable ici. --%>
 <c:set var="titre" value="Mon profil" />
 <!DOCTYPE html>
 <html lang="fr">
