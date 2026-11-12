@@ -1,0 +1,6 @@
+# Copier ce fichier en "db.properties" (même dossier) et mettre les mêmes valeurs que dans .env.
+# db.properties est ignoré par Git : il ne doit jamais être commité.
+# Port 3307 = celui exposé par docker-compose.yaml
+db.url=jdbc:mysql://localhost:3307/assurance?useSSL=false&serverTimezone=Europe/Paris&allowPublicKeyRetrieval=true
+db.user=assurance
+db.password=changeme
