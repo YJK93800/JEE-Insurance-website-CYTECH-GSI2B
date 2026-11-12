@@ -1,0 +1,19 @@
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Maven
+target/
+
+# Smart Tomcat
+.smarttomcat/
+
+# Système
+.DS_Store
+Thumbs.db
+
+# Secrets (clé de l'API d'IA, mot de passe de la base)
+*.env
+config.properties
+src/main/resources/db.properties

@@ -1,0 +1,38 @@
+<%-- Frise de suivi d'un sinistre. La page doit définir la variable "sin" (un Sinistre) avant l'inclusion.
+     Statuts : DECLARE -> EN_ANALYSE -> ACCEPTE | REFUSE -> INDEMNISE --%>
+<c:set var="s" value="${fn:toUpperCase(sin.statut)}" />
+<c:set var="apresAnalyse" value="${s == 'ACCEPTE' or s == 'REFUSE' or s == 'INDEMNISE'}" />
+<ol class="timeline" aria-label="Avancement du sinistre">
+  <li class="done">
+    <div class="rail"><span class="dot" aria-hidden="true">✓</span><span class="bar"></span></div>
+    <div class="stack-sm"><span class="label">Déclaré</span><span class="xsmall muted"><ui:date valeur="${sin.dateDeclaration}" /></span></div>
+  </li>
+  <li class="${apresAnalyse ? 'done' : (s == 'EN_ANALYSE' ? 'current' : 'todo')}">
+    <div class="rail"><span class="dot" aria-hidden="true">${apresAnalyse ? '✓' : ''}</span><span class="bar"></span></div>
+    <div class="stack-sm">
+      <span class="label">En analyse <c:if test="${s == 'EN_ANALYSE'}"><span class="badge badge-en_analyse">EN COURS</span></c:if></span>
+      <c:if test="${not empty sin.agent}"><span class="xsmall muted">Dossier suivi par <c:out value="${sin.agent.prenom} ${sin.agent.nom}" /></span></c:if>
+    </div>
+  </li>
+  <c:choose>
+    <c:when test="${s == 'REFUSE'}">
+      <li class="refused">
+        <div class="rail"><span class="dot" aria-hidden="true">✕</span><span class="bar"></span></div>
+        <div class="stack-sm"><span class="label">Refusé</span></div>
+      </li>
+    </c:when>
+    <c:otherwise>
+      <li class="${s == 'ACCEPTE' or s == 'INDEMNISE' ? 'done' : 'todo'}">
+        <div class="rail"><span class="dot" aria-hidden="true">${s == 'ACCEPTE' or s == 'INDEMNISE' ? '✓' : ''}</span><span class="bar"></span></div>
+        <div class="stack-sm"><span class="label">${s == 'ACCEPTE' or s == 'INDEMNISE' ? 'Accepté' : 'Accepté ou refusé'}</span></div>
+      </li>
+      <li class="${s == 'INDEMNISE' ? 'done' : 'todo'}">
+        <div class="rail"><span class="dot" aria-hidden="true">${s == 'INDEMNISE' ? '✓' : ''}</span></div>
+        <div class="stack-sm">
+          <span class="label">Indemnisé</span>
+          <c:if test="${not empty sin.montantIndemnisation}"><span class="xsmall muted"><ui:montant valeur="${sin.montantIndemnisation}" /></span></c:if>
+        </div>
+      </li>
+    </c:otherwise>
+  </c:choose>
+</ol>
