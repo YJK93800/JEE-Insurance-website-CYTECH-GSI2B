@@ -3,7 +3,9 @@ package fr.cytech.assurance.controller.auth;
 import fr.cytech.assurance.dto.request.RegisterRequest;
 import fr.cytech.assurance.service.AuthService;
 import fr.cytech.assurance.service.RegistrationException;
+import fr.cytech.assurance.util.FormView;
 import fr.cytech.assurance.util.RequestParams;
+import fr.cytech.assurance.util.UserSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,7 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-@WebServlet("/register")
+@WebServlet("/auth/register")
 public class RegisterServlet extends HttpServlet {
 
     private static final String VIEW = "/WEB-INF/views/auth/register.jsp";
@@ -89,7 +91,7 @@ public class RegisterServlet extends HttpServlet {
             errors.put("confirmation", "Les mots de passe ne correspondent pas.");
 
         if (!errors.isEmpty()) {
-            showFormErrors(req, resp, errors);
+            FormView.show(req, resp, VIEW, errors);
             return;
         }
 
@@ -107,24 +109,16 @@ public class RegisterServlet extends HttpServlet {
             authService.register(dto);
         } catch (RegistrationException e) {
             errors.put(e.getField(), e.getMessage());
-            showFormErrors(req, resp, errors);
+            FormView.show(req, resp, VIEW, errors);
             return;
         } catch (RuntimeException e) {
             log("Erreur lors de l'inscription de " + email, e);
-            req.setAttribute("erreurGlobale", "Une erreur est survenue. Veuillez réessayer.");
-            showFormErrors(req, resp, errors);
+            FormView.show(req, resp, VIEW, errors, "Une erreur est survenue. Veuillez réessayer.");
             return;
         }
 
         // Post/Redirect/Get : message affiché par flash.jspf sur la page de connexion
-        req.getSession().setAttribute("flash", "Votre compte a été créé. Vous pouvez vous connecter.");
-        req.getSession().setAttribute("flashType", "success");
-        resp.sendRedirect(req.getContextPath() + "/login");
-    }
-
-    private void showFormErrors(HttpServletRequest req, HttpServletResponse resp, Map<String, String> errors)
-            throws ServletException, IOException {
-        req.setAttribute("errors", errors);
-        req.getRequestDispatcher(VIEW).forward(req, resp);
+        UserSession.flash(req, "Votre compte a été créé. Vous pouvez vous connecter.", "success");
+        resp.sendRedirect(req.getContextPath() + "/auth/login");
     }
 }
