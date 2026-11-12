@@ -5,8 +5,8 @@
 ### Prérequis
 
 - Docker (avec Docker Compose) 
-- JDK >= 20
-- Tomcat >= 10
+- JDK >= 17
+- Tomcat >= 10.1
 - IntelliJ
 
 1. **Configurer les mots de passe** (une seule fois) :
@@ -23,18 +23,18 @@
    docker compose ps      # attendre que assurance-mysql soit "healthy"
    ```
 
-3. **Lancer Tomcat** depuis IntelliJ. Au démarrage, Flyway crée toutes les tables
-   à partir de `src/main/resources/db/migrations/`.
+3. **Lancer Tomcat** depuis IntelliJ (la base doit être "healthy" avant).
 
 4. Ouvrir http://localhost:8080/projet-jee
 
 ### Outils
 
 - phpMyAdmin (pour voir la base de données) : http://localhost:8081
+  — se connecter avec `DB_USER` / `DB_PASSWORD` du `.env`
 
 ## Base de données
 
-- Le schéma est défini **uniquement** par les scripts Flyway dans `src/main/resources/db/migrations/`.
-- **Ne jamais modifier un script déjà poussé sur `main`** : ajouter un nouveau fichier
-  `V2__description.sql`, `V3__...`, avec le numéro suivant.
+- MySQL 8 tourne dans Docker, exposé sur le port **3307** de la machine
+  (pour ne pas gêner un MySQL déjà installé).
+- Les données sont gardées entre deux `docker compose down` / `up` (volume `mysql-data`).
 - Repartir d'une base vide : `docker compose down -v && docker compose up -d`.

@@ -1,4 +1,4 @@
-package fr.cytech.assurance.util;
+package com.assurcy2000.util;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;

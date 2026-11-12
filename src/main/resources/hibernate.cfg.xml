@@ -28,15 +28,8 @@
         <property name="hibernate.format_sql">true</property>
 
         <!-- ===== Entités ===== -->
-        <!-- Chaque membre du groupe ajoute ici les siennes -->
-        <!-- Role est un enum (@Enumerated) : pas de mapping pour lui -->
-        <mapping class="fr.cytech.assurance.model.User"/>
-        <!--
-        <mapping class="fr.cytech.assurance.model.TypeAssurance"/>
-        <mapping class="fr.cytech.assurance.model.Garantie"/>
-        <mapping class="fr.cytech.assurance.model.Contrat"/>
-        <mapping class="fr.cytech.assurance.model.Sinistre"/>
-        <mapping class="fr.cytech.assurance.model.Paiement"/>
+        <!-- Chaque membre du groupe ajoute ici les siennes, par exemple :
+        <mapping class="com.assurcy2000.model.User"/>
         -->
 
     </session-factory>

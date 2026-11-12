@@ -1,3 +1,0 @@
-<%-- Jeton anti-CSRF à placer dans chaque formulaire POST.
-     La servlet de connexion génère sessionScope.csrfToken ; un filtre le vérifie. --%>
-<input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">

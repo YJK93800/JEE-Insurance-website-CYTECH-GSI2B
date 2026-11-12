@@ -1,4 +1,4 @@
-package fr.cytech.assurance.util;
+package com.assurcy2000.util;
 
 import java.io.IOException;
 import java.io.InputStream;
