@@ -1,4 +1,4 @@
-package fr.cytech.dev;
+package com.dev;
 
 import java.io.IOException;
 import java.io.PrintWriter;
