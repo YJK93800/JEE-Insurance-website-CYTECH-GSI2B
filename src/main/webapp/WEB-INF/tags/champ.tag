@@ -12,7 +12,8 @@
      La valeur ressaisie est cherchée dans "valeur", sinon dans le paramètre de la requête. --%>
 <c:set var="err" value="${requestScope.errors[nom]}" />
 <c:set var="v" value="${not empty valeur ? valeur : param[nom]}" />
-<label class="field ${not empty err ? 'has-error' : ''}">${libelle}
+<label class="field ${not empty err ? 'has-error' : ''}">
+  <span class="field-label">${libelle}<c:if test="${requis}"><span class="required" aria-hidden="true">*</span></c:if></span>
   <input type="${empty type ? 'text' : type}" name="${nom}" id="f-${nom}"
          value="${type == 'password' ? '' : fn:escapeXml(v)}"
          ${requis ? 'required' : ''} ${extra}
