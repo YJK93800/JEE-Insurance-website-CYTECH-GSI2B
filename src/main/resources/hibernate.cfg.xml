@@ -29,7 +29,7 @@
 
         <!-- ===== Entités ===== -->
         <!-- Chaque membre du groupe ajoute ici les siennes -->
-        <!-- Role est un enum (@Enumerated) : pas de mapping pour lui -->
+        <mapping class="fr.cytech.assurance.model.Role"/>
         <mapping class="fr.cytech.assurance.model.User"/>
         <!--
         <mapping class="fr.cytech.assurance.model.TypeAssurance"/>

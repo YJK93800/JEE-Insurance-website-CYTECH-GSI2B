@@ -1,45 +1,41 @@
 package fr.cytech.assurance.model;
 
-import fr.cytech.assurance.model.enums.Role;
 import jakarta.persistence.*;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "users")
+@Table(name = "utilisateur")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "first_name", nullable = false, length = 60)
+    @Column(name = "prenom", nullable = false, length = 60)
     private String firstName;
 
-    @Column(name = "name", nullable = false, length = 60)
+    @Column(name = "nom", nullable = false, length = 60)
     private String name;
 
     @Column(name = "email", nullable = false, unique = true, length = 120)
     private String email;
 
-    @Column(name = "phone_number", unique = true, length = 20)
+    @Column(name = "telephone", unique = true, length = 20)
     private String phoneNumber;
 
-    @Column(name = "birth_date", nullable = false)
+    @Column(name = "date_naissance", nullable = false)
     private LocalDate birthDate;
 
-    @Column(name = "address")
+    @Column(name = "adresse")
     private String address;
 
-    @Column(name = "password", nullable = false, length = 60) // hash BCrypt = 60 caractères
+    @Column(name = "mot_de_passe", nullable = false, length = 60) // hash BCrypt = 60 caractères
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.VARCHAR)
-    @Column(name = "role", nullable = false, length = 20)
-    private Role role = Role.CLIENT;
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
     protected User() {
 
@@ -87,6 +83,10 @@ public class User {
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+
+    public boolean hasRole(String roleName) {
+        return role != null && role.getName().equals(roleName);
+    }
 
     @Override
     public boolean equals(Object o) {
