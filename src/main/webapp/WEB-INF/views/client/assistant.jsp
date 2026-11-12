@@ -18,7 +18,7 @@
         <section class="card chat col-main" aria-labelledby="h-chat">
           <header class="chat-head between">
             <div class="stack-sm">
-              <h1 id="h-chat">Assistant Égide</h1>
+              <h1 id="h-chat">Assistant Assurcy2000</h1>
               <span class="small muted">Répond à partir de vos contrats, garanties, paiements et sinistres</span>
             </div>
             <button type="button" class="btn btn-sm" data-chat-reset>Nouvelle conversation</button>

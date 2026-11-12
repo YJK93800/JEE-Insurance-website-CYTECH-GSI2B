@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Égide – comportements communs à toutes les pages.
+   Assurcy2000 – comportements communs à toutes les pages.
    Rappel : cette validation sert uniquement le confort de l'utilisateur.
    Les servlets revérifient TOUTES les données avant l'enregistrement en base.
    ========================================================================== */

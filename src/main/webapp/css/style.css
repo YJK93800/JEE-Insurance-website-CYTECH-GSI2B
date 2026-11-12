@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Égide – feuille de style commune (client, agent, admin)
+   Assurcy2000 – feuille de style commune (client, agent, admin)
    Une seule feuille pour toute l'application : aucune règle de style
    n'est écrite directement dans les JSP.
    ========================================================================== */
@@ -156,6 +156,7 @@ a.item-title:hover { color: var(--teal); text-decoration: underline; }
 .field.has-error input, .field.has-error select, .field.has-error textarea { border: 2px solid var(--danger); }
 .field-error { font-size: 12px; font-weight: 500; color: var(--danger); }
 .field-help { font-size: 12px; font-weight: 400; color: var(--muted); }
+.required { color: var(--danger); margin-left: 3px; } /* étoile des champs obligatoires (tag <ui:champ requis="true">) */
 fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 legend { font-family: var(--font-title); font-weight: 700; font-size: 16px; padding: 0; margin-bottom: 10px; }
 .form-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
