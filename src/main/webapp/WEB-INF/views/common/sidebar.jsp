@@ -9,7 +9,7 @@
 <nav class="sidebar" aria-label="Navigation principale">
   <div class="brand">
     <%@ include file="/WEB-INF/views/common/logo.jspf" %>
-    <span class="brand-name">Égide</span>
+    <span class="brand-name">Assurcy2000</span>
     <c:if test="${u.role == 'AGENT'}"><span class="role-tag">AGENT</span></c:if>
     <c:if test="${u.role == 'ADMIN'}"><span class="role-tag admin">ADMIN</span></c:if>
   </div>
