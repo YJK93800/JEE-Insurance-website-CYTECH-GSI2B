@@ -29,8 +29,8 @@
 
         <!-- ===== Entités ===== -->
         <!-- Chaque membre du groupe ajoute ici les siennes -->
-        <mapping class="assurcy2000.model.Role"/>
-        <mapping class="assurcy2000.model.User"/>
+        <mapping class="com.assurcy2000.model.Role"/>
+        <mapping class="com.assurcy2000.model.User"/>
         <!--
         <mapping class="fr.cytech.assurance.model.TypeAssurance"/>
         <mapping class="fr.cytech.assurance.model.Garantie"/>
