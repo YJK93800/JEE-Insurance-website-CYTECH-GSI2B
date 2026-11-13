@@ -1,8 +1,8 @@
-package assurcy2000.filter;
+package com.assurcy2000.filter;
 
-import assurcy2000.dto.SessionUser;
-import assurcy2000.model.Role;
-import assurcy2000.util.UserSession;
+import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.model.Role;
+import com.assurcy2000.util.UserSession;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;
@@ -23,7 +23,7 @@ import java.io.IOException;
  * Chaque servlet client doit vérifier que le contrat / sinistre demandé appartient bien
  * à sessionScope.utilisateur.id.
  */
-@WebFilter(urlPatterns = {"/client/*", "/agent/*", "/admin/*"})
+@WebFilter(urlPatterns = {"/client/*", "/agent/*", "/admin/*", "/profil"})
 public class AuthFilter extends HttpFilter {
 
     @Override
