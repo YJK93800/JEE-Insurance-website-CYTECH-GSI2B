@@ -12,13 +12,13 @@ import java.util.Optional;
 
 public class ContractDao extends BaseDao<Contract, Long> {
 
-    // Charge le client, le type et l'agent avec le contrat (pas de LazyInitializationException)
+
     private static final String SELECT =
             "select c from Contract c join fetch c.client cl join fetch c.insuranceType t left join fetch c.agent a";
 
     public ContractDao() { super(Contract.class); }
 
-    /** Contrat avec ses garanties (page de détail). */
+
     @Override
     public Optional<Contract> findById(Long id) {
         return query(s -> s.createQuery(SELECT + " left join fetch c.guarantees where c.id = :id", Contract.class)
@@ -45,7 +45,6 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 .getSingleResult() > 0);
     }
 
-    /** « Mes contrats » (espace client). */
     public List<Contract> findByClient(Long clientId) {
         return query(s -> s.createQuery(SELECT + " where cl.id = :clientId order by c.startDate desc", Contract.class)
                 .setParameter("clientId", clientId)
@@ -58,7 +57,6 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 .getResultList());
     }
 
-    /** Recherche (§2.2) : numéro de contrat, nom, prénom ou email du client. */
     public List<Contract> search(String keyword) {
         String pattern = "%" + keyword.trim().toLowerCase() + "%";
         return query(s -> s.createQuery(SELECT
@@ -69,7 +67,6 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 .getResultList());
     }
 
-    /** Contrats ACTIF dont la date de fin est dépassée : à passer en EXPIRE. */
     public List<Contract> findActiveEndedBefore(LocalDate date) {
         return query(s -> s.createQuery(SELECT + " where c.status = :status and c.endDate < :date", Contract.class)
                 .setParameter("status", ContractStatus.ACTIF)
@@ -77,7 +74,6 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 .getResultList());
     }
 
-    /** Nombre de contrats par statut (tableau de bord) : tous les statuts sont présents, à 0 si besoin. */
     public Map<ContractStatus, Long> countByStatus() {
         return query(s -> {
             Map<ContractStatus, Long> result = new EnumMap<>(ContractStatus.class);
@@ -91,10 +87,6 @@ public class ContractDao extends BaseDao<Contract, Long> {
         });
     }
 
-    /**
-     * Associe une garantie à un contrat (§2.4).
-     * MySQL (triggers.sql) refuse une garantie qui n'existe pas pour le type d'assurance du contrat.
-     */
     public void addGuarantee(Long contractId, Long guaranteeId) {
         runInTransaction(s -> {
             Contract contract = s.find(Contract.class, contractId);

@@ -48,15 +48,20 @@ public abstract class BaseDao<T, ID extends Serializable> {
     }
 
     protected <R> R inTransaction(Function<Session, R> work) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
         Transaction tx = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try {
             tx = session.beginTransaction();
             R result = work.apply(session);
             tx.commit();
             return result;
         } catch (RuntimeException e) {
-            if (tx != null && tx.isActive()) tx.rollback();
+            if (tx != null && tx.isActive()) {
+                try { tx.rollback(); } catch (RuntimeException ignored) { /* on garde l'exception d'origine */ }
+            }
             throw e;
+        } finally {
+            session.close();
         }
     }
 

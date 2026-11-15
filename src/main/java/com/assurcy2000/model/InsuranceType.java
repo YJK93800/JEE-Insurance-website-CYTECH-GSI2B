@@ -26,7 +26,6 @@ public class InsuranceType {
     @Column(name = "actif", nullable = false)
     private boolean active = true;
 
-    // Garanties proposées pour ce type d'assurance (table type_assurance_garantie)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "type_assurance_garantie",
             joinColumns = @JoinColumn(name = "type_assurance_id"),

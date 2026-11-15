@@ -62,7 +62,6 @@ public class Contract {
     @Column(name = "date_modification", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
-    // Garanties souscrites (table contrat_garantie)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "contrat_garantie",
             joinColumns = @JoinColumn(name = "contrat_id"),

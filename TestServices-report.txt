@@ -1,0 +1,96 @@
+Préparation : création d'un 2e client temporaire avec contrat et sinistre
+  client B = test.b.1794768656512@assurance.local (contrat id=4, sinistre id=5)
+TestServices : Sun Nov 15 19:51:00 CET 2026
+En base : 2 client(s), 1 agent(s), 1 admin(s), 2 contrat(s), 3 sinistre(s)
+
+=== 1. Contrats : un client ne voit que les siens
+  OK     A ne voit que ses contrats
+  OK     A voit tous ses contrats (1)
+  OK     A peut ouvrir son contrat
+  OK     A ne peut pas ouvrir le contrat de B (404)
+  OK     B ne peut pas ouvrir le contrat de A (404)
+  OK     contrat inexistant (404)
+
+=== 2. Contrats : droits de l'agent et de l'admin
+  OK     un client ne peut pas lister les contrats d'un client (403)
+  OK     un client ne peut pas rechercher (403)
+  OK     un client ne peut pas suspendre (403)
+  OK     l'agent voit tous les contrats
+  OK     l'agent liste les contrats de A
+  OK     recherche par nom de client (ClientB)
+  OK     l'agent peut ouvrir le contrat de B
+  OK     l'admin voit tous les contrats
+  OK     l'admin ne peut pas suspendre (403)
+
+=== 3. Suspension d'un contrat ACTIF (remis à ACTIF ensuite)
+  OK     statut SUSPENDU renvoyé
+  OK     statut SUSPENDU en base
+  OK     suspendre un contrat déjà suspendu (400)
+  (contrat CT-TEST-1794768660332 remis à ACTIF)
+
+=== 4. Sinistres : un client ne voit que les siens
+  OK     A ne voit que ses sinistres (1)
+  OK     A ne peut pas ouvrir le sinistre d'un autre (404)
+  OK     l'agent voit tous les sinistres
+  OK     l'admin voit tous les sinistres
+
+=== 5. Déclaration d'un sinistre et workflow agent (supprimé ensuite)
+  OK     montant invalide refusé (400)
+  OK     type invalide refusé (400)
+  OK     date future refusée (400)
+  OK     déclarer sur le contrat d'un autre refusé (400)
+  OK     un agent ne déclare pas de sinistre (403)
+  OK     numéro généré (SIN-2026-262474)
+  OK     statut initial DECLARE
+  OK     le client voit son sinistre
+  OK     le client ne change pas le statut (403)
+  OK     DECLARE → ACCEPTE impossible (400)
+  OK     DECLARE → EN_ANALYSE
+  OK     indemniser avant acceptation (400)
+  OK     EN_ANALYSE → ACCEPTE
+  OK     montant d'indemnisation invalide (400)
+  OK     ACCEPTE → INDEMNISE
+  OK     montant indemnisé enregistré (100.50)
+  OK     agent assigné au sinistre
+  (sinistre SIN-2026-262474 supprimé)
+
+=== 6. Paiements (supprimé ensuite)
+  OK     A ne voit que ses paiements
+  OK     A ne voit pas les paiements du contrat de B (404)
+  OK     le paiement test est EN_ATTENTE
+  OK     A voit ce paiement via son contrat
+  OK     un client n'enregistre pas de paiement (403)
+  OK     paiement passé à EFFECTUE
+  OK     date et mode enregistrés
+  OK     enregistrer deux fois refusé (400)
+  (paiement test supprimé)
+
+=== 7. Gestion des utilisateurs (compte test supprimé ensuite)
+  OK     inscription : rôle CLIENT
+  OK     compte désactivé : connexion refusée
+  OK     compte réactivé : connexion OK
+  OK     rôle changé en AGENT
+  OK     rôle inconnu refusé (400)
+  OK     l'admin ne modifie pas son propre compte (400)
+  OK     un client ne gère pas les utilisateurs (403)
+  OK     un agent ne liste pas tous les utilisateurs (403)
+  OK     un agent liste les clients
+  (compte test test.services.1794768661016@assurance.local supprimé)
+
+=== 8. Statistiques (requêtes JDBC incluses)
+  OK     un client n'accède pas aux stats (403)
+  OK     tableau de bord renvoyé
+  clients=2
+  contrats par statut={EN_ATTENTE=0, ACTIF=2, SUSPENDU=0, EXPIRE=0, RESILIE=0}
+  sinistres par statut={DECLARE=1, EN_ANALYSE=1, ACCEPTE=0, REFUSE=0, INDEMNISE=1}
+  primes actives=460.00 | encaissé=337.50 | indemnisé=850.00
+  revenus par mois={2026-01=112.50, 2026-04=112.50, 2026-07=112.50}
+  OK     nb de clients cohérent
+  OK     total contrats par statut = nb de contrats
+
+==================================================
+RÉSULTAT : 60 OK, 0 ÉCHEC(S), 0 ignoré(s)
+Tout est bon.
+
+Nettoyage du client temporaire
+  client B supprimé

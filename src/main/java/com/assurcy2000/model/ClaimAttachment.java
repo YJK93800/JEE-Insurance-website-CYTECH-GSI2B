@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
-/** Pièce justificative jointe à un sinistre (table piece_justificative). */
 @Entity
 @Table(name = "piece_justificative")
 public class ClaimAttachment {

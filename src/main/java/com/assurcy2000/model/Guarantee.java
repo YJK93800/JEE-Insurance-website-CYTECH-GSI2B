@@ -37,7 +37,6 @@ public class Guarantee {
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
 
-    // Les garanties sont stockées dans des Set : égalité basée sur l'id
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
-/** Commentaire d'un agent sur un sinistre (table commentaire_sinistre). */
 @Entity
 @Table(name = "commentaire_sinistre")
 public class ClaimComment {

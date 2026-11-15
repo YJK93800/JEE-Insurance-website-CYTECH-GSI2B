@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
-/** Une ligne par changement de statut d'un sinistre (table historique_sinistre). */
 @Entity
 @Table(name = "historique_sinistre")
 public class ClaimHistory {

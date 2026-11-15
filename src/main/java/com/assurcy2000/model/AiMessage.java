@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
-/** Un message de la conversation entre un client et l'assistant IA (table message_ia). */
 @Entity
 @Table(name = "message_ia")
 public class AiMessage {
