@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <!-- Connecting to MySQL -->
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/assurance_db?serverTimezone=Europe/Paris</property>
+        <property name="hibernate.connection.username">assurance_user</property>
+        <property name="hibernate.connection.password">Assurance_2026!</property>
+
+        <property name="hibernate.connection.pool_size">10</property>
+
+        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.format_sql">true</property>
+
+        <mapping class="com.assurcy2000.model.Role"/>
+        <mapping class="com.assurcy2000.model.User"/>
+        <mapping class="com.assurcy2000.model.InsuranceType"/>
+        <mapping class="com.assurcy2000.model.Guarantee"/>
+        <mapping class="com.assurcy2000.model.Contract"/>
+        <mapping class="com.assurcy2000.model.Claim"/>
+        <mapping class="com.assurcy2000.model.ClaimAttachment"/>
+        <mapping class="com.assurcy2000.model.ClaimComment"/>
+        <mapping class="com.assurcy2000.model.ClaimHistory"/>
+        <mapping class="com.assurcy2000.model.Payment"/>
+        <mapping class="com.assurcy2000.model.AiMessage"/>
+
+    </session-factory>
+</hibernate-configuration>

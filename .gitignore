@@ -36,3 +36,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+/src/main/java/com/assurcy2000/TestDao.java
+/src/main/java/com/assurcy2000/TestHibernate.java
+/src/main/java/com/assurcy2000/TestUserDao.java
+/id_github
+/id_github.pub
