@@ -31,6 +31,10 @@ public class AuthFilter implements Filter {
     }
 
     private static boolean isPublic(String path) {
-        return path.equals("/login") || path.equals("/register") || path.startsWith("/assets/");
+        return path.equals("/login")
+                || path.equals("/register")
+                || path.startsWith("/css/")
+                || path.startsWith("/js/")
+                || path.equals("/preview"); // à retirer avant le rendu
     }
 }
