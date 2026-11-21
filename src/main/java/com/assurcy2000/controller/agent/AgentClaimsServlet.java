@@ -1,7 +1,7 @@
 package com.assurcy2000.controller.agent;
 
 import com.assurcy2000.controller.BaseServlet;
-import com.assurcy2000.security.SessionUser;
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.ClaimService;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.util.Views;
