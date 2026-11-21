@@ -1,0 +1,23 @@
+<%-- Tableau de paiements réutilisable. La page définit "listePaiements" (List<Paiement>) avant l'inclusion.
+     Paiement : datePaiement, contrat (numero, typeAssurance.nom), modePaiement, montant, statut (PAYE | EN_ATTENTE | EN_RETARD | ...) --%>
+<c:choose>
+  <c:when test="${empty listePaiements}"><p class="empty">Aucun paiement à afficher.</p></c:when>
+  <c:otherwise>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Date</th><th>Contrat</th><th>Mode</th><th class="right">Montant</th><th>Statut</th></tr></thead>
+        <tbody>
+          <c:forEach items="${listePaiements}" var="p">
+            <tr>
+              <td><ui:date valeur="${p.datePaiement}" /></td>
+              <td><c:out value="${p.contrat.typeAssurance.nom}" /> · <c:out value="${p.contrat.numero}" /></td>
+              <td><c:out value="${p.modePaiement}" /></td>
+              <td class="right strong"><ui:montant valeur="${p.montant}" /></td>
+              <td><ui:statut valeur="${p.statut}" /></td>
+            </tr>
+          </c:forEach>
+        </tbody>
+      </table>
+    </div>
+  </c:otherwise>
+</c:choose>

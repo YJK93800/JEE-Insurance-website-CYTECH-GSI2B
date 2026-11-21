@@ -1,0 +1,14 @@
+<%-- Messages affichés après une action (pattern Post/Redirect/Get).
+     Servlet : session.setAttribute("flash", "Contrat créé.") et éventuellement
+     session.setAttribute("flashType", "success" | "error" | "info").
+     Erreur sans redirection : request.setAttribute("erreurGlobale", "..."). --%>
+<c:if test="${not empty sessionScope.flash}">
+  <div class="alert alert-${empty sessionScope.flashType ? 'success' : sessionScope.flashType}" role="status">
+    <span><c:out value="${sessionScope.flash}" /></span>
+  </div>
+  <c:remove var="flash" scope="session" />
+  <c:remove var="flashType" scope="session" />
+</c:if>
+<c:if test="${not empty erreurGlobale}">
+  <div class="alert alert-error" role="alert"><span><c:out value="${erreurGlobale}" /></span></div>
+</c:if>
