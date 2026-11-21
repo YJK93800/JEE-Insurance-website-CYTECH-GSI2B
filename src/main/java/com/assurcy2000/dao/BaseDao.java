@@ -1,8 +1,7 @@
 package com.assurcy2000.dao;
 
-import com.assurcy2000.util.HibernateUtil;
+import com.assurcy2000.persistence.HibernateUtil;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 import java.io.Serializable;
 import java.util.List;
@@ -10,6 +9,12 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * CRUD commun à tous les DAO Hibernate.
+ * Aucun DAO n'ouvre de transaction : ils travaillent sur la session courante,
+ * ouverte par le service via TransactionRunner. Appeler un DAO hors transaction
+ * lève une erreur Hibernate.
+ */
 public abstract class BaseDao<T, ID extends Serializable> {
 
     private final Class<T> entityClass;
@@ -18,54 +23,40 @@ public abstract class BaseDao<T, ID extends Serializable> {
         this.entityClass = entityClass;
     }
 
-
     public T save(T entity) {
-        runInTransaction(s -> s.persist(entity));
+        session().persist(entity);
         return entity;
     }
 
     public T update(T entity) {
-        return inTransaction(s -> s.merge(entity));
+        return session().merge(entity);
     }
 
     public void delete(T entity) {
-        runInTransaction(s -> s.remove(s.contains(entity) ? entity : s.merge(entity)));
+        Session s = session();
+        s.remove(s.contains(entity) ? entity : s.merge(entity));
     }
 
     public Optional<T> findById(ID id) {
-        return query(s -> Optional.ofNullable(s.find(entityClass, id)));
+        return Optional.ofNullable(session().find(entityClass, id));
     }
 
     public List<T> findAll() {
-        return query(s -> s.createQuery(
-                "from " + entityClass.getSimpleName(), entityClass).getResultList());
+        return session().createQuery("from " + entityClass.getSimpleName(), entityClass).getResultList();
     }
 
+    /** Session de la transaction en cours (celle ouverte par le service). */
+    protected Session session() {
+        return HibernateUtil.getSessionFactory().getCurrentSession();
+    }
+
+    /** Raccourci pour les requêtes des sous-classes. */
     protected <R> R query(Function<Session, R> work) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return work.apply(session);
-        }
+        return work.apply(session());
     }
 
-    protected <R> R inTransaction(Function<Session, R> work) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction tx = null;
-        try {
-            tx = session.beginTransaction();
-            R result = work.apply(session);
-            tx.commit();
-            return result;
-        } catch (RuntimeException e) {
-            if (tx != null && tx.isActive()) {
-                try { tx.rollback(); } catch (RuntimeException ignored) { /* on garde l'exception d'origine */ }
-            }
-            throw e;
-        } finally {
-            session.close();
-        }
-    }
-
-    protected void runInTransaction(Consumer<Session> work) {
-        inTransaction(s -> { work.accept(s); return null; });
+    /** Raccourci pour les modifications des sous-classes. */
+    protected void execute(Consumer<Session> work) {
+        work.accept(session());
     }
 }

@@ -67,7 +67,7 @@ public class PreviewServlet extends HttpServlet {
         PAGES.put("client/sinistre-form", "Client · Déclarer un sinistre");
         PAGES.put("client/historique", "Client · Historique des demandes");
         PAGES.put("client/assistant", "Client · Assistant IA");
-        PAGES.put("client/profil", "Client · Mon profil");
+        PAGES.put("common/profil", "Commun · Mon profil");
         PAGES.put("agent/clients", "Agent · Clients");
         PAGES.put("agent/contrats", "Agent · Contrats");
         PAGES.put("agent/contrat-form", "Agent · Modifier un contrat");
@@ -193,8 +193,10 @@ public class PreviewServlet extends HttpServlet {
             case "client/assistant":
                 set(req, "nbContrats", 3, "nbGaranties", 10, "nbSinistres", 1, "nbPaiements", 24, "agentReferent", julien);
                 break;
-            case "client/profil":
-                set(req, "client", camille);
+            case "common/profil":
+                set(req, "user", m("firstName", "Camille", "lastName", "Martin", "email", "c.martin@mail.fr",
+                        "phone", "06 12 34 56 78", "address", "12 rue des Lilas, 95000 Cergy",
+                        "birthDate", LocalDate.of(1990, 5, 14)));
                 break;
             case "agent/clients":
                 Map<String, Object> selection = new LinkedHashMap<>(camille);

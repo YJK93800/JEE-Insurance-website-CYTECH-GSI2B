@@ -29,7 +29,7 @@ public class AiMessageDao extends BaseDao<AiMessage, Long> {
     }
 
     public int deleteByClient(Long clientId) {
-        return inTransaction(s -> s.createMutationQuery("delete from AiMessage m where m.client.id = :clientId")
+        return query(s -> s.createMutationQuery("delete from AiMessage m where m.client.id = :clientId")
                 .setParameter("clientId", clientId)
                 .executeUpdate());
     }

@@ -5,6 +5,8 @@ import com.assurcy2000.dao.UserDao;
 import com.assurcy2000.dto.request.RegisterRequest;
 import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
+import com.assurcy2000.persistence.HibernateTransactionRunner;
+import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.service.exceptions.AuthException;
 import com.assurcy2000.service.exceptions.ValidationException;
 import org.hibernate.exception.ConstraintViolationException;
@@ -25,14 +27,16 @@ public class AuthService {
     private static final String DUMMY_HASH = BCrypt.hashpw("mot-de-passe-factice", BCrypt.gensalt());
     private final UserDao userDao;
     private final RoleDao roleDao;
+    private final TransactionRunner tx;
 
     public AuthService() {
-        this(new UserDao(), new RoleDao());
+        this(new UserDao(), new RoleDao(), new HibernateTransactionRunner());
     }
 
-    public AuthService(UserDao userDao, RoleDao roleDao) {
+    public AuthService(UserDao userDao, RoleDao roleDao, TransactionRunner tx) {
         this.userDao = userDao;
         this.roleDao = roleDao;
+        this.tx = tx;
     }
 
     public User register(RegisterRequest req) {
@@ -42,26 +46,24 @@ public class AuthService {
         }
 
         String email = req.email().trim().toLowerCase();
-        if (userDao.existsByEmail(email)) {
-            throw new ValidationException(Map.of("email", "Cet email est déjà utilisé."));
-        }
-
-        Role clientRole = roleDao.findByName(Role.CLIENT)
-                .orElseThrow(() -> new IllegalStateException("Le rôle CLIENT n'existe pas en base"));
-
-        User user = new User(
-                req.firstName().trim(),
-                req.lastName().trim(),
-                email,
-                BCrypt.hashpw(req.password(), BCrypt.gensalt()),
-                clientRole);
-        user.setBirthDate(LocalDate.parse(req.birthDate().trim()));
-        user.setPhone(blankToNull(req.phone()));
-        user.setAddress(blankToNull(req.address()));
+        String hash = BCrypt.hashpw(req.password(), BCrypt.gensalt()); // calcul lent : hors transaction
 
         try {
-            return userDao.save(user);
+            return tx.inTransaction(() -> {
+                if (userDao.existsByEmail(email)) {
+                    throw new ValidationException(Map.of("email", "Cet email est déjà utilisé."));
+                }
+                Role clientRole = roleDao.findByName(Role.CLIENT)
+                        .orElseThrow(() -> new IllegalStateException("Le rôle CLIENT n'existe pas en base"));
+
+                User user = new User(req.firstName().trim(), req.lastName().trim(), email, hash, clientRole);
+                user.setBirthDate(LocalDate.parse(req.birthDate().trim()));
+                user.setPhone(blankToNull(req.phone()));
+                user.setAddress(blankToNull(req.address()));
+                return userDao.save(user);
+            });
         } catch (ConstraintViolationException e) {
+            // deux inscriptions simultanées avec le même email : la contrainte UNIQUE tranche, la transaction est annulée
             throw new ValidationException(Map.of("email", "Cet email est déjà utilisé."));
         }
     }
@@ -124,7 +126,8 @@ public class AuthService {
             throw new AuthException("Email ou mot de passe incorrect.");
         }
 
-        Optional<User> found = userDao.findByEmail(email);
+        String normalizedEmail = email;
+        Optional<User> found = tx.inTransaction(() -> userDao.findByEmail(normalizedEmail));
         String hash = found.map(User::getPassword).orElse(DUMMY_HASH);
 
         boolean passwordOk;

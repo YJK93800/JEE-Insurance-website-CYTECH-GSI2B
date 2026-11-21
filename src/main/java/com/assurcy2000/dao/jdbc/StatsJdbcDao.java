@@ -1,6 +1,6 @@
 package com.assurcy2000.dao.jdbc;
 
-import com.assurcy2000.util.HibernateUtil;
+import com.assurcy2000.persistence.HibernateUtil;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;

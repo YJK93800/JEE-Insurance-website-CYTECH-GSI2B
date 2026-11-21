@@ -6,6 +6,7 @@ import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
 import com.assurcy2000.model.enums.ContractStatus;
 import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,6 +38,11 @@ class ContractServiceTest {
         @Override public Contract update(Contract c) { return c; }
     }
 
+    /** Faux runner : exécute le code tel quel, sans transaction ni base. */
+    static final TransactionRunner DIRECT = new TransactionRunner() {
+        @Override public <R> R inTransaction(Supplier<R> work) { return work.get(); }
+    };
+
     private SessionUser alice, bob, agent, admin;
     private ContractService service;
     private Contract aliceContract, bobContract;
@@ -45,7 +52,7 @@ class ContractServiceTest {
         User aliceUser = user(1L, "alice"), bobUser = user(2L, "bob");
         aliceContract = contract(10L, aliceUser, ContractStatus.ACTIF);
         bobContract = contract(20L, bobUser, ContractStatus.ACTIF);
-        service = new ContractService(new FakeContractDao(Map.of(10L, aliceContract, 20L, bobContract)));
+        service = new ContractService(new FakeContractDao(Map.of(10L, aliceContract, 20L, bobContract)), DIRECT);
 
         alice = new SessionUser(1L, "Alice", "A", "alice@x.fr", Role.CLIENT);
         bob = new SessionUser(2L, "Bob", "B", "bob@x.fr", Role.CLIENT);

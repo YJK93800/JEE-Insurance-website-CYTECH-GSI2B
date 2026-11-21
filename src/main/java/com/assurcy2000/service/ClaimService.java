@@ -9,6 +9,8 @@ import com.assurcy2000.model.Contract;
 import com.assurcy2000.model.enums.ClaimStatus;
 import com.assurcy2000.model.enums.ClaimType;
 import com.assurcy2000.model.enums.ContractStatus;
+import com.assurcy2000.persistence.HibernateTransactionRunner;
+import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.security.Policy;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
@@ -40,30 +42,39 @@ public class ClaimService {
     private final ClaimDao claimDao;
     private final ContractDao contractDao;
     private final UserDao userDao;
+    private final TransactionRunner tx;
 
-    public ClaimService() { this(new ClaimDao(), new ContractDao(), new UserDao()); }
+    public ClaimService() { this(new ClaimDao(), new ContractDao(), new UserDao(), new HibernateTransactionRunner()); }
 
-    public ClaimService(ClaimDao claimDao, ContractDao contractDao, UserDao userDao) {
+    public ClaimService(ClaimDao claimDao, ContractDao contractDao, UserDao userDao, TransactionRunner tx) {
         this.claimDao = claimDao;
         this.contractDao = contractDao;
         this.userDao = userDao;
+        this.tx = tx;
     }
 
     public List<Claim> listFor(SessionUser actor) {
-        if (Policy.can(actor, CLAIM_READ_ALL)) return claimDao.findAll();
+        if (Policy.can(actor, CLAIM_READ_ALL)) return tx.inTransaction(claimDao::findAll);
         Policy.require(actor, CLAIM_READ_OWN);
-        return claimDao.findByClient(actor.id());
+        return tx.inTransaction(() -> claimDao.findByClient(actor.id()));
     }
 
     public Claim get(SessionUser actor, Long id) {
-        Claim claim = claimDao.findById(id).orElseThrow(() -> new NotFoundException("Sinistre introuvable."));
-        if (Policy.can(actor, CLAIM_READ_ALL)) return claim;
-        if (Policy.can(actor, CLAIM_READ_OWN) && claim.getContract().getClient().getId().equals(actor.id())) return claim;
-        throw new NotFoundException("Sinistre introuvable.");
+        return tx.inTransaction(() -> {
+            Claim claim = claimDao.findById(id).orElseThrow(() -> new NotFoundException("Sinistre introuvable."));
+            if (Policy.can(actor, CLAIM_READ_ALL)) return claim;
+            if (Policy.can(actor, CLAIM_READ_OWN) && claim.getContract().getClient().getId().equals(actor.id())) return claim;
+            throw new NotFoundException("Sinistre introuvable.");
+        });
     }
 
+    /** Vérification du contrat + génération du numéro + insertion : une seule transaction. */
     public Claim declare(SessionUser actor, DeclareClaimRequest req) {
         Policy.require(actor, CLAIM_CREATE_OWN);
+        return tx.inTransaction(() -> doDeclare(actor, req));
+    }
+
+    private Claim doDeclare(SessionUser actor, DeclareClaimRequest req) {
         Map<String, String> errors = new LinkedHashMap<>();
 
         Contract contract = null;
@@ -117,22 +128,20 @@ public class ClaimService {
 
     public Claim changeStatus(SessionUser actor, Long id, ClaimStatus next) {
         Policy.require(actor, CLAIM_UPDATE);
-        Claim claim = get(actor, id);
-        if (!TRANSITIONS.get(claim.getStatus()).contains(next)) {
-            throw new ValidationException(Map.of("status",
-                    "Passage de " + claim.getStatus() + " à " + next + " impossible."));
-        }
-        claim.setStatus(next);
-        claim.setAgent(userDao.findById(actor.id()).orElseThrow());
-        return claimDao.update(claim);
+        return tx.inTransaction(() -> {
+            Claim claim = get(actor, id);
+            if (!TRANSITIONS.get(claim.getStatus()).contains(next)) {
+                throw new ValidationException(Map.of("status",
+                        "Passage de " + claim.getStatus() + " à " + next + " impossible."));
+            }
+            claim.setStatus(next);
+            claim.setAgent(userDao.findById(actor.id()).orElseThrow());
+            return claimDao.update(claim);
+        });
     }
 
     public Claim indemnify(SessionUser actor, Long id, String amountText) {
         Policy.require(actor, CLAIM_UPDATE);
-        Claim claim = get(actor, id);
-        if (claim.getStatus() != ClaimStatus.ACCEPTE) {
-            throw new ValidationException(Map.of("status", "Seul un sinistre accepté peut être indemnisé."));
-        }
         BigDecimal amount;
         try {
             amount = new BigDecimal(trim(amountText).replace(',', '.'));
@@ -142,11 +151,17 @@ public class ClaimService {
         if (amount.signum() <= 0 || amount.compareTo(MAX_AMOUNT) > 0) {
             throw new ValidationException(Map.of("amount", "Montant invalide."));
         }
-        claim.setIndemnifiedAmount(amount);
-        claim.setIndemnificationDate(LocalDate.now());
-        claim.setStatus(ClaimStatus.INDEMNISE);
-        claim.setAgent(userDao.findById(actor.id()).orElseThrow());
-        return claimDao.update(claim);
+        return tx.inTransaction(() -> {
+            Claim claim = get(actor, id);
+            if (claim.getStatus() != ClaimStatus.ACCEPTE) {
+                throw new ValidationException(Map.of("status", "Seul un sinistre accepté peut être indemnisé."));
+            }
+            claim.setIndemnifiedAmount(amount);
+            claim.setIndemnificationDate(LocalDate.now());
+            claim.setStatus(ClaimStatus.INDEMNISE);
+            claim.setAgent(userDao.findById(actor.id()).orElseThrow());
+            return claimDao.update(claim);
+        });
     }
 
     private String nextNumber() {

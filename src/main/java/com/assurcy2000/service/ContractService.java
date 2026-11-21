@@ -3,6 +3,8 @@ package com.assurcy2000.service;
 import com.assurcy2000.dao.ContractDao;
 import com.assurcy2000.model.Contract;
 import com.assurcy2000.model.enums.ContractStatus;
+import com.assurcy2000.persistence.HibernateTransactionRunner;
+import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.security.Policy;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
@@ -15,50 +17,58 @@ import static com.assurcy2000.security.Permission.*;
 public class ContractService {
 
     private final ContractDao contractDao;
+    private final TransactionRunner tx;
 
-    public ContractService() { this(new ContractDao()); }
+    public ContractService() { this(new ContractDao(), new HibernateTransactionRunner()); }
 
-    public ContractService(ContractDao contractDao) { this.contractDao = contractDao; }
+    public ContractService(ContractDao contractDao, TransactionRunner tx) {
+        this.contractDao = contractDao;
+        this.tx = tx;
+    }
 
     /**
      * Client can only read his contracts, agent & admins can read any clients'  contracts
      */
     public List<Contract> listFor(SessionUser actor) {
-        if (Policy.can(actor, CONTRACT_READ_ALL)) return contractDao.findAll();
+        if (Policy.can(actor, CONTRACT_READ_ALL)) return tx.inTransaction(contractDao::findAll);
         Policy.require(actor, CONTRACT_READ_OWN);
-        return contractDao.findByClient(actor.id());
+        return tx.inTransaction(() -> contractDao.findByClient(actor.id()));
     }
 
     /**
      * A client can only read his own contracts, and not find someone else's contracts through their ids
      */
     public Contract get(SessionUser actor, Long id) {
-        Contract contract = contractDao.findById(id)
-                .orElseThrow(() -> new NotFoundException("Contrat introuvable."));
-        if (Policy.can(actor, CONTRACT_READ_ALL)) return contract;
-        if (Policy.can(actor, CONTRACT_READ_OWN) && contract.getClient().getId().equals(actor.id())) return contract;
-        throw new NotFoundException("Contrat introuvable.");
+        return tx.inTransaction(() -> {
+            Contract contract = contractDao.findById(id)
+                    .orElseThrow(() -> new NotFoundException("Contrat introuvable."));
+            if (Policy.can(actor, CONTRACT_READ_ALL)) return contract;
+            if (Policy.can(actor, CONTRACT_READ_OWN) && contract.getClient().getId().equals(actor.id())) return contract;
+            throw new NotFoundException("Contrat introuvable.");
+        });
     }
 
     public List<Contract> listByClient(SessionUser actor, Long clientId) {
         Policy.require(actor, CLIENT_READ);
         Policy.require(actor, CONTRACT_READ_ALL);
-        return contractDao.findByClient(clientId);
+        return tx.inTransaction(() -> contractDao.findByClient(clientId));
     }
 
     public List<Contract> search(SessionUser actor, String keyword) {
         Policy.require(actor, CONTRACT_READ_ALL);
-        if (keyword == null || keyword.isBlank()) return contractDao.findAll();
-        return contractDao.search(keyword);
+        if (keyword == null || keyword.isBlank()) return tx.inTransaction(contractDao::findAll);
+        return tx.inTransaction(() -> contractDao.search(keyword));
     }
 
     public Contract suspend(SessionUser actor, Long id) {
         Policy.require(actor, CONTRACT_WRITE);
-        Contract contract = get(actor, id);
-        if (contract.getStatus() != ContractStatus.ACTIF) {
-            throw new ValidationException(Map.of("status", "Seul un contrat actif peut être suspendu."));
-        }
-        contract.setStatus(ContractStatus.SUSPENDU);
-        return contractDao.update(contract);
+        return tx.inTransaction(() -> {
+            Contract contract = get(actor, id); // réutilise la transaction en cours
+            if (contract.getStatus() != ContractStatus.ACTIF) {
+                throw new ValidationException(Map.of("status", "Seul un contrat actif peut être suspendu."));
+            }
+            contract.setStatus(ContractStatus.SUSPENDU);
+            return contractDao.update(contract);
+        });
     }
 }

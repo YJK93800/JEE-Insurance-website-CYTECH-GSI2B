@@ -1,7 +1,7 @@
 package com.assurcy2000.listener;
 
 import com.assurcy2000.util.DbConfig;
-import com.assurcy2000.util.HibernateUtil;
+import com.assurcy2000.persistence.HibernateUtil;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;

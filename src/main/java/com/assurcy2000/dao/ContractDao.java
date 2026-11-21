@@ -88,7 +88,7 @@ public class ContractDao extends BaseDao<Contract, Long> {
     }
 
     public void addGuarantee(Long contractId, Long guaranteeId) {
-        runInTransaction(s -> {
+        execute(s -> {
             Contract contract = s.find(Contract.class, contractId);
             Guarantee guarantee = s.find(Guarantee.class, guaranteeId);
             if (contract == null || guarantee == null) {
@@ -99,7 +99,7 @@ public class ContractDao extends BaseDao<Contract, Long> {
     }
 
     public void removeGuarantee(Long contractId, Long guaranteeId) {
-        runInTransaction(s -> {
+        execute(s -> {
             Contract contract = s.find(Contract.class, contractId);
             Guarantee guarantee = s.find(Guarantee.class, guaranteeId);
             if (contract == null || guarantee == null) {

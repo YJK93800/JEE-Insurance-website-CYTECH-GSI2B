@@ -1,5 +1,6 @@
-package com.assurcy2000.util;
+package com.assurcy2000.persistence;
 
+import com.assurcy2000.util.DbConfig;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
