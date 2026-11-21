@@ -27,6 +27,7 @@
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
       <form class="form" method="post" action="${ctx}/login" novalidate data-validate>
+        <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
         <ui:champ nom="email" libelle="Adresse e-mail" type="email" requis="true" extra="autocomplete='username'" />
         <ui:champ nom="motDePasse" libelle="Mot de passe" type="password" requis="true" extra="autocomplete='current-password'" />
         <button type="submit" class="btn btn-primary btn-block">Se connecter</button>

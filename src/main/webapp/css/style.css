@@ -85,6 +85,12 @@ p { margin: 0; }
 .user-links { font-size: 12px; color: #AEB8C6; }
 .user-links a { color: #AEB8C6; text-decoration: none; }
 .user-links a:hover { color: #FFF; text-decoration: underline; }
+.logout-form { display: inline; margin: 0; }
+.link-button {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font: inherit; color: #AEB8C6;
+}
+.link-button:hover { color: #FFF; text-decoration: underline; }
 
 /* ---------- En-tête de page ---------- */
 .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }

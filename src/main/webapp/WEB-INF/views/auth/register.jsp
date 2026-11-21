@@ -28,6 +28,7 @@
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
       <form class="form" method="post" action="${ctx}/register" novalidate data-validate>
+        <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
         <div class="grid-2">
           <ui:champ nom="prenom" libelle="Prénom" requis="true" extra="maxlength='60' autocomplete='given-name'" />
           <ui:champ nom="nom" libelle="Nom" requis="true" extra="maxlength='60' autocomplete='family-name'" />
