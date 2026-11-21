@@ -1,4 +1,4 @@
-package com.assurcy2000.dto;
+package com.assurcy2000.dto.request;
 
 
 public record RegisterRequest(
