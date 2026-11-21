@@ -1,5 +1,6 @@
 package com.assurcy2000.security;
 
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.model.Role;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 

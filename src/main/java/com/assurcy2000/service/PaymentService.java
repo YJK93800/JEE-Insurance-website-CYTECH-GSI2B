@@ -6,7 +6,7 @@ import com.assurcy2000.model.Payment;
 import com.assurcy2000.model.enums.PaymentMethod;
 import com.assurcy2000.model.enums.PaymentStatus;
 import com.assurcy2000.security.Policy;
-import com.assurcy2000.security.SessionUser;
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
 

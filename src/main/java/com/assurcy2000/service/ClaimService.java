@@ -3,14 +3,14 @@ package com.assurcy2000.service;
 import com.assurcy2000.dao.ClaimDao;
 import com.assurcy2000.dao.ContractDao;
 import com.assurcy2000.dao.UserDao;
-import com.assurcy2000.dto.DeclareClaimRequest;
+import com.assurcy2000.dto.request.DeclareClaimRequest;
 import com.assurcy2000.model.Claim;
 import com.assurcy2000.model.Contract;
 import com.assurcy2000.model.enums.ClaimStatus;
 import com.assurcy2000.model.enums.ClaimType;
 import com.assurcy2000.model.enums.ContractStatus;
 import com.assurcy2000.security.Policy;
-import com.assurcy2000.security.SessionUser;
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
 

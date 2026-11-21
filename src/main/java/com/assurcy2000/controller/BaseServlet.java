@@ -1,11 +1,11 @@
 package com.assurcy2000.controller;
 
 import com.assurcy2000.model.enums.ClaimStatus;
-import com.assurcy2000.security.Auth;
-import com.assurcy2000.security.SessionUser;
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.security.UserSession;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,7 +29,7 @@ public abstract class BaseServlet extends HttpServlet {
     }
 
     protected SessionUser user(HttpServletRequest req) {
-        SessionUser user = Auth.current(req);
+        SessionUser user = UserSession.currentUser(req);
         if (user == null) throw new ForbiddenException();
         return user;
     }

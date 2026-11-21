@@ -5,7 +5,7 @@ import com.assurcy2000.dao.UserDao;
 import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
 import com.assurcy2000.security.Policy;
-import com.assurcy2000.security.SessionUser;
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
 

@@ -7,7 +7,7 @@ import com.assurcy2000.dao.jdbc.StatsJdbcDao;
 import com.assurcy2000.dto.StatsView;
 import com.assurcy2000.model.Role;
 import com.assurcy2000.security.Policy;
-import com.assurcy2000.security.SessionUser;
+import com.assurcy2000.dto.SessionUser;
 
 import static com.assurcy2000.security.Permission.STATS_READ;
 

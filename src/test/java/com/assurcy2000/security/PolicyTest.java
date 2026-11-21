@@ -1,5 +1,6 @@
 package com.assurcy2000.security;
 
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.model.Role;
 import org.junit.jupiter.api.Test;
 
@@ -8,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PolicyTest {
 
-    private static SessionUser as(String role) { return new SessionUser(1L, "x@x.fr", "X Y", role); }
+    private static SessionUser as(String role) { return new SessionUser(1L, "X", "Y", "x@x.fr", role); }
 
     @Test
     void clientCannotReadEveryoneOrManageUsers() {
