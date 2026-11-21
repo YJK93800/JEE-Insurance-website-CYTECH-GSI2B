@@ -1,5 +1,8 @@
 package com.assurcy2000.security;
 
+import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.model.Role;
+import com.assurcy2000.security.UserSession;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 
@@ -12,15 +15,19 @@ public class AuthFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
-        String path = Auth.currentPath(req);
+        String path = UserSession.currentPath(req);
 
         if (isPublic(path)) {
             chain.doFilter(request, response);
             return;
         }
 
-        SessionUser user = Auth.current(req);
+        SessionUser user = UserSession.currentUser(req);
         if (user == null) {
+            if ("GET".equals(req.getMethod())) { // on ne rejoue pas un formulaire POST
+                String query = req.getQueryString();
+                UserSession.rememberRedirect(req, path + (query == null ? "" : "?" + query));
+            }
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
@@ -36,5 +43,13 @@ public class AuthFilter implements Filter {
                 || path.startsWith("/css/")
                 || path.startsWith("/js/")
                 || path.equals("/preview"); // à retirer avant le rendu
+    }
+
+    /** La page est-elle accessible pour ce rôle ? (même règle que RoleFilter) */
+    public static boolean isAllowed(String path, SessionUser user) {
+        if (path.startsWith("/admin/"))  return user.is(Role.ADMIN);
+        if (path.startsWith("/agent/"))  return user.is(Role.AGENT) || user.is(Role.ADMIN);
+        if (path.startsWith("/client/")) return user.is(Role.CLIENT);
+        return true;
     }
 }

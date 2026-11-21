@@ -1,6 +1,8 @@
 package com.assurcy2000.security;
 
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.model.Role;
+import com.assurcy2000.security.UserSession;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 
@@ -21,8 +23,8 @@ public class RoleFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
-        String path = Auth.currentPath(req) + "/";
-        SessionUser user = Auth.current(req);
+        String path = UserSession.currentPath(req) + "/";
+        SessionUser user = UserSession.currentUser(req);
 
         for (var rule : RULES.entrySet()) {
             if (path.startsWith(rule.getKey())) {

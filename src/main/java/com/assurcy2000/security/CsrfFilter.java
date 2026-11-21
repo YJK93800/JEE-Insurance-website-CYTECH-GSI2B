@@ -13,7 +13,7 @@ import java.util.Set;
 public class CsrfFilter implements Filter {
 
     public static final String ATTRIBUTE = "csrfToken";
-    public static final String PARAMETER = "_csrf";
+    public static final String PARAMETER = UserSession.CSRF_TOKEN;
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS");
     private static final SecureRandom RANDOM = new SecureRandom();
 

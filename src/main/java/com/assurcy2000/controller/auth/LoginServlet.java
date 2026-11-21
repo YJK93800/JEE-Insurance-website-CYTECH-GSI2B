@@ -2,10 +2,11 @@ package com.assurcy2000.controller.auth;
 
 import com.assurcy2000.controller.BaseServlet;
 import com.assurcy2000.model.User;
-import com.assurcy2000.security.Auth;
-import com.assurcy2000.security.SessionUser;
+import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.security.AuthFilter;
 import com.assurcy2000.service.AuthService;
 import com.assurcy2000.service.exceptions.AuthException;
+import com.assurcy2000.security.UserSession;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,7 +22,7 @@ public class LoginServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        SessionUser current = Auth.current(req);
+        SessionUser current = UserSession.currentUser(req);
         if (current != null) { redirect(req, resp, current.homePath()); return; }
         render(req, resp, Views.LOGIN);
     }
@@ -30,11 +31,13 @@ public class LoginServlet extends BaseServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String email = param(req, "email");
         try {
-            User user = authService.login(email, param(req, "password"));
-            Auth.signIn(req, user);
-            redirect(req, resp, SessionUser.from(user).homePath());
+            User user = authService.login(email, param(req, "motDePasse"));
+            SessionUser sessionUser = SessionUser.from(user);
+            String saved = UserSession.login(req, sessionUser);
+            String target = (saved != null && AuthFilter.isAllowed(saved, sessionUser)) ? saved : sessionUser.homePath();
+            redirect(req, resp, target);
         } catch (AuthException e) {
-            req.setAttribute("error", e.getMessage());
+            req.setAttribute("erreurGlobale", e.getMessage());
             req.setAttribute("email", email);
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             render(req, resp, Views.LOGIN);
