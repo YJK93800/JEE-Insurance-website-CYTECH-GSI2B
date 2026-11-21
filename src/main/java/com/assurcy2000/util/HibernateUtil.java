@@ -12,7 +12,10 @@ public final class HibernateUtil {
     private static SessionFactory build() {
         try {
             return new Configuration()
-                    .configure()
+                    .configure() // lit hibernate.cfg.xml
+                    .setProperty("hibernate.connection.url", DbConfig.url())
+                    .setProperty("hibernate.connection.username", DbConfig.user())
+                    .setProperty("hibernate.connection.password", DbConfig.password())
                     .buildSessionFactory();
         } catch (Throwable e) {
             System.err.println("Failed to Initialize Hibernate : " + e);
