@@ -5,7 +5,7 @@ import com.assurcy2000.model.Contract;
 import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
 import com.assurcy2000.model.enums.ContractStatus;
-import com.assurcy2000.security.SessionUser;
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
@@ -47,10 +47,10 @@ class ContractServiceTest {
         bobContract = contract(20L, bobUser, ContractStatus.ACTIF);
         service = new ContractService(new FakeContractDao(Map.of(10L, aliceContract, 20L, bobContract)));
 
-        alice = new SessionUser(1L, "alice@x.fr", "Alice A", Role.CLIENT);
-        bob = new SessionUser(2L, "bob@x.fr", "Bob B", Role.CLIENT);
-        agent = new SessionUser(3L, "agent@x.fr", "Agent", Role.AGENT);
-        admin = new SessionUser(4L, "admin@x.fr", "Admin", Role.ADMIN);
+        alice = new SessionUser(1L, "Alice", "A", "alice@x.fr", Role.CLIENT);
+        bob = new SessionUser(2L, "Bob", "B", "bob@x.fr", Role.CLIENT);
+        agent = new SessionUser(3L, "Agent", "Agent", "agent@x.fr", Role.AGENT);
+        admin = new SessionUser(4L, "Admin", "Admin", "admin@x.fr", Role.ADMIN);
     }
 
     @Test

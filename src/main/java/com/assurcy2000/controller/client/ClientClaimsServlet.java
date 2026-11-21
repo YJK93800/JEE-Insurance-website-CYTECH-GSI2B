@@ -1,11 +1,11 @@
 package com.assurcy2000.controller.client;
 
 import com.assurcy2000.controller.BaseServlet;
-import com.assurcy2000.dto.DeclareClaimRequest;
+import com.assurcy2000.dto.request.DeclareClaimRequest;
 import com.assurcy2000.model.Claim;
 import com.assurcy2000.model.enums.ClaimType;
 import com.assurcy2000.model.enums.ContractStatus;
-import com.assurcy2000.security.SessionUser;
+import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.ClaimService;
 import com.assurcy2000.service.ContractService;
 import com.assurcy2000.service.exceptions.ValidationException;
