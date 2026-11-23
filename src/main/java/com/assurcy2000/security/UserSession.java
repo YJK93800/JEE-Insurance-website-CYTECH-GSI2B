@@ -29,7 +29,10 @@ public final class UserSession {
     /** Utilisateur connecté, ou null. Ne crée pas de session s'il n'y en a pas. */
     public static SessionUser currentUser(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
-        return session == null ? null : (SessionUser) session.getAttribute(USER);
+        if (session == null) return null;
+        // instanceof plutôt qu'un cast : PreviewServlet (dev) met une Map dans "utilisateur",
+        // un cast direct ferait planter tous les filtres (erreur 500) sur les requêtes suivantes.
+        return session.getAttribute(USER) instanceof SessionUser user ? user : null;
     }
 
     public static boolean isLoggedIn(HttpServletRequest req) {
