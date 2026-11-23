@@ -12,6 +12,7 @@ import com.assurcy2000.service.UserService;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.util.FormView;
 import com.assurcy2000.util.RequestParams;
+import com.assurcy2000.util.Validation;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -86,18 +87,9 @@ public class ContractFormServlet extends BaseServlet {
             errors.put("dateFin", "La date de fin doit être après la date de début.");
         }
 
-        BigDecimal premium = null; // vide = prix de base du type (décidé par le service)
-        String premiumText = RequestParams.get(req, "prime").replace(',', '.');
-        if (!premiumText.isEmpty()) {
-            try {
-                premium = new BigDecimal(premiumText);
-                if (premium.signum() <= 0 || premium.compareTo(PREMIUM_MAX) > 0 || premium.scale() > 2) {
-                    errors.put("prime", "La prime doit être un montant positif (2 décimales max).");
-                }
-            } catch (NumberFormatException e) {
-                errors.put("prime", "La prime n'est pas un montant valide.");
-            }
-        }
+        // facultative : vide = prix de base du type (décidé par le service)
+        BigDecimal premium = Validation.amount(RequestParams.get(req, "prime"), "prime", "La prime",
+                PREMIUM_MAX, false, errors);
 
         Set<Long> guaranteeIds = new LinkedHashSet<>();
         String[] values = req.getParameterValues("garantieIds");

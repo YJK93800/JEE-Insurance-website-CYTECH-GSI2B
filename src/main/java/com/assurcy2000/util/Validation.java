@@ -1,5 +1,6 @@
 package com.assurcy2000.util;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
@@ -79,6 +80,38 @@ public final class Validation {
             return date;
         } catch (DateTimeParseException e) {
             errors.put("dateNaissance", "La date de naissance n'est pas valide.");
+            return null;
+        }
+    }
+
+    /**
+     * Montant en euros saisi dans un formulaire : accepte la virgule ou le point ("12,50" ou "12.50").
+     * Doit être strictement positif, au plus égal à max, avec 2 décimales au maximum.
+     * Champ vide : erreur si required, sinon null (ex. prime vide = prix de base du type).
+     * Renvoie null si le montant est absent ou invalide.
+     *
+     * @param label début du message d'erreur, ex. "Le montant", "La prime"
+     */
+    public static BigDecimal amount(String value, String field, String label, BigDecimal max,
+                                    boolean required, Map<String, String> errors) {
+        String v = Strings.trimToEmpty(value).replace(',', '.');
+        if (v.isEmpty()) {
+            if (required) errors.put(field, label + " est obligatoire.");
+            return null;
+        }
+        try {
+            BigDecimal amount = new BigDecimal(v);
+            if (amount.signum() <= 0 || amount.scale() > 2) {
+                errors.put(field, label + " doit être un montant positif (2 décimales max).");
+                return null;
+            }
+            if (amount.compareTo(max) > 0) {
+                errors.put(field, label + " ne peut pas dépasser " + max.toPlainString() + " €.");
+                return null;
+            }
+            return amount;
+        } catch (NumberFormatException e) {
+            errors.put(field, label + " n'est pas valide.");
             return null;
         }
     }

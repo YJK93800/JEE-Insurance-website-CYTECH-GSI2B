@@ -16,6 +16,7 @@ import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.util.Strings;
+import com.assurcy2000.util.Validation;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -109,13 +110,8 @@ public class ClaimService {
         if (description.length() < 10) errors.put("description", "Décrivez le sinistre (10 caractères minimum).");
         else if (description.length() > 2000) errors.put("description", "Description trop longue (2000 caractères max).");
 
-        BigDecimal amount = null;
-        try {
-            amount = new BigDecimal(Strings.trimToEmpty(req.estimatedAmount()).replace(',', '.'));
-            if (amount.signum() <= 0 || amount.compareTo(MAX_AMOUNT) > 0) errors.put("estimatedAmount", "Montant invalide.");
-        } catch (NumberFormatException e) {
-            errors.put("estimatedAmount", "Le montant n'est pas valide.");
-        }
+        BigDecimal amount = Validation.amount(req.estimatedAmount(), "estimatedAmount", "Le montant estimé",
+                MAX_AMOUNT, true, errors);
 
         if (!errors.isEmpty()) throw new ValidationException(errors);
 
@@ -139,15 +135,9 @@ public class ClaimService {
 
     public Claim indemnify(SessionUser actor, Long id, String amountText) {
         Policy.require(actor, CLAIM_UPDATE);
-        BigDecimal amount;
-        try {
-            amount = new BigDecimal(Strings.trimToEmpty(amountText).replace(',', '.'));
-        } catch (NumberFormatException e) {
-            throw new ValidationException(Map.of("amount", "Le montant n'est pas valide."));
-        }
-        if (amount.signum() <= 0 || amount.compareTo(MAX_AMOUNT) > 0) {
-            throw new ValidationException(Map.of("amount", "Montant invalide."));
-        }
+        Map<String, String> errors = new LinkedHashMap<>();
+        BigDecimal amount = Validation.amount(amountText, "amount", "Le montant", MAX_AMOUNT, true, errors);
+        if (!errors.isEmpty()) throw new ValidationException(errors);
         return tx.inTransaction(() -> {
             Claim claim = get(actor, id);
             if (claim.getStatus() != ClaimStatus.ACCEPTE) {
