@@ -1,0 +1,61 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IntelliJ IDEA ###
+.idea/
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+*.iws
+*.iml
+*.ipr
+out/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# Maven
+target/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Smart Tomcat
+.smarttomcat/
+
+### VS Code ###
+.vscode/
+
+# Système
+.DS_Store
+Thumbs.db
+
+### Mac OS ###
+/src/main/java/com/assurcy2000/TestDao.java
+/src/main/java/com/assurcy2000/TestHibernate.java
+/src/main/java/com/assurcy2000/TestUserDao.java
+/id_github
+/id_github.pub
+/src/main/java/com/assurcy2000/TestAuthService.java
+/src/main/java/com/assurcy2000/TestServices.java
+
+# Secrets (clé de l'API d'IA, mot de passe de la base)
+*.env
+config.properties
+src/main/resources/db.properties
