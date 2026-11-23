@@ -18,7 +18,7 @@
     <c:choose>
       <c:when test="${u.role == 'AGENT'}">
         <a href="${ctx}/agent/clients"   class="${actif == 'clients'   ? 'active' : ''}">Clients</a>
-        <a href="${ctx}/agent/contrats"  class="${actif == 'contrats'  ? 'active' : ''}">Contrats</a>
+        <a href="${ctx}/agent/contracts"  class="${actif == 'contrats'  ? 'active' : ''}">Contrats</a>
         <a href="${ctx}/agent/claims" class="${actif == 'sinistres' ? 'active' : ''}">Sinistres
           <c:if test="${nbSinistresATraiter > 0}"><span class="count">${nbSinistresATraiter}</span></c:if></a>
         <a href="${ctx}/agent/garanties" class="${actif == 'garanties' ? 'active' : ''}">Garanties</a>
@@ -29,7 +29,7 @@
         <a href="${ctx}/admin/stats"        class="${actif == 'stats'        ? 'active' : ''}">Statistiques</a>
         <a href="${ctx}/admin/users" class="${actif == 'utilisateurs' ? 'active' : ''}">Utilisateurs &amp; rôles</a>
         <a href="${ctx}/admin/types"        class="${actif == 'types'        ? 'active' : ''}">Types d'assurance</a>
-        <a href="${ctx}/admin/contrats"     class="${actif == 'contrats'     ? 'active' : ''}">Tous les contrats</a>
+        <a href="${ctx}/admin/contracts"     class="${actif == 'contrats'     ? 'active' : ''}">Tous les contrats</a>
         <a href="${ctx}/admin/claims"    class="${actif == 'sinistres'    ? 'active' : ''}">Tous les sinistres</a>
         <a href="${ctx}/admin/stats#indicateurs">Indicateurs de performance</a>
       </c:when>

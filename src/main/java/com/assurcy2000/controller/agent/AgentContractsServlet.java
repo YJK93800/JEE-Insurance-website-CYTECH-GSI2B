@@ -17,11 +17,11 @@ import java.io.IOException;
 
 /**
  * Liste + recherche des contrats.
- *   GET /agent/contrats?q=…&statut=ACTIF&type=3   agent (avec les actions)
- *   GET /admin/contrats?…                         admin, consultation seule (la JSP masque les actions)
+ *   GET /agent/contracts?q=…&statut=ACTIF&type=3   agent (avec les actions)
+ *   GET /admin/contracts?…                         admin, consultation seule (la JSP masque les actions)
  * Créer, modifier, suspendre, résilier, renouveler : étapes suivantes (liens déjà présents dans la JSP).
  */
-@WebServlet({"/agent/contrats", "/admin/contrats"})
+@WebServlet({"/agent/contracts", "/admin/contracts"})
 public class AgentContractsServlet extends BaseServlet {
 
     private final ContractService contractService = new ContractService();

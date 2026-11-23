@@ -1,13 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- AgentContractsServlet
-     GET  /agent/contrats?q=texte&statut=ACTIF&type=3   (recherche de contrats)
-     POST /agent/contrats/action (contratId, action = suspendre | resilier | renouveler | activer) -> à brancher
+     GET  /agent/contracts?q=texte&statut=ACTIF&type=3   (recherche de contrats)
+     POST /agent/contracts/action (contratId, action = suspendre | resilier | renouveler | activer) -> à brancher
      Attributs : contrats List<Contract>  statuts ContractStatus[]  typesAssurance List<InsuranceType>
-     Aussi utilisée par l'admin (/admin/contrats) en consultation seule. --%>
+     Aussi utilisée par l'admin (/admin/contracts) en consultation seule. --%>
 <c:set var="titre" value="Contrats" />
 <c:set var="estAgent" value="${sessionScope.utilisateur.role == 'AGENT'}" />
-<c:set var="base" value="${estAgent ? '/agent/contrats' : '/admin/contrats'}" />
+<c:set var="base" value="${estAgent ? '/agent/contracts' : '/admin/contracts'}" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
@@ -21,7 +21,7 @@
           <span class="eyebrow">${estAgent ? 'Espace agent' : 'Administration'}</span>
           <h1>${estAgent ? 'Contrats' : 'Tous les contrats'}</h1>
         </div>
-        <c:if test="${estAgent}"><a class="btn btn-primary" href="${ctx}/agent/contrats/edit">+ Nouveau contrat</a></c:if>
+        <c:if test="${estAgent}"><a class="btn btn-primary" href="${ctx}/agent/contracts/edit">+ Nouveau contrat</a></c:if>
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
@@ -64,19 +64,19 @@
                       <td>
                         <div class="actions">
                           <c:if test="${estAgent}">
-                            <a class="btn btn-sm" href="${ctx}/agent/contrats/edit?id=${ct.id}">Modifier</a>
+                            <a class="btn btn-sm" href="${ctx}/agent/contracts/edit?id=${ct.id}">Modifier</a>
                             <c:set var="s" value="${ct.status}" />
                             <c:if test="${s == 'EN_ATTENTE' or s == 'SUSPENDU'}">
-                              <form method="post" action="${ctx}/agent/contrats/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="activer"><button class="btn-link" type="submit">Activer</button></form>
+                              <form method="post" action="${ctx}/agent/contracts/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="activer"><button class="btn-link" type="submit">Activer</button></form>
                             </c:if>
                             <c:if test="${s == 'ACTIF'}">
-                              <form method="post" action="${ctx}/agent/contrats/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="suspendre"><button class="btn-link" type="submit">Suspendre</button></form>
+                              <form method="post" action="${ctx}/agent/contracts/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="suspendre"><button class="btn-link" type="submit">Suspendre</button></form>
                             </c:if>
                             <c:if test="${s == 'ACTIF' or s == 'EXPIRE'}">
-                              <form method="post" action="${ctx}/agent/contrats/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="renouveler"><button class="btn-link" type="submit">Renouveler</button></form>
+                              <form method="post" action="${ctx}/agent/contracts/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="renouveler"><button class="btn-link" type="submit">Renouveler</button></form>
                             </c:if>
                             <c:if test="${s != 'RESILIE' and s != 'EXPIRE'}">
-                              <form method="post" action="${ctx}/agent/contrats/action" data-confirm="Résilier le contrat ${fn:escapeXml(ct.number)} ? Cette action est définitive."><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="resilier"><button class="btn-link danger" type="submit">Résilier</button></form>
+                              <form method="post" action="${ctx}/agent/contracts/action" data-confirm="Résilier le contrat ${fn:escapeXml(ct.number)} ? Cette action est définitive."><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="resilier"><button class="btn-link danger" type="submit">Résilier</button></form>
                             </c:if>
                           </c:if>
                         </div>

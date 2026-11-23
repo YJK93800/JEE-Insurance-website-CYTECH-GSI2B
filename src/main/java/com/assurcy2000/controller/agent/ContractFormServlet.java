@@ -30,11 +30,11 @@ import java.util.Set;
 
 /**
  * Formulaire de contrat (agent/contract-form.jsp).
- *   GET  /agent/contrats/edit   -> formulaire de création
- *   POST /agent/contrats/edit   -> création (id vide)
+ *   GET  /agent/contracts/edit   -> formulaire de création
+ *   POST /agent/contracts/edit   -> création (id vide)
  * La modification (?id=12) viendra à l'étape suivante.
  */
-@WebServlet("/agent/contrats/edit")
+@WebServlet("/agent/contracts/edit")
 public class ContractFormServlet extends BaseServlet {
 
     private static final BigDecimal PREMIUM_MAX = new BigDecimal("99999999.99"); // DECIMAL(10,2)
@@ -66,7 +66,7 @@ public class ContractFormServlet extends BaseServlet {
             try {
                 Contract created = contractService.create(user, form);
                 UserSession.flash(req, "Contrat " + created.getNumber() + " créé (en attente).", "success");
-                redirect(req, resp, "/agent/contrats");
+                redirect(req, resp, "/agent/contracts");
                 return;
             } catch (ValidationException e) {
                 errors.putAll(e.getErrors());

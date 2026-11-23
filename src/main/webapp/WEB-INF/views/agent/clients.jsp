@@ -56,11 +56,11 @@
               <span class="small muted"><c:out value="${selection.email}" /> · <c:out value="${selection.phone}" /></span>
               <span class="small muted"><c:out value="${selection.address}" /></span>
             </div>
-            <a class="btn btn-primary btn-sm" href="${ctx}/agent/contrats/edit?clientId=${selection.id}">+ Nouveau contrat pour ce client</a>
+            <a class="btn btn-primary btn-sm" href="${ctx}/agent/contracts/edit?clientId=${selection.id}">+ Nouveau contrat pour ce client</a>
             <div class="stack">
               <span class="small strong">Contrats</span>
               <c:forEach items="${selection.contracts}" var="ct">
-                <div class="between small"><a href="${ctx}/agent/contrats/edit?id=${ct.id}"><c:out value="${ct.number}" /> · <c:out value="${ct.insuranceType.name}" /></a><ui:status value="${ct.status}" /></div>
+                <div class="between small"><a href="${ctx}/agent/contracts/edit?id=${ct.id}"><c:out value="${ct.number}" /> · <c:out value="${ct.insuranceType.name}" /></a><ui:status value="${ct.status}" /></div>
               </c:forEach>
               <c:if test="${empty selection.contracts}"><span class="small muted">Aucun contrat.</span></c:if>
             </div>

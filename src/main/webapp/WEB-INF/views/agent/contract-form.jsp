@@ -1,8 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- ContractFormServlet
-     GET  /agent/contrats/edit          -> création       GET /agent/contrats/edit?id=12 -> modification (à venir)
-     POST /agent/contrats/edit (id vide pour une création)
+     GET  /agent/contracts/edit          -> création       GET /agent/contracts/edit?id=12 -> modification (à venir)
+     POST /agent/contracts/edit (id vide pour une création)
      Paramètres : id, clientId, typeAssuranceId, dateDebut, dateFin, prime, statut, garantieIds (plusieurs valeurs)
      Attributs : contrat         Contract (null en création)
                  clients         List<User>
@@ -27,13 +27,13 @@
   <main class="main">
     <div class="container">
       <header class="stack-sm">
-        <a class="back" href="${ctx}/agent/contrats">← Contrats</a>
+        <a class="back" href="${ctx}/agent/contracts">← Contrats</a>
         <h1>${titre}</h1>
         <c:if test="${not creation}"><span class="muted"><c:out value="${contrat.number}" /></span></c:if>
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
-      <form class="card form" method="post" action="${ctx}/agent/contrats/edit" novalidate data-validate>
+      <form class="card form" method="post" action="${ctx}/agent/contracts/edit" novalidate data-validate>
         <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
         <input type="hidden" name="id" value="${contrat.id}">
 
@@ -96,7 +96,7 @@
         </fieldset>
 
         <div class="form-actions">
-          <a class="btn" href="${ctx}/agent/contrats">Annuler</a>
+          <a class="btn" href="${ctx}/agent/contracts">Annuler</a>
           <button type="submit" class="btn btn-primary">${creation ? 'Créer le contrat' : 'Enregistrer les modifications'}</button>
         </div>
       </form>
