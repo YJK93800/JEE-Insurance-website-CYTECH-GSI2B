@@ -60,7 +60,7 @@
                       <td class="muted"><c:out value="${ct.insuranceType.name}" /></td>
                       <td class="muted small"><ui:date valeur="${ct.startDate}" /> → <ui:date valeur="${ct.endDate}" /></td>
                       <td class="right strong"><ui:montant valeur="${ct.premium}" /></td>
-                      <td><ui:statut valeur="${ct.status}" /></td>
+                      <td><ui:statut valeur="${ct.status}" libelle="${ct.status.label}" /></td>
                       <td>
                         <div class="actions">
                           <c:if test="${estAgent}">
