@@ -31,4 +31,31 @@ public final class Policy {
     public static void require(SessionUser user, Permission permission) {
         if (!can(user, permission)) throw new ForbiddenException();
     }
+
+    /*
+     * Règle de lecture commune aux contrats, sinistres et paiements :
+     *   permission "ALL" (agent, admin)  -> tout
+     *   permission "OWN" (client)        -> seulement ce qui lui appartient
+     *   aucune des deux                  -> interdit
+     */
+
+    /**
+     * Pour une liste : true = l'utilisateur voit tout, false = seulement les siens.
+     * Lève ForbiddenException s'il n'a ni l'une ni l'autre permission.
+     */
+    public static boolean readsAll(SessionUser user, Permission all, Permission own) {
+        if (can(user, all)) return true;
+        require(user, own);
+        return false;
+    }
+
+    /**
+     * Pour un élément précis : l'utilisateur peut-il le lire ?
+     * ownerId = id du client propriétaire (ex. contract.getClient().getId()).
+     * Les services renvoient « introuvable » quand c'est false, pour ne pas révéler qu'un id existe.
+     */
+    public static boolean canRead(SessionUser user, Permission all, Permission own, Long ownerId) {
+        if (can(user, all)) return true;
+        return can(user, own) && ownerId != null && ownerId.equals(user.id());
+    }
 }

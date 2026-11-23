@@ -38,8 +38,7 @@ public class PaymentService {
     }
 
     public List<Payment> listFor(SessionUser actor) {
-        if (Policy.can(actor, PAYMENT_READ_ALL)) return tx.inTransaction(paymentDao::findAll);
-        Policy.require(actor, PAYMENT_READ_OWN);
+        if (Policy.readsAll(actor, PAYMENT_READ_ALL, PAYMENT_READ_OWN)) return tx.inTransaction(paymentDao::findAll);
         return tx.inTransaction(() -> paymentDao.findByClient(actor.id()));
     }
 

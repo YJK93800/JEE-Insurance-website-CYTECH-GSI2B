@@ -55,18 +55,14 @@ public class ClaimService {
     }
 
     public List<Claim> listFor(SessionUser actor) {
-        if (Policy.can(actor, CLAIM_READ_ALL)) return tx.inTransaction(claimDao::findAll);
-        Policy.require(actor, CLAIM_READ_OWN);
+        if (Policy.readsAll(actor, CLAIM_READ_ALL, CLAIM_READ_OWN)) return tx.inTransaction(claimDao::findAll);
         return tx.inTransaction(() -> claimDao.findByClient(actor.id()));
     }
 
     public Claim get(SessionUser actor, Long id) {
-        return tx.inTransaction(() -> {
-            Claim claim = claimDao.findById(id).orElseThrow(() -> new NotFoundException("Sinistre introuvable."));
-            if (Policy.can(actor, CLAIM_READ_ALL)) return claim;
-            if (Policy.can(actor, CLAIM_READ_OWN) && claim.getContract().getClient().getId().equals(actor.id())) return claim;
-            throw new NotFoundException("Sinistre introuvable.");
-        });
+        return tx.inTransaction(() -> claimDao.findById(id)
+                .filter(c -> Policy.canRead(actor, CLAIM_READ_ALL, CLAIM_READ_OWN, c.getContract().getClient().getId()))
+                .orElseThrow(() -> new NotFoundException("Sinistre introuvable.")));
     }
 
     /** Vérification du contrat + génération du numéro + insertion : une seule transaction. */

@@ -102,8 +102,7 @@ public class ContractService {
      * Client can only read his contracts, agent & admins can read any clients'  contracts
      */
     public List<Contract> listFor(SessionUser actor) {
-        if (Policy.can(actor, CONTRACT_READ_ALL)) return tx.inTransaction(contractDao::findAll);
-        Policy.require(actor, CONTRACT_READ_OWN);
+        if (Policy.readsAll(actor, CONTRACT_READ_ALL, CONTRACT_READ_OWN)) return tx.inTransaction(contractDao::findAll);
         return tx.inTransaction(() -> contractDao.findByClient(actor.id()));
     }
 
@@ -111,13 +110,9 @@ public class ContractService {
      * A client can only read his own contracts, and not find someone else's contracts through their ids
      */
     public Contract get(SessionUser actor, Long id) {
-        return tx.inTransaction(() -> {
-            Contract contract = contractDao.findById(id)
-                    .orElseThrow(() -> new NotFoundException("Contrat introuvable."));
-            if (Policy.can(actor, CONTRACT_READ_ALL)) return contract;
-            if (Policy.can(actor, CONTRACT_READ_OWN) && contract.getClient().getId().equals(actor.id())) return contract;
-            throw new NotFoundException("Contrat introuvable.");
-        });
+        return tx.inTransaction(() -> contractDao.findById(id)
+                .filter(c -> Policy.canRead(actor, CONTRACT_READ_ALL, CONTRACT_READ_OWN, c.getClient().getId()))
+                .orElseThrow(() -> new NotFoundException("Contrat introuvable.")));
     }
 
     public List<Contract> listByClient(SessionUser actor, Long clientId) {
