@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET  /admin/utilisateurs?filtreRole=AGENT&q=texte[&id=7]
-     POST /admin/utilisateurs          (id vide = création ; prenom, nom, email, role, motDePasse (obligatoire en création), actif)
+<%-- GET  /admin/users?filtreRole=AGENT&q=texte[&id=7]
+     POST /admin/users          (id vide = création ; prenom, nom, email, role, motDePasse (obligatoire en création), actif)
      POST /admin/utilisateurs/statut   (id, actif=true|false) -> activer / désactiver un compte
      Attributs : utilisateurs List<Utilisateur>{id, prenom, nom, email, role, actif, dateInscription}
                  utilisateur Utilisateur en cours de modification (null en création)
@@ -19,7 +19,7 @@
     <div class="container">
       <header class="page-head">
         <div class="stack-sm"><span class="eyebrow">Administration</span><h1>Utilisateurs &amp; rôles</h1></div>
-        <form class="search" method="get" action="${ctx}/admin/utilisateurs" role="search">
+        <form class="search" method="get" action="${ctx}/admin/users" role="search">
           <label class="field">Rôle
             <select name="filtreRole">
               <option value="">Tous</option>
@@ -45,7 +45,7 @@
                     <td><span class="badge">${us.role}</span></td>
                     <td><span class="badge ${us.actif ? 'badge-actif' : 'badge-suspendu'}">${us.actif ? 'ACTIF' : 'DÉSACTIVÉ'}</span></td>
                     <td><div class="actions">
-                      <a class="btn btn-sm" href="${ctx}/admin/utilisateurs?id=${us.id}">Modifier</a>
+                      <a class="btn btn-sm" href="${ctx}/admin/users?id=${us.id}">Modifier</a>
                       <c:if test="${us.id != sessionScope.utilisateur.id}">
                         <form method="post" action="${ctx}/admin/utilisateurs/statut">
                           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
@@ -62,7 +62,7 @@
           </div>
         </section>
 
-        <form class="card form col-side" method="post" action="${ctx}/admin/utilisateurs" novalidate data-validate>
+        <form class="card form col-side" method="post" action="${ctx}/admin/users" novalidate data-validate>
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <input type="hidden" name="id" value="${u0.id}">
           <h2>${empty u0 ? 'Nouvel utilisateur' : 'Modifier l\'utilisateur'}</h2>
@@ -81,7 +81,7 @@
                     requis="${empty u0}" aide="${empty u0 ? '8 caractères minimum.' : 'Laisser vide pour ne pas changer.'}" extra="minlength='8' autocomplete='new-password'" />
           <div class="inline">
             <button type="submit" class="btn btn-primary">${empty u0 ? 'Créer' : 'Enregistrer'}</button>
-            <c:if test="${not empty u0}"><a class="btn" href="${ctx}/admin/utilisateurs">Annuler</a></c:if>
+            <c:if test="${not empty u0}"><a class="btn" href="${ctx}/admin/users">Annuler</a></c:if>
           </div>
         </form>
       </div>

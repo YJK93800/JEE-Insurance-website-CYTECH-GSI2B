@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/paiements?filtre=effectues|attente|echeances   (sans filtre = historique complet)
+<%-- GET /client/payments?filtre=effectues|attente|echeances   (sans filtre = historique complet)
      Attributs : paiements List<Paiement> (déjà filtrés)  totalPaye BigDecimal  totalEnAttente BigDecimal  prochaineEcheance Paiement --%>
 <c:set var="titre" value="Paiements" />
 <!DOCTYPE html>
@@ -24,10 +24,10 @@
       </section>
 
       <nav class="tabs" aria-label="Filtrer les paiements">
-        <a href="${ctx}/client/paiements" class="${empty param.filtre ? 'active' : ''}">Historique</a>
-        <a href="${ctx}/client/paiements?filtre=effectues" class="${param.filtre == 'effectues' ? 'active' : ''}">Effectués</a>
-        <a href="${ctx}/client/paiements?filtre=attente" class="${param.filtre == 'attente' ? 'active' : ''}">En attente</a>
-        <a href="${ctx}/client/paiements?filtre=echeances" class="${param.filtre == 'echeances' ? 'active' : ''}">Échéances</a>
+        <a href="${ctx}/client/payments" class="${empty param.filtre ? 'active' : ''}">Historique</a>
+        <a href="${ctx}/client/payments?filtre=effectues" class="${param.filtre == 'effectues' ? 'active' : ''}">Effectués</a>
+        <a href="${ctx}/client/payments?filtre=attente" class="${param.filtre == 'attente' ? 'active' : ''}">En attente</a>
+        <a href="${ctx}/client/payments?filtre=echeances" class="${param.filtre == 'echeances' ? 'active' : ''}">Échéances</a>
       </nav>
 
       <section class="card">

@@ -25,7 +25,7 @@
         </div>
         <div class="inline">
           <a class="btn" href="${ctx}/client/assistant">Poser une question</a>
-          <a class="btn btn-primary" href="${ctx}/client/sinistres/declarer">+ Déclarer un sinistre</a>
+          <a class="btn btn-primary" href="${ctx}/client/claims?new=1">+ Déclarer un sinistre</a>
         </div>
       </header>
 
@@ -36,7 +36,7 @@
           <span><strong>Échéance le <ui:date valeur="${prochaineEcheance.datePaiement}" /></strong>
             · <c:out value="${prochaineEcheance.contrat.typeAssurance.nom}" /> <c:out value="${prochaineEcheance.contrat.numero}" />
             · <ui:montant valeur="${prochaineEcheance.montant}" /></span>
-          <a href="${ctx}/client/paiements?filtre=echeances">Voir l'échéancier</a>
+          <a href="${ctx}/client/payments?filtre=echeances">Voir l'échéancier</a>
         </div>
       </c:if>
 
@@ -67,13 +67,13 @@
         <section class="card col-main" aria-labelledby="h-contrats">
           <div class="card-head">
             <h2 id="h-contrats">Mes contrats</h2>
-            <a href="${ctx}/client/contrats">Tout voir</a>
+            <a href="${ctx}/client/contracts">Tout voir</a>
           </div>
           <c:forEach items="${contrats}" var="ct">
             <article class="item">
               <div class="between">
                 <div class="stack-sm">
-                  <a class="item-title" href="${ctx}/client/contrats/detail?id=${ct.id}"><c:out value="${ct.typeAssurance.nom}" /></a>
+                  <a class="item-title" href="${ctx}/client/contracts?id=${ct.id}"><c:out value="${ct.typeAssurance.nom}" /></a>
                   <span class="small muted"><c:out value="${ct.numero}" /> · <ui:date valeur="${ct.dateDebut}" /> → <ui:date valeur="${ct.dateFin}" /></span>
                 </div>
                 <div class="inline">
@@ -100,7 +100,7 @@
               </div>
               <c:set var="sin" value="${dernierSinistre}" />
               <%@ include file="/WEB-INF/views/common/suivi-sinistre.jspf" %>
-              <a class="strong small" href="${ctx}/client/sinistres/detail?id=${dernierSinistre.id}">Voir le détail et les échanges</a>
+              <a class="strong small" href="${ctx}/client/claims?id=${dernierSinistre.id}">Voir le détail et les échanges</a>
             </section>
           </c:if>
 
@@ -120,7 +120,7 @@
       <section class="card" aria-labelledby="h-paiements">
         <div class="card-head">
           <h2 id="h-paiements">Derniers paiements</h2>
-          <a href="${ctx}/client/paiements">Historique complet</a>
+          <a href="${ctx}/client/payments">Historique complet</a>
         </div>
         <c:set var="listePaiements" value="${derniersPaiements}" />
         <%@ include file="/WEB-INF/views/client/table-paiements.jspf" %>

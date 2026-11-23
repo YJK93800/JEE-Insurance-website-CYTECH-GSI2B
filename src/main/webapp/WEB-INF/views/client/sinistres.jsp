@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/sinistres
+<%-- GET /client/claims
      Attributs : sinistres List<Sinistre> du client connecté (numero, dateSinistre, typeSinistre, contrat, montantEstime, statut) --%>
 <c:set var="titre" value="Mes sinistres" />
 <!DOCTYPE html>
@@ -13,7 +13,7 @@
     <div class="container">
       <header class="page-head">
         <div class="stack-sm"><span class="eyebrow">Espace client</span><h1>Mes sinistres</h1></div>
-        <a class="btn btn-primary" href="${ctx}/client/sinistres/declarer">+ Déclarer un sinistre</a>
+        <a class="btn btn-primary" href="${ctx}/client/claims?new=1">+ Déclarer un sinistre</a>
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
@@ -33,7 +33,7 @@
                       <td class="muted"><c:out value="${si.contrat.typeAssurance.nom}" /> · <c:out value="${si.contrat.numero}" /></td>
                       <td class="right strong"><ui:montant valeur="${si.montantEstime}" /></td>
                       <td><ui:statut valeur="${si.statut}" /></td>
-                      <td class="right"><a class="btn btn-sm" href="${ctx}/client/sinistres/detail?id=${si.id}">Suivre</a></td>
+                      <td class="right"><a class="btn btn-sm" href="${ctx}/client/claims?id=${si.id}">Suivre</a></td>
                     </tr>
                   </c:forEach>
                 </tbody>

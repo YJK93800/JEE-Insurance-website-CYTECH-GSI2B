@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/contrats?statut=ACTIF
+<%-- GET /client/contracts?statut=ACTIF
      Attributs : contrats List<Contrat> (déjà filtrés par la servlet selon le paramètre "statut")
                  statuts  StatutContrat[]  (StatutContrat.values()) --%>
 <c:set var="titre" value="Mes contrats" />
@@ -18,9 +18,9 @@
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
       <nav class="tabs" aria-label="Filtrer par statut">
-        <a href="${ctx}/client/contrats" class="${empty param.statut ? 'active' : ''}">Tous</a>
+        <a href="${ctx}/client/contracts" class="${empty param.statut ? 'active' : ''}">Tous</a>
         <c:forEach items="${statuts}" var="st">
-          <a href="${ctx}/client/contrats?statut=${st}" class="${param.statut == st.name() ? 'active' : ''}"><ui:statut valeur="${st}" /></a>
+          <a href="${ctx}/client/contracts?statut=${st}" class="${param.statut == st.name() ? 'active' : ''}"><ui:statut valeur="${st}" /></a>
         </c:forEach>
       </nav>
 
@@ -41,9 +41,9 @@
               <c:forEach items="${ct.garanties}" var="g"><span class="chip"><c:out value="${g.nom}" /></span></c:forEach>
             </div>
             <div class="inline">
-              <a class="btn btn-sm" href="${ctx}/client/contrats/detail?id=${ct.id}">Voir le détail</a>
+              <a class="btn btn-sm" href="${ctx}/client/contracts?id=${ct.id}">Voir le détail</a>
               <c:if test="${ct.statut == 'ACTIF'}">
-                <a class="btn btn-sm" href="${ctx}/client/sinistres/declarer?contrat=${ct.id}">Déclarer un sinistre</a>
+                <a class="btn btn-sm" href="${ctx}/client/claims?new=1&amp;contrat=${ct.id}">Déclarer un sinistre</a>
               </c:if>
             </div>
           </article>

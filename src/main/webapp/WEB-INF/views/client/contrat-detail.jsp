@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/contrats/detail?id=12  (la servlet vérifie que le contrat appartient bien au client connecté)
+<%-- GET /client/contracts?id=12  (la servlet vérifie que le contrat appartient bien au client connecté)
      Attributs : contrat   Contrat (numero, typeAssurance{nom, description}, dateDebut, dateFin, prime, statut,
                                     garanties List<Garantie>{nom, description, plafond, franchise})
                  paiements List<Paiement>  sinistres List<Sinistre> --%>
@@ -15,12 +15,12 @@
     <div class="container">
       <header class="page-head">
         <div class="stack-sm">
-          <a class="back" href="${ctx}/client/contrats">← Mes contrats</a>
+          <a class="back" href="${ctx}/client/contracts">← Mes contrats</a>
           <h1><c:out value="${contrat.typeAssurance.nom}" /></h1>
           <span class="muted"><c:out value="${contrat.numero}" /></span>
         </div>
         <c:if test="${contrat.statut == 'ACTIF'}">
-          <a class="btn btn-primary" href="${ctx}/client/sinistres/declarer?contrat=${contrat.id}">+ Déclarer un sinistre</a>
+          <a class="btn btn-primary" href="${ctx}/client/claims?new=1&amp;contrat=${contrat.id}">+ Déclarer un sinistre</a>
         </c:if>
       </header>
 
@@ -58,7 +58,7 @@
         <section class="card col-side" aria-labelledby="h-sin">
           <h2 id="h-sin">Sinistres liés</h2>
           <c:forEach items="${sinistres}" var="si">
-            <a class="between" href="${ctx}/client/sinistres/detail?id=${si.id}">
+            <a class="between" href="${ctx}/client/claims?id=${si.id}">
               <span class="small"><c:out value="${si.numero}" /> · <ui:date valeur="${si.dateSinistre}" /></span>
               <ui:statut valeur="${si.statut}" />
             </a>

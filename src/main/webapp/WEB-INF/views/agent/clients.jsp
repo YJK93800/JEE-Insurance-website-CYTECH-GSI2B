@@ -66,7 +66,7 @@
             <div class="stack">
               <span class="small strong">Sinistres</span>
               <c:forEach items="${selection.sinistres}" var="si">
-                <div class="between small"><a href="${ctx}/agent/sinistres?id=${si.id}"><c:out value="${si.numero}" /></a><ui:statut valeur="${si.statut}" /></div>
+                <div class="between small"><a href="${ctx}/agent/claims?id=${si.id}"><c:out value="${si.numero}" /></a><ui:statut valeur="${si.statut}" /></div>
               </c:forEach>
               <c:if test="${empty selection.sinistres}"><span class="small muted">Aucun sinistre.</span></c:if>
             </div>

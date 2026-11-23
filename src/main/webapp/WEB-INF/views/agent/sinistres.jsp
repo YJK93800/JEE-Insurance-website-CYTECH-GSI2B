@@ -1,16 +1,16 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET  /agent/sinistres?statut=EN_ANALYSE&q=texte&id=93
+<%-- GET  /agent/claims?statut=EN_ANALYSE&q=texte&id=93
      POST /agent/sinistres/traiter (sinistreId, statut, montantIndemnisation, commentaire, visibleClient) -> redirection vers ?id=...
      Attributs : sinistres   List<Sinistre> (filtrés par statut et recherche)
                  compteurs   Map<String,Long> nombre par statut (clé = nom de l'enum) + "TOUS"
                  statuts     StatutSinistre[]
                  selection   Sinistre affiché à droite (peut être null)
                  analyseIA   String  pré-analyse générée par l'API d'IA (peut être null)
-     Aussi utilisée par l'admin (/admin/sinistres) : le formulaire de décision n'est alors pas affiché. --%>
+     Aussi utilisée par l'admin (/admin/claims) : le formulaire de décision n'est alors pas affiché. --%>
 <c:set var="titre" value="Sinistres" />
 <c:set var="estAgent" value="${sessionScope.utilisateur.role == 'AGENT'}" />
-<c:set var="base" value="${estAgent ? '/agent/sinistres' : '/admin/sinistres'}" />
+<c:set var="base" value="${estAgent ? '/agent/claims' : '/admin/claims'}" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>

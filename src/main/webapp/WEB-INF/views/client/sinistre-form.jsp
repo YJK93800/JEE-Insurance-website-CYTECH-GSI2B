@@ -17,7 +17,7 @@
   <main class="main">
     <div class="container">
       <header class="stack-sm">
-        <a class="back" href="${ctx}/client/sinistres">← Mes sinistres</a>
+        <a class="back" href="${ctx}/client/claims">← Mes sinistres</a>
         <h1>Déclarer un sinistre</h1>
         <p class="muted">Environ 5 minutes. Les champs marqués * sont obligatoires.</p>
       </header>
@@ -98,7 +98,7 @@
           </div>
 
           <div class="form-actions">
-            <a class="btn" href="${ctx}/client/sinistres">Annuler</a>
+            <a class="btn" href="${ctx}/client/claims">Annuler</a>
             <button type="submit" class="btn btn-primary">Envoyer la déclaration</button>
           </div>
         </form>

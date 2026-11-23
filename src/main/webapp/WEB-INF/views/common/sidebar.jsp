@@ -19,7 +19,7 @@
       <c:when test="${u.role == 'AGENT'}">
         <a href="${ctx}/agent/clients"   class="${actif == 'clients'   ? 'active' : ''}">Clients</a>
         <a href="${ctx}/agent/contrats"  class="${actif == 'contrats'  ? 'active' : ''}">Contrats</a>
-        <a href="${ctx}/agent/sinistres" class="${actif == 'sinistres' ? 'active' : ''}">Sinistres
+        <a href="${ctx}/agent/claims" class="${actif == 'sinistres' ? 'active' : ''}">Sinistres
           <c:if test="${nbSinistresATraiter > 0}"><span class="count">${nbSinistresATraiter}</span></c:if></a>
         <a href="${ctx}/agent/garanties" class="${actif == 'garanties' ? 'active' : ''}">Garanties</a>
         <a href="${ctx}/agent/paiements" class="${actif == 'paiements' ? 'active' : ''}">Paiements</a>
@@ -27,18 +27,18 @@
       </c:when>
       <c:when test="${u.role == 'ADMIN'}">
         <a href="${ctx}/admin/stats"        class="${actif == 'stats'        ? 'active' : ''}">Statistiques</a>
-        <a href="${ctx}/admin/utilisateurs" class="${actif == 'utilisateurs' ? 'active' : ''}">Utilisateurs &amp; rôles</a>
+        <a href="${ctx}/admin/users" class="${actif == 'utilisateurs' ? 'active' : ''}">Utilisateurs &amp; rôles</a>
         <a href="${ctx}/admin/types"        class="${actif == 'types'        ? 'active' : ''}">Types d'assurance</a>
         <a href="${ctx}/admin/contrats"     class="${actif == 'contrats'     ? 'active' : ''}">Tous les contrats</a>
-        <a href="${ctx}/admin/sinistres"    class="${actif == 'sinistres'    ? 'active' : ''}">Tous les sinistres</a>
+        <a href="${ctx}/admin/claims"    class="${actif == 'sinistres'    ? 'active' : ''}">Tous les sinistres</a>
         <a href="${ctx}/admin/stats#indicateurs">Indicateurs de performance</a>
       </c:when>
       <c:otherwise>
         <a href="${ctx}/client/dashboard"  class="${actif == 'dashboard'  ? 'active' : ''}">Tableau de bord</a>
-        <a href="${ctx}/client/contrats"   class="${actif == 'contrats'   ? 'active' : ''}">Mes contrats</a>
+        <a href="${ctx}/client/contracts"   class="${actif == 'contrats'   ? 'active' : ''}">Mes contrats</a>
         <a href="${ctx}/client/garanties"  class="${actif == 'garanties'  ? 'active' : ''}">Mes garanties</a>
-        <a href="${ctx}/client/paiements"  class="${actif == 'paiements'  ? 'active' : ''}">Paiements</a>
-        <a href="${ctx}/client/sinistres"  class="${actif == 'sinistres'  ? 'active' : ''}">Sinistres</a>
+        <a href="${ctx}/client/payments"  class="${actif == 'paiements'  ? 'active' : ''}">Paiements</a>
+        <a href="${ctx}/client/claims"  class="${actif == 'sinistres'  ? 'active' : ''}">Sinistres</a>
         <a href="${ctx}/client/historique" class="${actif == 'historique' ? 'active' : ''}">Historique des demandes</a>
         <a href="${ctx}/client/assistant"  class="${actif == 'assistant'  ? 'active' : ''}">Assistant IA</a>
       </c:otherwise>

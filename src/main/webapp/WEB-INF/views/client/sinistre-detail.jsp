@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/sinistres/detail?id=93 (la servlet vérifie que le sinistre appartient au client)
+<%-- GET /client/claims?id=93 (la servlet vérifie que le sinistre appartient au client)
      POST /client/sinistres/pieces (multipart : sinistreId, pieces) pour ajouter un justificatif
      Attributs : sinistre Sinistre (numero, dateSinistre, dateDeclaration, typeSinistre, description, montantEstime,
                  montantIndemnisation, statut, contrat, agent, pieces List<PieceJustificative>{id, nomFichier},
@@ -17,7 +17,7 @@
     <div class="container">
       <header class="page-head">
         <div class="stack-sm">
-          <a class="back" href="${ctx}/client/sinistres">← Mes sinistres</a>
+          <a class="back" href="${ctx}/client/claims">← Mes sinistres</a>
           <h1><c:out value="${sin.numero}" /></h1>
           <span class="muted"><c:out value="${sin.typeSinistre.libelle}" /> · <c:out value="${sin.contrat.typeAssurance.nom}" /> <c:out value="${sin.contrat.numero}" /></span>
         </div>
