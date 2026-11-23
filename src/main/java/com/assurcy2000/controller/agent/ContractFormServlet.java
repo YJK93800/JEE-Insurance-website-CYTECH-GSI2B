@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Formulaire de contrat (agent/contrat-form.jsp).
+ * Formulaire de contrat (agent/contract-form.jsp).
  *   GET  /agent/contrats/edit   -> formulaire de création
  *   POST /agent/contrats/edit   -> création (id vide)
  * La modification (?id=12) viendra à l'étape suivante.

@@ -3,7 +3,7 @@ package com.assurcy2000.dto.request;
 import com.assurcy2000.model.enums.ContractStatus;
 
 /**
- * Filtres de la recherche de contrats (agent/contrats.jsp).
+ * Filtres de la recherche de contrats (agent/contracts.jsp).
  * Chaque critère vaut null quand il n'est pas utilisé : la recherche vide renvoie tous les contrats.
  *
  * @param keyword         numéro de contrat, nom, prénom ou email du client (partiel, sans casse)

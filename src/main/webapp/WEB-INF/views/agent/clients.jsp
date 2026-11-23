@@ -1,8 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /agent/clients?q=texte[&id=5]
-     Attributs : clients List<Client>{id, prenom, nom, email, telephone, dateInscription, nbContrats}
-                 selection Client (peut être null) avec contrats List<Contrat> et sinistres List<Sinistre> --%>
+<%-- GET /agent/clients?q=texte[&id=5] — PAS ENCORE DE SERVLET (vue prête pour le modèle anglais)
+     Attributs attendus : clients List<…>{id, firstName, lastName, email, phone, createdAt, contractCount} (DTO, contractCount n'est pas dans User)
+                          selection (peut être null) {id, firstName, lastName, email, phone, address,
+                                     contracts List<Contract>, claims List<Claim>} --%>
 <c:set var="titre" value="Clients" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -34,11 +35,11 @@
                     <c:forEach items="${clients}" var="cl">
                       <c:url var="lienCl" value="/agent/clients"><c:param name="q" value="${param.q}" /><c:param name="id" value="${cl.id}" /></c:url>
                       <tr class="${selection.id == cl.id ? 'selected' : ''}">
-                        <td class="strong"><a href="${lienCl}"><c:out value="${cl.prenom} ${cl.nom}" /></a></td>
+                        <td class="strong"><a href="${lienCl}"><c:out value="${cl.firstName} ${cl.lastName}" /></a></td>
                         <td class="muted"><c:out value="${cl.email}" /></td>
-                        <td class="muted"><c:out value="${cl.telephone}" /></td>
-                        <td class="muted"><ui:date valeur="${cl.dateInscription}" /></td>
-                        <td class="right strong">${cl.nbContrats}</td>
+                        <td class="muted"><c:out value="${cl.phone}" /></td>
+                        <td class="muted"><ui:date value="${cl.createdAt}" /></td>
+                        <td class="right strong">${cl.contractCount}</td>
                       </tr>
                     </c:forEach>
                   </tbody>
@@ -51,24 +52,24 @@
         <c:if test="${not empty selection}">
           <aside class="card col-side" aria-labelledby="h-cl">
             <div class="stack-sm">
-              <h2 id="h-cl"><c:out value="${selection.prenom} ${selection.nom}" /></h2>
-              <span class="small muted"><c:out value="${selection.email}" /> · <c:out value="${selection.telephone}" /></span>
-              <span class="small muted"><c:out value="${selection.adresse}" /></span>
+              <h2 id="h-cl"><c:out value="${selection.firstName} ${selection.lastName}" /></h2>
+              <span class="small muted"><c:out value="${selection.email}" /> · <c:out value="${selection.phone}" /></span>
+              <span class="small muted"><c:out value="${selection.address}" /></span>
             </div>
             <a class="btn btn-primary btn-sm" href="${ctx}/agent/contrats/edit?clientId=${selection.id}">+ Nouveau contrat pour ce client</a>
             <div class="stack">
               <span class="small strong">Contrats</span>
-              <c:forEach items="${selection.contrats}" var="ct">
-                <div class="between small"><a href="${ctx}/agent/contrats/edit?id=${ct.id}"><c:out value="${ct.numero}" /> · <c:out value="${ct.typeAssurance.nom}" /></a><ui:statut valeur="${ct.statut}" /></div>
+              <c:forEach items="${selection.contracts}" var="ct">
+                <div class="between small"><a href="${ctx}/agent/contrats/edit?id=${ct.id}"><c:out value="${ct.number}" /> · <c:out value="${ct.insuranceType.name}" /></a><ui:status value="${ct.status}" /></div>
               </c:forEach>
-              <c:if test="${empty selection.contrats}"><span class="small muted">Aucun contrat.</span></c:if>
+              <c:if test="${empty selection.contracts}"><span class="small muted">Aucun contrat.</span></c:if>
             </div>
             <div class="stack">
               <span class="small strong">Sinistres</span>
-              <c:forEach items="${selection.sinistres}" var="si">
-                <div class="between small"><a href="${ctx}/agent/claims?id=${si.id}"><c:out value="${si.numero}" /></a><ui:statut valeur="${si.statut}" /></div>
+              <c:forEach items="${selection.claims}" var="si">
+                <div class="between small"><a href="${ctx}/agent/claims?id=${si.id}"><c:out value="${si.number}" /></a><ui:status value="${si.status}" /></div>
               </c:forEach>
-              <c:if test="${empty selection.sinistres}"><span class="small muted">Aucun sinistre.</span></c:if>
+              <c:if test="${empty selection.claims}"><span class="small muted">Aucun sinistre.</span></c:if>
             </div>
           </aside>
         </c:if>

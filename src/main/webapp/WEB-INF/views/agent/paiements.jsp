@@ -1,9 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET  /agent/paiements?filtre=effectues|attente|echeances&q=CTR-…
+<%-- GET  /agent/paiements?filtre=effectues|attente|echeances&q=CTR-… — PAS ENCORE DE SERVLET
      POST /agent/paiements (contratId, montant, datePaiement, modePaiement, statut) -> enregistrer un paiement
-     Attributs : paiements List<Paiement>  contratsActifs List<Contrat>  modesPaiement ModePaiement[]
-                 statutsPaiement StatutPaiement[]  erreurs Map<String,String> --%>
+     Attributs attendus : payments List<Payment> (contract et contract.client chargés)   activeContracts List<Contract>
+                          paymentMethods PaymentMethod[]   paymentStatuses PaymentStatus[]   erreurs Map<String,String> --%>
 <c:set var="titre" value="Paiements" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -33,20 +33,20 @@
       <div class="row">
         <section class="card flush col-main" aria-label="Liste des paiements">
           <c:choose>
-            <c:when test="${empty paiements}"><p class="empty">Aucun paiement.</p></c:when>
+            <c:when test="${empty payments}"><p class="empty">Aucun paiement.</p></c:when>
             <c:otherwise>
               <div class="table-wrap">
                 <table class="table">
                   <thead><tr><th>Date</th><th>Client</th><th>Contrat</th><th>Mode</th><th class="right">Montant</th><th>Statut</th></tr></thead>
                   <tbody>
-                    <c:forEach items="${paiements}" var="p">
+                    <c:forEach items="${payments}" var="p">
                       <tr>
-                        <td><ui:date valeur="${p.datePaiement}" /></td>
-                        <td><c:out value="${p.contrat.client.prenom} ${p.contrat.client.nom}" /></td>
-                        <td class="muted"><c:out value="${p.contrat.numero}" /></td>
-                        <td class="muted"><c:out value="${p.modePaiement}" /></td>
-                        <td class="right strong"><ui:montant valeur="${p.montant}" /></td>
-                        <td><ui:statut valeur="${p.statut}" /></td>
+                        <td><ui:date valeur="${p.paymentDate}" /></td>
+                        <td><c:out value="${p.contract.client.firstName} ${p.contract.client.lastName}" /></td>
+                        <td class="muted"><c:out value="${p.contract.number}" /></td>
+                        <td class="muted"><c:out value="${p.method}" /></td>
+                        <td class="right strong"><ui:montant valeur="${p.amount}" /></td>
+                        <td><ui:statut valeur="${p.status}" /></td>
                       </tr>
                     </c:forEach>
                   </tbody>
@@ -62,8 +62,8 @@
           <label class="field ${not empty erreurs.contratId ? 'has-error' : ''}">Contrat *
             <select name="contratId" required data-contrat-prime>
               <option value="">— Choisir —</option>
-              <c:forEach items="${contratsActifs}" var="ct">
-                <option value="${ct.id}" data-prime="${ct.prime}" ${param.contratId == fn:trim(ct.id) ? 'selected' : ''}><c:out value="${ct.numero}" /> · <c:out value="${ct.client.nom}" /></option>
+              <c:forEach items="${activeContracts}" var="ct">
+                <option value="${ct.id}" data-prime="${ct.premium}" ${param.contratId == fn:trim(ct.id) ? 'selected' : ''}><c:out value="${ct.number}" /> · <c:out value="${ct.client.lastName}" /></option>
               </c:forEach>
             </select>
             <c:if test="${not empty erreurs.contratId}"><span class="field-error"><c:out value="${erreurs.contratId}" /></span></c:if>
@@ -75,12 +75,12 @@
           <div class="grid-2">
             <label class="field">Mode *
               <select name="modePaiement" required>
-                <c:forEach items="${modesPaiement}" var="m"><option value="${m}" ${param.modePaiement == m.name() ? 'selected' : ''}>${m}</option></c:forEach>
+                <c:forEach items="${paymentMethods}" var="m"><option value="${m}" ${param.modePaiement == m.name() ? 'selected' : ''}>${m}</option></c:forEach>
               </select>
             </label>
             <label class="field">Statut *
               <select name="statut" required>
-                <c:forEach items="${statutsPaiement}" var="st"><option value="${st}" ${param.statut == st.name() ? 'selected' : ''}>${st}</option></c:forEach>
+                <c:forEach items="${paymentStatuses}" var="st"><option value="${st}" ${param.statut == st.name() ? 'selected' : ''}>${st}</option></c:forEach>
               </select>
             </label>
           </div>

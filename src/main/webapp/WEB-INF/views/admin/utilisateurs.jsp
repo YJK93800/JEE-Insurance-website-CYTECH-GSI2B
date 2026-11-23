@@ -1,14 +1,15 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET  /admin/users?filtreRole=AGENT&q=texte[&id=7]
-     POST /admin/users          (id vide = création ; prenom, nom, email, role, motDePasse (obligatoire en création), actif)
-     POST /admin/utilisateurs/statut   (id, actif=true|false) -> activer / désactiver un compte
-     Attributs : utilisateurs List<Utilisateur>{id, prenom, nom, email, role, actif, dateInscription}
-                 utilisateur Utilisateur en cours de modification (null en création)
-                 roles Role[]   erreurs Map<String,String> --%>
+<%-- AdminUsersServlet — GET  /admin/users[?filtreRole=AGENT&q=texte]
+                         POST /admin/users  id, action=active, value=true|false  -> UserService.setActive
+                         POST /admin/users  id, action=role, role=CLIENT|AGENT|ADMIN -> UserService.changeRole
+     Attributs : users   List<User>{id, firstName, lastName, email, role{name}, active, createdAt}
+                 erreurs Map<String,String> en cas d'échec (clés : role, user, action)
+     Le filtre par rôle et la recherche sont faits ici, sur la liste complète renvoyée par le service.
+     On ne peut pas modifier son propre compte (le service le refuse) : les actions sont masquées sur sa ligne. --%>
 <c:set var="titre" value="Utilisateurs et rôles" />
-<c:set var="u0" value="${utilisateur}" />
-<c:set var="vRole" value="${not empty param.role ? param.role : u0.role}" />
+<c:set var="q" value="${fn:toLowerCase(fn:trim(param.q))}" />
+<c:set var="roles" value="CLIENT,AGENT,ADMIN" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
@@ -23,7 +24,7 @@
           <label class="field">Rôle
             <select name="filtreRole">
               <option value="">Tous</option>
-              <c:forEach items="${roles}" var="r"><option value="${r}" ${param.filtreRole == r.name() ? 'selected' : ''}>${r}</option></c:forEach>
+              <c:forEach items="${roles}" var="r"><option value="${r}" ${param.filtreRole == r ? 'selected' : ''}>${r}</option></c:forEach>
             </select>
           </label>
           <label class="field">Rechercher<input type="search" name="q" value="${fn:escapeXml(param.q)}" placeholder="Nom ou e-mail"></label>
@@ -31,60 +32,60 @@
         </form>
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
+      <c:if test="${not empty erreurs}">
+        <div class="alert alert-error" role="alert"><span><c:forEach items="${erreurs}" var="e"><c:out value="${e.value}" /> </c:forEach></span></div>
+      </c:if>
 
-      <div class="row">
-        <section class="card flush col-main" aria-label="Liste des utilisateurs">
-          <div class="table-wrap">
-            <table class="table">
-              <thead><tr><th>Nom</th><th>E-mail</th><th>Rôle</th><th>Compte</th><th class="right">Actions</th></tr></thead>
-              <tbody>
-                <c:forEach items="${utilisateurs}" var="us">
-                  <tr class="${u0.id == us.id ? 'selected' : ''}">
-                    <td class="strong"><c:out value="${us.prenom} ${us.nom}" /></td>
+      <section class="card flush" aria-label="Liste des utilisateurs">
+        <c:set var="affiches" value="0" />
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Nom</th><th>E-mail</th><th>Inscrit le</th><th>Rôle</th><th>Compte</th><th class="right">Actions</th></tr></thead>
+            <tbody>
+              <c:forEach items="${users}" var="us">
+                <c:set var="texte" value="${fn:toLowerCase(us.firstName)} ${fn:toLowerCase(us.lastName)} ${fn:toLowerCase(us.email)}" />
+                <c:if test="${(empty param.filtreRole or us.role.name == param.filtreRole) and (empty q or fn:contains(texte, q))}">
+                  <c:set var="affiches" value="${affiches + 1}" />
+                  <c:set var="estMoi" value="${us.id == sessionScope.utilisateur.id}" />
+                  <tr>
+                    <td class="strong"><c:out value="${us.firstName} ${us.lastName}" />${estMoi ? ' (vous)' : ''}</td>
                     <td class="muted"><c:out value="${us.email}" /></td>
-                    <td><span class="badge">${us.role}</span></td>
-                    <td><span class="badge ${us.actif ? 'badge-actif' : 'badge-suspendu'}">${us.actif ? 'ACTIF' : 'DÉSACTIVÉ'}</span></td>
+                    <td class="muted small"><ui:date valeur="${us.createdAt}" /></td>
+                    <td>
+                      <c:choose>
+                        <c:when test="${estMoi}"><span class="badge">${us.role.name}</span></c:when>
+                        <c:otherwise>
+                          <form class="inline" method="post" action="${ctx}/admin/users">
+                            <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
+                            <input type="hidden" name="id" value="${us.id}"><input type="hidden" name="action" value="role">
+                            <select name="role" aria-label="Rôle de ${fn:escapeXml(us.firstName)} ${fn:escapeXml(us.lastName)}">
+                              <c:forEach items="${roles}" var="r"><option value="${r}" ${us.role.name == r ? 'selected' : ''}>${r}</option></c:forEach>
+                            </select>
+                            <button class="btn btn-sm" type="submit">Changer</button>
+                          </form>
+                        </c:otherwise>
+                      </c:choose>
+                    </td>
+                    <td><span class="badge ${us.active ? 'badge-actif' : 'badge-suspendu'}">${us.active ? 'ACTIF' : 'DÉSACTIVÉ'}</span></td>
                     <td><div class="actions">
-                      <a class="btn btn-sm" href="${ctx}/admin/users?id=${us.id}">Modifier</a>
-                      <c:if test="${us.id != sessionScope.utilisateur.id}">
-                        <form method="post" action="${ctx}/admin/utilisateurs/statut">
+                      <c:if test="${not estMoi}">
+                        <form method="post" action="${ctx}/admin/users"
+                              <c:if test="${us.active}">data-confirm="Désactiver le compte de ${fn:escapeXml(us.email)} ?"</c:if>>
                           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
-                          <input type="hidden" name="id" value="${us.id}"><input type="hidden" name="actif" value="${not us.actif}">
-                          <button class="btn-link ${us.actif ? 'danger' : ''}" type="submit">${us.actif ? 'Désactiver' : 'Activer'}</button>
+                          <input type="hidden" name="id" value="${us.id}"><input type="hidden" name="action" value="active">
+                          <input type="hidden" name="value" value="${not us.active}">
+                          <button class="btn-link ${us.active ? 'danger' : ''}" type="submit">${us.active ? 'Désactiver' : 'Activer'}</button>
                         </form>
                       </c:if>
                     </div></td>
                   </tr>
-                </c:forEach>
-                <c:if test="${empty utilisateurs}"><tr><td colspan="5" class="empty">Aucun utilisateur.</td></tr></c:if>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <form class="card form col-side" method="post" action="${ctx}/admin/users" novalidate data-validate>
-          <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
-          <input type="hidden" name="id" value="${u0.id}">
-          <h2>${empty u0 ? 'Nouvel utilisateur' : 'Modifier l\'utilisateur'}</h2>
-          <div class="grid-2">
-            <ui:champ nom="prenom" libelle="Prénom *" requis="true" valeur="${not empty param.prenom ? param.prenom : u0.prenom}" />
-            <ui:champ nom="nom" libelle="Nom *" requis="true" valeur="${not empty param.nom ? param.nom : u0.nom}" />
-          </div>
-          <ui:champ nom="email" libelle="E-mail *" type="email" requis="true" valeur="${not empty param.email ? param.email : u0.email}" />
-          <label class="field ${not empty erreurs.role ? 'has-error' : ''}">Rôle *
-            <select name="role" required>
-              <c:forEach items="${roles}" var="r"><option value="${r}" ${fn:trim(vRole) == r.name() ? 'selected' : ''}>${r}</option></c:forEach>
-            </select>
-            <c:if test="${not empty erreurs.role}"><span class="field-error"><c:out value="${erreurs.role}" /></span></c:if>
-          </label>
-          <ui:champ nom="motDePasse" libelle="${empty u0 ? 'Mot de passe *' : 'Nouveau mot de passe'}" type="password"
-                    requis="${empty u0}" aide="${empty u0 ? '8 caractères minimum.' : 'Laisser vide pour ne pas changer.'}" extra="minlength='8' autocomplete='new-password'" />
-          <div class="inline">
-            <button type="submit" class="btn btn-primary">${empty u0 ? 'Créer' : 'Enregistrer'}</button>
-            <c:if test="${not empty u0}"><a class="btn" href="${ctx}/admin/users">Annuler</a></c:if>
-          </div>
-        </form>
-      </div>
+                </c:if>
+              </c:forEach>
+              <c:if test="${affiches == 0}"><tr><td colspan="6" class="empty">Aucun utilisateur.</td></tr></c:if>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   </main>
 </div>

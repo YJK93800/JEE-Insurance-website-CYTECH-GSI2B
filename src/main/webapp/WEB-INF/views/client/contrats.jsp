@@ -1,8 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/contracts?statut=ACTIF
-     Attributs : contrats List<Contrat> (déjà filtrés par la servlet selon le paramètre "statut")
-                 statuts  StatutContrat[]  (StatutContrat.values()) --%>
+<%-- ClientContractsServlet — GET /client/contracts
+     Attributs : contracts List<Contract> du client connecté (client, insuranceType et agent chargés ;
+                 les garanties ne sont chargées que sur le détail). --%>
 <c:set var="titre" value="Mes contrats" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -17,38 +17,29 @@
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
-      <nav class="tabs" aria-label="Filtrer par statut">
-        <a href="${ctx}/client/contracts" class="${empty param.statut ? 'active' : ''}">Tous</a>
-        <c:forEach items="${statuts}" var="st">
-          <a href="${ctx}/client/contracts?statut=${st}" class="${param.statut == st.name() ? 'active' : ''}"><ui:statut valeur="${st}" /></a>
-        </c:forEach>
-      </nav>
-
       <section class="stack" aria-label="Liste des contrats">
-        <c:forEach items="${contrats}" var="ct">
+        <c:forEach items="${contracts}" var="ct">
           <article class="card">
             <div class="between">
               <div class="stack-sm">
-                <h2><c:out value="${ct.typeAssurance.nom}" /></h2>
-                <span class="small muted"><c:out value="${ct.numero}" /> · du <ui:date valeur="${ct.dateDebut}" /> au <ui:date valeur="${ct.dateFin}" /></span>
+                <h2><c:out value="${ct.insuranceType.name}" /></h2>
+                <span class="small muted"><c:out value="${ct.number}" /> · du <ui:date valeur="${ct.startDate}" /> au <ui:date valeur="${ct.endDate}" /></span>
               </div>
               <div class="inline">
-                <span class="amount"><ui:montant valeur="${ct.prime}" /> <small>/mois</small></span>
-                <ui:statut valeur="${ct.statut}" />
+                <span class="amount"><ui:montant valeur="${ct.premium}" /> <small>/mois</small></span>
+                <ui:statut valeur="${ct.status}" libelle="${ct.status.label}" />
               </div>
-            </div>
-            <div class="inline">
-              <c:forEach items="${ct.garanties}" var="g"><span class="chip"><c:out value="${g.nom}" /></span></c:forEach>
             </div>
             <div class="inline">
               <a class="btn btn-sm" href="${ctx}/client/contracts?id=${ct.id}">Voir le détail</a>
-              <c:if test="${ct.statut == 'ACTIF'}">
-                <a class="btn btn-sm" href="${ctx}/client/claims?new=1&amp;contrat=${ct.id}">Déclarer un sinistre</a>
+              <a class="btn btn-sm" href="${ctx}/client/payments?contractId=${ct.id}">Paiements</a>
+              <c:if test="${ct.status == 'ACTIF'}">
+                <a class="btn btn-sm" href="${ctx}/client/claims?new=1&amp;contractId=${ct.id}">Déclarer un sinistre</a>
               </c:if>
             </div>
           </article>
         </c:forEach>
-        <c:if test="${empty contrats}"><div class="card"><p class="empty">Aucun contrat pour ce filtre.</p></div></c:if>
+        <c:if test="${empty contracts}"><div class="card"><p class="empty">Vous n'avez aucun contrat.</p></div></c:if>
       </section>
     </div>
   </main>

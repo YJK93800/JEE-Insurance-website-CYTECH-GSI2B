@@ -10,9 +10,9 @@ import java.util.Map;
 /**
  * Réaffiche un formulaire avec ses erreurs.
  * Les noms des attributs doivent correspondre aux JSP :
- *  - "errors"        : Map champ -> message, lue par le tag <ui:champ>
+ *  - "errors"        : Map champ -> message, lue par le tag <ui:field>
  *  - "erreurGlobale" : message général, lu par flash.jspf
- * Les valeurs saisies sont réaffichées automatiquement par <ui:champ> (via param[nom]).
+ * Les valeurs saisies sont réaffichées automatiquement par <ui:field> (via param[nom]).
  */
 public final class FormView {
 

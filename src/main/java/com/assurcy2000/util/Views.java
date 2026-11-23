@@ -6,21 +6,21 @@ public final class Views {
     public static final String LOGIN = BASE + "auth/login.jsp";
     public static final String REGISTER = BASE + "auth/register.jsp";
 
-    public static final String PROFIL = BASE + "common/profil.jsp";
+    public static final String PROFIL = BASE + "common/profile.jsp";
 
-    public static final String CLIENT_CONTRACTS = BASE + "client/contrats.jsp";
-    public static final String CLIENT_CONTRACT = BASE + "client/contrat-detail.jsp";
-    public static final String CLIENT_CLAIMS = BASE + "client/sinistres.jsp";
-    public static final String CLIENT_CLAIM = BASE + "client/sinistre-detail.jsp";
-    public static final String CLIENT_CLAIM_FORM = BASE + "client/sinistre-form.jsp";
-    public static final String CLIENT_PAYMENTS = BASE + "client/paiements.jsp";
+    public static final String CLIENT_CONTRACTS = BASE + "client/contracts.jsp";
+    public static final String CLIENT_CONTRACT = BASE + "client/contract-detail.jsp";
+    public static final String CLIENT_CLAIMS = BASE + "client/claims.jsp";
+    public static final String CLIENT_CLAIM = BASE + "client/claim-detail.jsp";
+    public static final String CLIENT_CLAIM_FORM = BASE + "client/claim-form.jsp";
+    public static final String CLIENT_PAYMENTS = BASE + "client/payments.jsp";
 
-    public static final String AGENT_CONTRACTS = BASE + "agent/contrats.jsp";
-    public static final String AGENT_CONTRACT = BASE + "agent/contrat-form.jsp";
-    public static final String AGENT_CLAIMS = BASE + "agent/sinistres.jsp";
-    public static final String AGENT_CLAIM = BASE + "agent/sinistres.jsp";
+    public static final String AGENT_CONTRACTS = BASE + "agent/contracts.jsp";
+    public static final String AGENT_CONTRACT = BASE + "agent/contract-form.jsp";
+    public static final String AGENT_CLAIMS = BASE + "agent/claims.jsp";
+    public static final String AGENT_CLAIM = BASE + "agent/claims.jsp";
 
-    public static final String ADMIN_USERS = BASE + "admin/utilisateurs.jsp";
+    public static final String ADMIN_USERS = BASE + "admin/users.jsp";
     public static final String STATS = BASE + "admin/stats.jsp";
 
     private Views() { }

@@ -135,7 +135,7 @@
     var recapPieces = document.querySelector('[data-recap="pieces"]');
 
     var majType = function () {
-      var t = formSin.querySelector('input[name="typeSinistre"]:checked');
+      var t = formSin.querySelector('input[name="type"]:checked');
       document.querySelectorAll("[data-type-libelle]").forEach(function (el) { el.textContent = t ? t.dataset.libelle : "—"; });
       if (docsList) {
         docsList.innerHTML = "";
@@ -147,10 +147,10 @@
       }
     };
     var majContrat = function () {
-      var c = formSin.querySelector('input[name="contratId"]:checked');
+      var c = formSin.querySelector('input[name="contractId"]:checked');
       if (recapContrat) recapContrat.textContent = c ? c.dataset.numero : "—";
     };
-    var champDate = formSin.querySelector('input[name="dateSinistre"]');
+    var champDate = formSin.querySelector('input[name="claimDate"]');
     var majDate = function () {
       if (!recapDate || !champDate) return;
       var v = champDate.value;
@@ -159,9 +159,9 @@
     if (champDate) champDate.max = today();
 
     formSin.addEventListener("change", function (e) {
-      if (e.target.name === "typeSinistre") majType();
-      if (e.target.name === "contratId") majContrat();
-      if (e.target.name === "dateSinistre") majDate();
+      if (e.target.name === "type") majType();
+      if (e.target.name === "contractId") majContrat();
+      if (e.target.name === "claimDate") majDate();
     });
     majType(); majContrat(); majDate();
 

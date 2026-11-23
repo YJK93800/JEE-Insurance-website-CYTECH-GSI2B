@@ -58,7 +58,7 @@ public class RegisterServlet extends BaseServlet {
             }
         }
 
-        req.setAttribute(FormView.ERRORS, errors);               // lu par <ui:champ> sous chaque champ
+        req.setAttribute(FormView.ERRORS, errors);               // lu par <ui:field> sous chaque champ
         req.setAttribute("form", new RegisterRequest(      // on réaffiche la saisie SANS les mots de passe
                 form.firstName(), form.lastName(), form.email(), form.phone(),
                 form.birthDate(), form.address(), "", ""));

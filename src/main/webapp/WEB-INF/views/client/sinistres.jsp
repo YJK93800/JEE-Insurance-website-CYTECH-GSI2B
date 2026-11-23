@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/claims
-     Attributs : sinistres List<Sinistre> du client connecté (numero, dateSinistre, typeSinistre, contrat, montantEstime, statut) --%>
+<%-- ClientClaimsServlet — GET /client/claims
+     Attributs : claims List<Claim> du client connecté (number, claimDate, type, contract{number}, estimatedAmount, status) --%>
 <c:set var="titre" value="Mes sinistres" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -19,20 +19,20 @@
 
       <section class="card flush" aria-label="Liste des sinistres">
         <c:choose>
-          <c:when test="${empty sinistres}"><p class="empty">Vous n'avez déclaré aucun sinistre.</p></c:when>
+          <c:when test="${empty claims}"><p class="empty">Vous n'avez déclaré aucun sinistre.</p></c:when>
           <c:otherwise>
             <div class="table-wrap">
               <table class="table">
                 <thead><tr><th>N° sinistre</th><th>Date</th><th>Type</th><th>Contrat</th><th class="right">Estimé</th><th>Statut</th><th></th></tr></thead>
                 <tbody>
-                  <c:forEach items="${sinistres}" var="si">
+                  <c:forEach items="${claims}" var="si">
                     <tr>
-                      <td class="strong"><c:out value="${si.numero}" /></td>
-                      <td><ui:date valeur="${si.dateSinistre}" /></td>
-                      <td><c:out value="${si.typeSinistre.libelle}" /></td>
-                      <td class="muted"><c:out value="${si.contrat.typeAssurance.nom}" /> · <c:out value="${si.contrat.numero}" /></td>
-                      <td class="right strong"><ui:montant valeur="${si.montantEstime}" /></td>
-                      <td><ui:statut valeur="${si.statut}" /></td>
+                      <td class="strong"><c:out value="${si.number}" /></td>
+                      <td><ui:date valeur="${si.claimDate}" /></td>
+                      <td><ui:typeSinistre valeur="${si.type}" /></td>
+                      <td class="muted"><c:out value="${si.contract.number}" /></td>
+                      <td class="right strong"><ui:montant valeur="${si.estimatedAmount}" /></td>
+                      <td><ui:statut valeur="${si.status}" /></td>
                       <td class="right"><a class="btn btn-sm" href="${ctx}/client/claims?id=${si.id}">Suivre</a></td>
                     </tr>
                   </c:forEach>

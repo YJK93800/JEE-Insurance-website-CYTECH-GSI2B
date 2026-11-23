@@ -44,14 +44,14 @@
 
     <error-page>
         <error-code>403</error-code>
-        <location>/WEB-INF/views/erreur/erreur.jsp</location>
+        <location>/WEB-INF/views/error/error.jsp</location>
     </error-page>
     <error-page>
         <error-code>404</error-code>
-        <location>/WEB-INF/views/erreur/erreur.jsp</location>
+        <location>/WEB-INF/views/error/error.jsp</location>
     </error-page>
     <error-page>
         <error-code>500</error-code>
-        <location>/WEB-INF/views/erreur/erreur.jsp</location>
+        <location>/WEB-INF/views/error/error.jsp</location>
     </error-page>
 </web-app>

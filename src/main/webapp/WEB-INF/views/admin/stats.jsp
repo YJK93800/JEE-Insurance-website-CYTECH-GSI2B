@@ -1,20 +1,38 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /admin/stats?periode=12m|annee|mois   (même vue pour GET /agent/stats)
-     POST /admin/stats/analyse -> regénère la synthèse IA (envoie uniquement des agrégats à l'API)
-     Attributs :
-       nbClients, nbNouveauxClients                         long
-       nbContratsActifs, nbContratsExpires, nbContratsResilies long
-       chiffreAffaires, montantPrimes, montantIndemnisations  BigDecimal
-       ratioSinistresPrimes (double, ex. 0.53)  delaiMoyenTraitement (double, jours)  tauxAcceptation (double, ex. 0.78)
-       evolution          List<StatMois>{mois "nov. 2026", primes, indemnisations, nbContrats}
-       clientsParType     Map<String,Long>  (LinkedHashMap, nom du type -> nb de clients)
-       contratsParStatut  Map<String,Long>  (nom de l'enum -> nombre)
-       maxClientsParType  long  (plus grande valeur de clientsParType, pour la largeur des barres)
-       analyseIA          List<String> (points de la synthèse, peut être vide) --%>
+<%-- StatsServlet — GET /admin/stats et GET /agent/stats (même vue)
+     Attribut : stats StatsView
+       clientCount        long
+       contractsByStatus  Map<ContractStatus, Long>  (tous les statuts, 0 compris)
+       claimsByStatus     Map<ClaimStatus, Long>     (tous les statuts, 0 compris)
+       activePremiums     BigDecimal  somme des primes des contrats actifs
+       paymentsReceived   BigDecimal  somme des paiements effectués
+       indemnitiesPaid    BigDecimal  somme des indemnisations versées
+       revenueByMonth     Map<String, BigDecimal>  ("2026-11" -> encaissements du mois, triés par mois)
+     Les indicateurs dérivés (ratio, taux d'acceptation…) sont calculés ici à partir de ces valeurs.
+     Les clés des Map sont des enums : on les parcourt avec c:forEach plutôt que map['ACTIF']. --%>
 <c:set var="titre" value="Statistiques" />
 <c:set var="estAdmin" value="${sessionScope.utilisateur.role == 'ADMIN'}" />
-<c:set var="base" value="${estAdmin ? '/admin/stats' : '/agent/stats'}" />
+
+<%-- Contrats : actifs, expirés, résiliés, total --%>
+<c:set var="nbContrats" value="${0}" />
+<c:forEach items="${stats.contractsByStatus}" var="e">
+  <c:set var="nbContrats" value="${nbContrats + e.value}" />
+  <c:if test="${e.key == 'ACTIF'}"><c:set var="nbActifs" value="${e.value}" /></c:if>
+  <c:if test="${e.key == 'EXPIRE'}"><c:set var="nbExpires" value="${e.value}" /></c:if>
+  <c:if test="${e.key == 'RESILIE'}"><c:set var="nbResilies" value="${e.value}" /></c:if>
+</c:forEach>
+<%-- Sinistres : total, plus grand compteur (largeur des barres), décisions prises --%>
+<c:set var="nbSinistres" value="${0}" />
+<c:set var="maxSinistres" value="${0}" />
+<c:set var="nbAcceptes" value="${0}" />
+<c:set var="nbRefuses" value="${0}" />
+<c:forEach items="${stats.claimsByStatus}" var="e">
+  <c:set var="nbSinistres" value="${nbSinistres + e.value}" />
+  <c:if test="${e.value > maxSinistres}"><c:set var="maxSinistres" value="${e.value}" /></c:if>
+  <c:if test="${e.key == 'ACCEPTE' or e.key == 'INDEMNISE'}"><c:set var="nbAcceptes" value="${nbAcceptes + e.value}" /></c:if>
+  <c:if test="${e.key == 'REFUSE'}"><c:set var="nbRefuses" value="${nbRefuses + e.value}" /></c:if>
+</c:forEach>
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
@@ -28,61 +46,40 @@
           <span class="eyebrow">${estAdmin ? 'Administration' : 'Espace agent'}</span>
           <h1>${estAdmin ? 'Tableau de bord global' : 'Statistiques'}</h1>
         </div>
-        <form class="search" method="get" action="${ctx}${base}">
-          <label class="field">Période
-            <select name="periode" data-autosubmit>
-              <option value="12m"   ${empty param.periode or param.periode == '12m' ? 'selected' : ''}>12 derniers mois</option>
-              <option value="annee" ${param.periode == 'annee' ? 'selected' : ''}>Année en cours</option>
-              <option value="mois"  ${param.periode == 'mois' ? 'selected' : ''}>Ce mois-ci</option>
-            </select>
-          </label>
-          <noscript><button class="btn" type="submit">Appliquer</button></noscript>
-        </form>
       </header>
 
       <h2>Clients et contrats</h2>
       <section class="grid-3" aria-label="Statistiques clients et contrats">
-        <div class="kpi"><span class="kpi-label">Clients</span><span class="kpi-value"><fmt:formatNumber value="${nbClients}" /></span><span class="delta-up">+${nbNouveauxClients} nouveaux sur la période</span></div>
-        <div class="kpi"><span class="kpi-label">Contrats actifs</span><span class="kpi-value"><fmt:formatNumber value="${nbContratsActifs}" /></span></div>
-        <div class="kpi"><span class="kpi-label">Contrats expirés / résiliés</span><span class="kpi-value">${nbContratsExpires} <small>/ ${nbContratsResilies}</small></span></div>
+        <div class="kpi"><span class="kpi-label">Clients</span><span class="kpi-value"><fmt:formatNumber value="${stats.clientCount}" /></span></div>
+        <div class="kpi"><span class="kpi-label">Contrats actifs</span><span class="kpi-value"><fmt:formatNumber value="${empty nbActifs ? 0 : nbActifs}" /></span><span class="kpi-sub">sur ${nbContrats} contrats</span></div>
+        <div class="kpi"><span class="kpi-label">Contrats expirés / résiliés</span><span class="kpi-value">${empty nbExpires ? 0 : nbExpires} <small>/ ${empty nbResilies ? 0 : nbResilies}</small></span></div>
       </section>
 
       <h2>Finances</h2>
       <section class="grid-3" aria-label="Statistiques financières">
-        <div class="kpi"><span class="kpi-label">Chiffre d'affaires</span><span class="kpi-value"><ui:montant valeur="${chiffreAffaires}" /></span></div>
-        <div class="kpi"><span class="kpi-label">Montant des primes</span><span class="kpi-value"><ui:montant valeur="${montantPrimes}" /></span></div>
-        <div class="kpi"><span class="kpi-label">Indemnisations versées</span><span class="kpi-value"><ui:montant valeur="${montantIndemnisations}" /></span></div>
+        <div class="kpi"><span class="kpi-label">Paiements encaissés</span><span class="kpi-value"><ui:amount value="${stats.paymentsReceived}" /></span></div>
+        <div class="kpi"><span class="kpi-label">Primes des contrats actifs</span><span class="kpi-value"><ui:amount value="${stats.activePremiums}" /></span><span class="kpi-sub">par mois</span></div>
+        <div class="kpi"><span class="kpi-label">Indemnisations versées</span><span class="kpi-value"><ui:amount value="${stats.indemnitiesPaid}" /></span></div>
       </section>
 
-      <c:if test="${estAdmin}">
-        <h2 id="indicateurs">Indicateurs de performance</h2>
-        <section class="grid-3" aria-label="Indicateurs de performance">
-          <div class="kpi"><span class="kpi-label">Ratio sinistres / primes</span><span class="kpi-value"><fmt:formatNumber value="${ratioSinistresPrimes}" type="percent" /></span><span class="kpi-sub">Objectif &lt; 60 %</span></div>
-          <div class="kpi"><span class="kpi-label">Délai moyen de traitement</span><span class="kpi-value"><fmt:formatNumber value="${delaiMoyenTraitement}" maxFractionDigits="1" /> <small>jours</small></span></div>
-          <div class="kpi"><span class="kpi-label">Taux d'acceptation des sinistres</span><span class="kpi-value"><fmt:formatNumber value="${tauxAcceptation}" type="percent" /></span></div>
-        </section>
-      </c:if>
+      <h2 id="indicateurs">Indicateurs de performance</h2>
+      <section class="grid-3" aria-label="Indicateurs de performance">
+        <div class="kpi"><span class="kpi-label">Ratio indemnisations / encaissements</span>
+          <span class="kpi-value"><c:choose><c:when test="${stats.paymentsReceived > 0}"><fmt:formatNumber value="${stats.indemnitiesPaid / stats.paymentsReceived}" type="percent" /></c:when><c:otherwise>—</c:otherwise></c:choose></span>
+          <span class="kpi-sub">Objectif &lt; 60 %</span></div>
+        <div class="kpi"><span class="kpi-label">Sinistres déclarés</span><span class="kpi-value"><fmt:formatNumber value="${nbSinistres}" /></span></div>
+        <div class="kpi"><span class="kpi-label">Taux d'acceptation des sinistres</span>
+          <span class="kpi-value"><c:choose><c:when test="${nbAcceptes + nbRefuses > 0}"><fmt:formatNumber value="${nbAcceptes / (nbAcceptes + nbRefuses)}" type="percent" /></c:when><c:otherwise>—</c:otherwise></c:choose></span>
+          <span class="kpi-sub">sur les sinistres acceptés ou refusés</span></div>
+      </section>
 
       <div class="row stretch">
         <section class="card col-main" aria-labelledby="h-rev">
-          <h2 id="h-rev">Évolution des revenus et des indemnisations</h2>
-          <div class="chart-box"><canvas id="chart-revenus" role="img" aria-label="Primes encaissées et indemnisations par mois"></canvas></div>
-        </section>
-        <section class="card col-side" aria-labelledby="h-types">
-          <h2 id="h-types">Clients par type d'assurance</h2>
-          <c:forEach items="${clientsParType}" var="e">
-            <div class="stack-sm">
-              <div class="between small"><span><c:out value="${e.key}" /></span><span class="strong">${e.value}</span></div>
-              <div class="bar-track"><div class="bar-fill" style="width: ${maxClientsParType > 0 ? e.value * 100 / maxClientsParType : 0}%"></div></div>
-            </div>
-          </c:forEach>
-        </section>
-      </div>
-
-      <div class="row stretch">
-        <section class="card col-main" aria-labelledby="h-evol">
-          <h2 id="h-evol">Évolution du nombre de contrats</h2>
-          <div class="chart-box"><canvas id="chart-contrats" role="img" aria-label="Nombre de contrats par mois"></canvas></div>
+          <h2 id="h-rev">Encaissements par mois</h2>
+          <c:choose>
+            <c:when test="${empty stats.revenueByMonth}"><p class="empty">Aucun paiement encaissé pour le moment.</p></c:when>
+            <c:otherwise><div class="chart-box"><canvas id="chart-revenus" role="img" aria-label="Paiements encaissés par mois"></canvas></div></c:otherwise>
+          </c:choose>
         </section>
         <section class="card col-side" aria-labelledby="h-statuts">
           <h2 id="h-statuts">Contrats par statut</h2>
@@ -90,35 +87,27 @@
         </section>
       </div>
 
-      <c:if test="${estAdmin}">
-        <section class="card dark" aria-labelledby="h-ia">
-          <div class="card-head">
-            <h2 id="h-ia">Analyse générée par IA</h2>
-            <form method="post" action="${ctx}/admin/stats/analyse">
-              <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
-              <input type="hidden" name="periode" value="${fn:escapeXml(param.periode)}">
-              <button type="submit" class="btn btn-sm">Régénérer</button>
-            </form>
+      <section class="card" aria-labelledby="h-sin">
+        <h2 id="h-sin">Sinistres par statut</h2>
+        <c:forEach items="${stats.claimsByStatus}" var="e">
+          <div class="stack-sm">
+            <div class="between small"><ui:status value="${e.key}" /><span class="strong">${e.value}</span></div>
+            <div class="bar-track"><div class="bar-fill" style="width: ${maxSinistres > 0 ? e.value * 100 / maxSinistres : 0}%"></div></div>
           </div>
-          <c:choose>
-            <c:when test="${empty analyseIA}"><p class="small muted">Aucune analyse pour cette période. Cliquez sur « Régénérer ».</p></c:when>
-            <c:otherwise><ul class="stack small"><c:forEach items="${analyseIA}" var="pt"><li><c:out value="${pt}" /></li></c:forEach></ul></c:otherwise>
-          </c:choose>
-          <span class="xsmall muted">Synthèse calculée sur les agrégats affichés, sans données personnelles.</span>
-        </section>
-      </c:if>
+        </c:forEach>
+      </section>
     </div>
   </main>
 </div>
 
-<%-- Données des graphiques, lues par stats.js --%>
+<%-- Données des graphiques, lues par stats.js (les clés "contrats" et "indemnisations" restent vides : pas de série mensuelle côté serveur) --%>
 <script type="application/json" id="stats-data">
 {
-  "mois": [<c:forEach items="${evolution}" var="m" varStatus="i">"${fn:escapeXml(m.mois)}"${i.last ? '' : ','}</c:forEach>],
-  "primes": [<c:forEach items="${evolution}" var="m" varStatus="i">${empty m.primes ? 0 : m.primes}${i.last ? '' : ','}</c:forEach>],
-  "indemnisations": [<c:forEach items="${evolution}" var="m" varStatus="i">${empty m.indemnisations ? 0 : m.indemnisations}${i.last ? '' : ','}</c:forEach>],
-  "contrats": [<c:forEach items="${evolution}" var="m" varStatus="i">${empty m.nbContrats ? 0 : m.nbContrats}${i.last ? '' : ','}</c:forEach>],
-  "statuts": {<c:forEach items="${contratsParStatut}" var="e" varStatus="i">"${fn:escapeXml(e.key)}": ${e.value}${i.last ? '' : ','}</c:forEach>}
+  "mois": [<c:forEach items="${stats.revenueByMonth}" var="m" varStatus="i">"${fn:substring(m.key, 5, 7)}/${fn:substring(m.key, 0, 4)}"${i.last ? '' : ','}</c:forEach>],
+  "primes": [<c:forEach items="${stats.revenueByMonth}" var="m" varStatus="i">${empty m.value ? 0 : m.value}${i.last ? '' : ','}</c:forEach>],
+  "indemnisations": [],
+  "contrats": [],
+  "statuts": {<c:forEach items="${stats.contractsByStatus}" var="e" varStatus="i">"${e.key}": ${e.value}${i.last ? '' : ','}</c:forEach>}
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>

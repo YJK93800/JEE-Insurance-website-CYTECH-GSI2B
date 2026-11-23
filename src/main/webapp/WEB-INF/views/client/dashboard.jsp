@@ -1,13 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/dashboard
-     Attributs fournis par la servlet :
-       contrats            List<Contrat>   (les 3 plus récents)
-       nbContrats          int             nbContratsActifs  int   nbContratsEnAttente int
-       totalPrimes         BigDecimal      somme des primes mensuelles des contrats actifs
-       nbSinistresEnCours  int             dernierSinistre   Sinistre (peut être null)
-       prochaineEcheance   Paiement        (peut être null)
-       derniersPaiements   List<Paiement>  (les 5 plus récents) --%>
+<%-- GET /client/dashboard — PAS ENCORE DE SERVLET (vue prête pour le modèle anglais)
+     Attributs attendus :
+       contracts            List<Contract>  (les 3 plus récents, avec insuranceType et guarantees chargés)
+       contractCount        int             activeContractCount int   pendingContractCount int
+       totalPremiums        BigDecimal      somme des primes mensuelles des contrats actifs
+       openClaimCount       int             lastClaim   Claim (peut être null, avec contract.insuranceType chargé)
+       nextPayment          Payment         (peut être null, avec contract.insuranceType chargé)
+       recentPayments       List<Payment>   (les 5 plus récents) --%>
 <c:set var="titre" value="Tableau de bord" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -31,11 +31,11 @@
 
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
-      <c:if test="${not empty prochaineEcheance}">
+      <c:if test="${not empty nextPayment}">
         <div class="alert alert-warn" role="status">
-          <span><strong>Échéance le <ui:date valeur="${prochaineEcheance.datePaiement}" /></strong>
-            · <c:out value="${prochaineEcheance.contrat.typeAssurance.nom}" /> <c:out value="${prochaineEcheance.contrat.numero}" />
-            · <ui:montant valeur="${prochaineEcheance.montant}" /></span>
+          <span><strong>Échéance le <ui:date value="${nextPayment.paymentDate}" /></strong>
+            · <c:out value="${nextPayment.contract.insuranceType.name}" /> <c:out value="${nextPayment.contract.number}" />
+            · <ui:amount value="${nextPayment.amount}" /></span>
           <a href="${ctx}/client/payments?filtre=echeances">Voir l'échéancier</a>
         </div>
       </c:if>
@@ -43,22 +43,22 @@
       <section class="grid-3" aria-label="Résumé">
         <div class="kpi">
           <span class="kpi-label">Contrats actifs</span>
-          <span class="kpi-value">${nbContratsActifs} <small>/ ${nbContrats}</small></span>
-          <span class="kpi-sub">${nbContratsEnAttente} contrat(s) en attente de validation</span>
+          <span class="kpi-value">${activeContractCount} <small>/ ${contractCount}</small></span>
+          <span class="kpi-sub">${pendingContractCount} contrat(s) en attente de validation</span>
         </div>
         <div class="kpi">
           <span class="kpi-label">Sinistres en cours</span>
-          <span class="kpi-value">${nbSinistresEnCours}</span>
+          <span class="kpi-value">${openClaimCount}</span>
           <span class="kpi-sub">
             <c:choose>
-              <c:when test="${not empty dernierSinistre}"><c:out value="${dernierSinistre.numero}" /> · <ui:statut valeur="${dernierSinistre.statut}" /></c:when>
+              <c:when test="${not empty lastClaim}"><c:out value="${lastClaim.number}" /> · <ui:status value="${lastClaim.status}" /></c:when>
               <c:otherwise>Aucun sinistre déclaré</c:otherwise>
             </c:choose>
           </span>
         </div>
         <div class="kpi">
           <span class="kpi-label">Total des primes / mois</span>
-          <span class="kpi-value"><ui:montant valeur="${totalPrimes}" /></span>
+          <span class="kpi-value"><ui:amount value="${totalPremiums}" /></span>
           <span class="kpi-sub">Contrats actifs uniquement</span>
         </div>
       </section>
@@ -69,38 +69,38 @@
             <h2 id="h-contrats">Mes contrats</h2>
             <a href="${ctx}/client/contracts">Tout voir</a>
           </div>
-          <c:forEach items="${contrats}" var="ct">
+          <c:forEach items="${contracts}" var="ct">
             <article class="item">
               <div class="between">
                 <div class="stack-sm">
-                  <a class="item-title" href="${ctx}/client/contracts?id=${ct.id}"><c:out value="${ct.typeAssurance.nom}" /></a>
-                  <span class="small muted"><c:out value="${ct.numero}" /> · <ui:date valeur="${ct.dateDebut}" /> → <ui:date valeur="${ct.dateFin}" /></span>
+                  <a class="item-title" href="${ctx}/client/contracts?id=${ct.id}"><c:out value="${ct.insuranceType.name}" /></a>
+                  <span class="small muted"><c:out value="${ct.number}" /> · <ui:date value="${ct.startDate}" /> → <ui:date value="${ct.endDate}" /></span>
                 </div>
                 <div class="inline">
-                  <span class="amount"><ui:montant valeur="${ct.prime}" /> <small>/mois</small></span>
-                  <ui:statut valeur="${ct.statut}" />
+                  <span class="amount"><ui:amount value="${ct.premium}" /> <small>/mois</small></span>
+                  <ui:status value="${ct.status}" />
                 </div>
               </div>
               <div class="inline">
-                <c:forEach items="${ct.garanties}" var="g"><span class="chip"><c:out value="${g.nom}" /></span></c:forEach>
+                <c:forEach items="${ct.guarantees}" var="g"><span class="chip"><c:out value="${g.name}" /></span></c:forEach>
               </div>
             </article>
           </c:forEach>
-          <c:if test="${empty contrats}">
+          <c:if test="${empty contracts}">
             <p class="empty">Vous n'avez pas encore de contrat. Votre agent pourra vous en proposer un.</p>
           </c:if>
         </section>
 
         <div class="col-side">
-          <c:if test="${not empty dernierSinistre}">
+          <c:if test="${not empty lastClaim}">
             <section class="card" aria-labelledby="h-suivi">
               <div class="stack-sm">
                 <h2 id="h-suivi">Suivi de mon sinistre</h2>
-                <span class="small muted"><c:out value="${dernierSinistre.numero}" /> · <c:out value="${dernierSinistre.typeSinistre.libelle}" /> · <c:out value="${dernierSinistre.contrat.typeAssurance.nom}" /></span>
+                <span class="small muted"><c:out value="${lastClaim.number}" /> · <ui:claimType value="${lastClaim.type}" /> · <c:out value="${lastClaim.contract.insuranceType.name}" /></span>
               </div>
-              <c:set var="sin" value="${dernierSinistre}" />
-              <%@ include file="/WEB-INF/views/common/suivi-sinistre.jspf" %>
-              <a class="strong small" href="${ctx}/client/claims?id=${dernierSinistre.id}">Voir le détail et les échanges</a>
+              <c:set var="sin" value="${lastClaim}" />
+              <%@ include file="/WEB-INF/views/common/claim-timeline.jspf" %>
+              <a class="strong small" href="${ctx}/client/claims?id=${lastClaim.id}">Voir le détail et les échanges</a>
             </section>
           </c:if>
 
@@ -122,8 +122,8 @@
           <h2 id="h-paiements">Derniers paiements</h2>
           <a href="${ctx}/client/payments">Historique complet</a>
         </div>
-        <c:set var="listePaiements" value="${derniersPaiements}" />
-        <%@ include file="/WEB-INF/views/client/table-paiements.jspf" %>
+        <c:set var="listePaiements" value="${recentPayments}" />
+        <%@ include file="/WEB-INF/views/client/payments-table.jspf" %>
       </section>
     </div>
   </main>

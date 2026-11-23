@@ -37,7 +37,7 @@ public class ProfilServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
 
-        // Les deux formulaires de common/profil.jsp envoient un champ caché "action"
+        // Les deux formulaires de common/profile.jsp envoient un champ caché "action"
         switch (RequestParams.get(req, "action")) {
             case "motdepasse" -> changePassword(req, resp);
             case "infos"      -> updateInfos(req, resp);
@@ -46,7 +46,7 @@ public class ProfilServlet extends HttpServlet {
     }
 
     private void changePassword(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Noms des champs = attributs "nom" des <ui:champ> de profil.jsp (les erreurs s'affichent sous ces champs)
+        // Noms des champs = attributs "name" des <ui:field> de profile.jsp (les erreurs s'affichent sous ces champs)
         String oldPassword = RequestParams.raw(req, "ancien");
         String password = RequestParams.raw(req, "motDePasse");
         String confirmation = RequestParams.raw(req, "confirmation");
@@ -81,7 +81,7 @@ public class ProfilServlet extends HttpServlet {
                 Validation.address(RequestParams.get(req, "adresse"), errors));
 
         if (!errors.isEmpty()) {
-            showForm(req, resp, errors); // les champs ressaisis sont réaffichés via param.xxx dans profil.jsp
+            showForm(req, resp, errors); // les champs ressaisis sont réaffichés via param.xxx dans profile.jsp
             return;
         }
 
@@ -99,7 +99,7 @@ public class ProfilServlet extends HttpServlet {
         FormView.show(req, resp, VIEW, errors);
     }
 
-    /** Met l'utilisateur connecté en attribut "user", lu par profil.jsp. */
+    /** Met l'utilisateur connecté en attribut "user", lu par profile.jsp. */
     private void loadUser(HttpServletRequest req) {
         SessionUser current = UserSession.currentUser(req);
         User user = userService.getById(current, current.id());

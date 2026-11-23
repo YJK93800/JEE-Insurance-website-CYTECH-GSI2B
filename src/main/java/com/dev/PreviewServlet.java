@@ -58,24 +58,24 @@ public class PreviewServlet extends HttpServlet {
         PAGES.put("auth/login", "Connexion");
         PAGES.put("auth/register", "Inscription");
         PAGES.put("client/dashboard", "Client · Tableau de bord");
-        PAGES.put("client/contrats", "Client · Mes contrats");
-        PAGES.put("client/contrat-detail", "Client · Détail d'un contrat");
-        PAGES.put("client/garanties", "Client · Mes garanties");
-        PAGES.put("client/paiements", "Client · Paiements");
-        PAGES.put("client/sinistres", "Client · Mes sinistres");
-        PAGES.put("client/sinistre-detail", "Client · Suivi d'un sinistre");
-        PAGES.put("client/sinistre-form", "Client · Déclarer un sinistre");
-        PAGES.put("client/historique", "Client · Historique des demandes");
+        PAGES.put("client/contracts", "Client · Mes contrats");
+        PAGES.put("client/contract-detail", "Client · Détail d'un contrat");
+        PAGES.put("client/guarantees", "Client · Mes garanties");
+        PAGES.put("client/payments", "Client · Paiements");
+        PAGES.put("client/claims", "Client · Mes sinistres");
+        PAGES.put("client/claim-detail", "Client · Suivi d'un sinistre");
+        PAGES.put("client/claim-form", "Client · Déclarer un sinistre");
+        PAGES.put("client/history", "Client · Historique des demandes");
         PAGES.put("client/assistant", "Client · Assistant IA");
-        PAGES.put("common/profil", "Commun · Mon profil");
+        PAGES.put("common/profile", "Commun · Mon profil");
         PAGES.put("agent/clients", "Agent · Clients");
-        PAGES.put("agent/contrats", "Agent · Contrats");
-        PAGES.put("agent/contrat-form", "Agent · Modifier un contrat");
-        PAGES.put("agent/sinistres", "Agent · Traitement des sinistres");
-        PAGES.put("agent/garanties", "Agent · Garanties");
-        PAGES.put("agent/paiements", "Agent · Paiements");
+        PAGES.put("agent/contracts", "Agent · Contrats");
+        PAGES.put("agent/contract-form", "Agent · Modifier un contrat");
+        PAGES.put("agent/claims", "Agent · Traitement des sinistres");
+        PAGES.put("agent/guarantees", "Agent · Garanties");
+        PAGES.put("agent/payments", "Agent · Paiements");
         PAGES.put("admin/stats", "Admin · Statistiques");
-        PAGES.put("admin/utilisateurs", "Admin · Utilisateurs et rôles");
+        PAGES.put("admin/users", "Admin · Utilisateurs et rôles");
         PAGES.put("admin/types", "Admin · Types d'assurance");
     }
 
@@ -162,29 +162,29 @@ public class PreviewServlet extends HttpServlet {
                         "totalPrimes", new BigDecimal("81.30"), "nbSinistresEnCours", 1, "dernierSinistre", sin93,
                         "prochaineEcheance", paiements.get(0), "derniersPaiements", paiements);
                 break;
-            case "client/contrats":
+            case "client/contracts":
                 set(req, "contrats", contrats, "statuts", StatutContrat.values());
                 break;
-            case "client/contrat-detail":
+            case "client/contract-detail":
                 set(req, "contrat", cAuto, "paiements", paiements.subList(1, 2), "sinistres", List.of());
                 break;
-            case "client/garanties":
+            case "client/guarantees":
                 set(req, "contrats", contrats);
                 break;
-            case "client/paiements":
+            case "client/payments":
                 set(req, "paiements", paiements, "totalPaye", new BigDecimal("968.40"), "totalEnAttente", new BigDecimal("38.40"),
                         "prochaineEcheance", paiements.get(0));
                 break;
-            case "client/sinistres":
+            case "client/claims":
                 set(req, "sinistres", List.of(sin93));
                 break;
-            case "client/sinistre-detail":
+            case "client/claim-detail":
                 set(req, "sinistre", sin93);
                 break;
-            case "client/sinistre-form":
+            case "client/claim-form":
                 set(req, "contratsActifs", List.of(cHab, cAuto), "typesSinistre", TypeSinistre.values());
                 break;
-            case "client/historique":
+            case "client/history":
                 set(req, "demandes", List.of(
                         m("date", LocalDate.of(2026, 10, 28), "type", "Déclaration de sinistre", "reference", "SIN-2026-0093",
                                 "lien", "/client/sinistres/detail?id=93", "statut", StatutSinistre.EN_ANALYSE),
@@ -193,7 +193,7 @@ public class PreviewServlet extends HttpServlet {
             case "client/assistant":
                 set(req, "nbContrats", 3, "nbGaranties", 10, "nbSinistres", 1, "nbPaiements", 24, "agentReferent", julien);
                 break;
-            case "common/profil":
+            case "common/profile":
                 set(req, "user", m("firstName", "Camille", "lastName", "Martin", "email", "c.martin@mail.fr",
                         "phone", "06 12 34 56 78", "address", "12 rue des Lilas, 95000 Cergy",
                         "birthDate", LocalDate.of(1990, 5, 14)));
@@ -205,29 +205,29 @@ public class PreviewServlet extends HttpServlet {
                 set(req, "clients", List.of(camille, m("id", 5L, "prenom", "Karim", "nom", "Benali", "email", "k.benali@mail.fr",
                         "telephone", "07 11 22 33 44", "dateInscription", LocalDate.of(2026, 3, 10), "nbContrats", 1)), "selection", selection);
                 break;
-            case "agent/contrats":
+            case "agent/contracts":
                 set(req, "contrats", contrats, "statuts", StatutContrat.values(), "typesAssurance", types);
                 break;
-            case "agent/contrat-form":
+            case "agent/contract-form":
                 set(req, "contrat", cHab, "clients", List.of(camille), "typesAssurance", types,
                         "garanties", new ArrayList<>(g.values()), "statuts", StatutContrat.values());
                 break;
-            case "agent/sinistres":
+            case "agent/claims":
                 set(req, "sinistres", sinistres, "statuts", StatutSinistre.values(), "selection", sin93, "nbSinistresATraiter", 7,
                         "compteurs", m("TOUS", 24, "DECLARE", 3, "EN_ANALYSE", 4, "ACCEPTE", 5, "REFUSE", 2, "INDEMNISE", 10),
                         "analyseIA", "Garantie « Dégâts des eaux » active au 27/10. Montant estimé cohérent avec les factures. Constat amiable manquant.");
                 break;
-            case "agent/garanties":
+            case "agent/guarantees":
                 set(req, "garanties", new ArrayList<>(g.values()));
                 break;
-            case "agent/paiements":
+            case "agent/payments":
                 set(req, "paiements", paiements, "contratsActifs", List.of(cAuto, cHab),
                         "modesPaiement", ModePaiement.values(), "statutsPaiement", StatutPaiement.values());
                 break;
             case "admin/stats":
                 remplirStats(req);
                 break;
-            case "admin/utilisateurs":
+            case "admin/users":
                 set(req, "utilisateurs", List.of(camille, julien, sophie,
                                 m("id", 8L, "prenom", "Paul", "nom", "Mercier", "email", "p.mercier@mail.fr", "role", Role.CLIENT, "actif", false)),
                         "roles", Role.values());
