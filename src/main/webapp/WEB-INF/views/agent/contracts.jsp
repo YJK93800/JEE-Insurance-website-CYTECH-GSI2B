@@ -58,9 +58,9 @@
                       <td class="strong"><c:out value="${ct.number}" /></td>
                       <td><c:out value="${ct.client.firstName} ${ct.client.lastName}" /></td>
                       <td class="muted"><c:out value="${ct.insuranceType.name}" /></td>
-                      <td class="muted small"><ui:date valeur="${ct.startDate}" /> → <ui:date valeur="${ct.endDate}" /></td>
-                      <td class="right strong"><ui:montant valeur="${ct.premium}" /></td>
-                      <td><ui:statut valeur="${ct.status}" libelle="${ct.status.label}" /></td>
+                      <td class="muted small"><ui:date value="${ct.startDate}" /> → <ui:date value="${ct.endDate}" /></td>
+                      <td class="right strong"><ui:amount value="${ct.premium}" /></td>
+                      <td><ui:status value="${ct.status}" label="${ct.status.label}" /></td>
                       <td>
                         <div class="actions">
                           <c:if test="${estAgent}">

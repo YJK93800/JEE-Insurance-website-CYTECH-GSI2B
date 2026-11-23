@@ -29,9 +29,9 @@
         <div class="stack-sm">
           <a class="back" href="${ctx}${base}">← Tous les sinistres</a>
           <h1><c:out value="${sin.number}" /></h1>
-          <span class="muted"><c:out value="${sin.contract.client.firstName} ${sin.contract.client.lastName}" /> · contrat <c:out value="${sin.contract.number}" /> · <ui:typeSinistre valeur="${sin.type}" /></span>
+          <span class="muted"><c:out value="${sin.contract.client.firstName} ${sin.contract.client.lastName}" /> · contrat <c:out value="${sin.contract.number}" /> · <ui:claimType value="${sin.type}" /></span>
         </div>
-        <ui:statut valeur="${sin.status}" />
+        <ui:status value="${sin.status}" />
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
       <c:if test="${not empty erreurs.action}"><div class="alert alert-error" role="alert"><span><c:out value="${erreurs.action}" /></span></div></c:if>
@@ -41,9 +41,9 @@
           <section class="card" aria-labelledby="h-decl">
             <h2 id="h-decl">Déclaration</h2>
             <div class="grid-3 small">
-              <div class="stack-sm"><span class="muted">Survenu le</span><span class="strong"><ui:date valeur="${sin.claimDate}" /></span></div>
-              <div class="stack-sm"><span class="muted">Déclaré le</span><span class="strong"><ui:date valeur="${sin.declaredAt}" /></span></div>
-              <div class="stack-sm"><span class="muted">Montant estimé</span><span class="strong"><ui:montant valeur="${sin.estimatedAmount}" /></span></div>
+              <div class="stack-sm"><span class="muted">Survenu le</span><span class="strong"><ui:date value="${sin.claimDate}" /></span></div>
+              <div class="stack-sm"><span class="muted">Déclaré le</span><span class="strong"><ui:date value="${sin.declaredAt}" /></span></div>
+              <div class="stack-sm"><span class="muted">Montant estimé</span><span class="strong"><ui:amount value="${sin.estimatedAmount}" /></span></div>
             </div>
             <p class="quote">« <c:out value="${sin.description}" /> »</p>
             <div class="grid-2 small">
@@ -86,9 +86,9 @@
                   <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
                   <input type="hidden" name="id" value="${sin.id}">
                   <input type="hidden" name="action" value="indemnify">
-                  <ui:champ nom="amount" libelle="Montant de l'indemnisation (€) *" type="number" requis="true"
+                  <ui:field name="amount" label="Montant de l'indemnisation (€) *" type="number" required="true"
                             extra="min='0.01' step='0.01' inputmode='decimal'"
-                            aide="Le sinistre passera au statut INDEMNISÉ." />
+                            help="Le sinistre passera au statut INDEMNISÉ." />
                   <button type="submit" class="btn btn-primary">Indemniser</button>
                 </form>
               </section>
@@ -99,7 +99,7 @@
         <aside class="col-side">
           <section class="card" aria-labelledby="h-suivi">
             <h2 id="h-suivi">Avancement</h2>
-            <%@ include file="/WEB-INF/views/common/suivi-sinistre.jspf" %>
+            <%@ include file="/WEB-INF/views/common/claim-timeline.jspf" %>
           </section>
         </aside>
       </div>
@@ -139,7 +139,7 @@
         <a href="${lienTous}" class="${empty param.statut ? 'active' : ''}">Tous · ${fn:length(trouves)}</a>
         <c:forEach items="DECLARE,EN_ANALYSE,ACCEPTE,REFUSE,INDEMNISE" var="st">
           <c:url var="lienSt" value="${base}"><c:param name="statut" value="${st}" /><c:param name="q" value="${param.q}" /></c:url>
-          <a href="${lienSt}" class="${param.statut == st ? 'active' : ''}"><ui:statut valeur="${st}" /> ${empty compteurs[st] ? 0 : compteurs[st]}</a>
+          <a href="${lienSt}" class="${param.statut == st ? 'active' : ''}"><ui:status value="${st}" /> ${empty compteurs[st] ? 0 : compteurs[st]}</a>
         </c:forEach>
       </nav>
 
@@ -156,10 +156,10 @@
                     <td class="strong"><a href="${ctx}${base}?id=${si.id}"><c:out value="${si.number}" /></a></td>
                     <td><c:out value="${si.contract.client.firstName} ${si.contract.client.lastName}" /></td>
                     <td class="muted"><c:out value="${si.contract.number}" /></td>
-                    <td class="muted"><ui:typeSinistre valeur="${si.type}" /></td>
-                    <td class="muted"><ui:date valeur="${si.declaredAt}" /></td>
-                    <td class="right strong"><ui:montant valeur="${si.estimatedAmount}" /></td>
-                    <td><ui:statut valeur="${si.status}" /></td>
+                    <td class="muted"><ui:claimType value="${si.type}" /></td>
+                    <td class="muted"><ui:date value="${si.declaredAt}" /></td>
+                    <td class="right strong"><ui:amount value="${si.estimatedAmount}" /></td>
+                    <td><ui:status value="${si.status}" /></td>
                   </tr>
                 </c:if>
               </c:forEach>

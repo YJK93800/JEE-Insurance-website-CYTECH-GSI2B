@@ -23,11 +23,11 @@
             <div class="between">
               <div class="stack-sm">
                 <h2><c:out value="${ct.insuranceType.name}" /></h2>
-                <span class="small muted"><c:out value="${ct.number}" /> · du <ui:date valeur="${ct.startDate}" /> au <ui:date valeur="${ct.endDate}" /></span>
+                <span class="small muted"><c:out value="${ct.number}" /> · du <ui:date value="${ct.startDate}" /> au <ui:date value="${ct.endDate}" /></span>
               </div>
               <div class="inline">
-                <span class="amount"><ui:montant valeur="${ct.premium}" /> <small>/mois</small></span>
-                <ui:statut valeur="${ct.status}" libelle="${ct.status.label}" />
+                <span class="amount"><ui:amount value="${ct.premium}" /> <small>/mois</small></span>
+                <ui:status value="${ct.status}" label="${ct.status.label}" />
               </div>
             </div>
             <div class="inline">

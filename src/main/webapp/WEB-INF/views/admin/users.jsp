@@ -50,7 +50,7 @@
                   <tr>
                     <td class="strong"><c:out value="${us.firstName} ${us.lastName}" />${estMoi ? ' (vous)' : ''}</td>
                     <td class="muted"><c:out value="${us.email}" /></td>
-                    <td class="muted small"><ui:date valeur="${us.createdAt}" /></td>
+                    <td class="muted small"><ui:date value="${us.createdAt}" /></td>
                     <td>
                       <c:choose>
                         <c:when test="${estMoi}"><span class="badge">${us.role.name}</span></c:when>

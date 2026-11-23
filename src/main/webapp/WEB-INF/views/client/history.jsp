@@ -24,7 +24,7 @@
                 <tbody>
                   <c:forEach items="${requests}" var="d">
                     <tr>
-                      <td><ui:date valeur="${d.date}" /></td>
+                      <td><ui:date value="${d.date}" /></td>
                       <td><c:out value="${d.type}" /></td>
                       <td class="strong">
                         <c:choose>
@@ -32,7 +32,7 @@
                           <c:otherwise><c:out value="${d.reference}" /></c:otherwise>
                         </c:choose>
                       </td>
-                      <td><c:if test="${not empty d.status}"><ui:statut valeur="${d.status}" /></c:if></td>
+                      <td><c:if test="${not empty d.status}"><ui:status value="${d.status}" /></c:if></td>
                     </tr>
                   </c:forEach>
                 </tbody>

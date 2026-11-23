@@ -10,12 +10,12 @@
         <tbody>
           <c:forEach items="${listePaiements}" var="p">
             <tr>
-              <td><ui:date valeur="${p.dueDate}" /></td>
-              <td><ui:date valeur="${p.paymentDate}" /></td>
+              <td><ui:date value="${p.dueDate}" /></td>
+              <td><ui:date value="${p.paymentDate}" /></td>
               <td><c:out value="${p.contract.number}" /></td>
               <td class="muted"><c:out value="${empty p.method ? '—' : p.method}" /></td>
-              <td class="right strong"><ui:montant valeur="${p.amount}" /></td>
-              <td><ui:statut valeur="${p.status}" /></td>
+              <td class="right strong"><ui:amount value="${p.amount}" /></td>
+              <td><ui:status value="${p.status}" /></td>
             </tr>
           </c:forEach>
         </tbody>

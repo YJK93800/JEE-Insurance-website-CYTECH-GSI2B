@@ -60,10 +60,10 @@
         </div>
 
         <div class="grid-3">
-          <ui:champ nom="dateDebut" libelle="Date de début *" type="date" requis="true" valeur="${not empty param.dateDebut ? param.dateDebut : (creation ? dateDebutDefaut : contrat.startDate)}" />
-          <ui:champ nom="dateFin" libelle="Date de fin *" type="date" requis="true" valeur="${not empty param.dateFin ? param.dateFin : (creation ? dateFinDefaut : contrat.endDate)}" extra="data-after='dateDebut' data-fin-auto" />
-          <ui:champ nom="prime" libelle="Prime mensuelle (€) *" type="number" requis="true" valeur="${not empty param.prime ? param.prime : contrat.premium}"
-                    extra="min='0.01' step='0.01' data-prime" aide="Pré-remplie avec le prix de base du type d'assurance (utilisé aussi si laissée vide)." />
+          <ui:field name="dateDebut" label="Date de début *" type="date" required="true" value="${not empty param.dateDebut ? param.dateDebut : (creation ? dateDebutDefaut : contrat.startDate)}" />
+          <ui:field name="dateFin" label="Date de fin *" type="date" required="true" value="${not empty param.dateFin ? param.dateFin : (creation ? dateFinDefaut : contrat.endDate)}" extra="data-after='dateDebut' data-fin-auto" />
+          <ui:field name="prime" label="Prime mensuelle (€) *" type="number" required="true" value="${not empty param.prime ? param.prime : contrat.premium}"
+                    extra="min='0.01' step='0.01' data-prime" help="Pré-remplie avec le prix de base du type d'assurance (utilisé aussi si laissée vide)." />
         </div>
 
         <%-- En création, le contrat démarre toujours EN_ATTENTE : pas de choix du statut --%>

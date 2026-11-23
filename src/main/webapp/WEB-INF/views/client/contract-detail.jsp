@@ -24,9 +24,9 @@
       </header>
 
       <section class="grid-3" aria-label="Informations du contrat">
-        <div class="kpi"><span class="kpi-label">Statut</span><span><ui:statut valeur="${contract.status}" libelle="${contract.status.label}" /></span></div>
-        <div class="kpi"><span class="kpi-label">Période</span><span class="strong"><ui:date valeur="${contract.startDate}" /> → <ui:date valeur="${contract.endDate}" /></span></div>
-        <div class="kpi"><span class="kpi-label">Prime mensuelle</span><span class="kpi-value"><ui:montant valeur="${contract.premium}" /></span></div>
+        <div class="kpi"><span class="kpi-label">Statut</span><span><ui:status value="${contract.status}" label="${contract.status.label}" /></span></div>
+        <div class="kpi"><span class="kpi-label">Période</span><span class="strong"><ui:date value="${contract.startDate}" /> → <ui:date value="${contract.endDate}" /></span></div>
+        <div class="kpi"><span class="kpi-label">Prime mensuelle</span><span class="kpi-value"><ui:amount value="${contract.premium}" /></span></div>
       </section>
 
       <div class="row stretch">

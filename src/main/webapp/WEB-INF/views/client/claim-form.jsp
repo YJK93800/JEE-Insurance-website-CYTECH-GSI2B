@@ -46,7 +46,7 @@
                        ${contratChoisi == fn:trim(ct.id) or (empty contratChoisi and i.first) ? 'checked' : ''}>
                 <span class="stack-sm">
                   <span class="strong"><c:out value="${ct.insuranceType.name}" /></span>
-                  <span class="small muted"><c:out value="${ct.number}" /> · du <ui:date valeur="${ct.startDate}" /> au <ui:date valeur="${ct.endDate}" /></span>
+                  <span class="small muted"><c:out value="${ct.number}" /> · du <ui:date value="${ct.startDate}" /> au <ui:date value="${ct.endDate}" /></span>
                 </span>
               </label>
             </c:forEach>
@@ -58,7 +58,7 @@
             <legend>Type de sinistre *</legend>
             <div class="pills" role="radiogroup">
               <c:forEach items="${claimTypes}" var="t" varStatus="i">
-                <c:set var="libelleType"><ui:typeSinistre valeur="${t}" /></c:set>
+                <c:set var="libelleType"><ui:claimType value="${t}" /></c:set>
                 <%-- Documents conseillés, affichés à droite par app.js (séparés par |) --%>
                 <c:choose>
                   <c:when test="${t == 'VOL'}"><c:set var="docs" value="Récépissé de dépôt de plainte|Factures ou photos des biens volés" /></c:when>
@@ -82,8 +82,8 @@
           </fieldset>
 
           <div class="grid-2">
-            <ui:champ nom="claimDate" libelle="Date du sinistre *" type="date" requis="true" extra="data-max-today" />
-            <ui:champ nom="estimatedAmount" libelle="Montant estimé (€) *" type="number" requis="true"
+            <ui:field name="claimDate" label="Date du sinistre *" type="date" required="true" extra="data-max-today" />
+            <ui:field name="estimatedAmount" label="Montant estimé (€) *" type="number" required="true"
                       extra="min='0.01' step='0.01' inputmode='decimal'" />
           </div>
 
@@ -113,7 +113,7 @@
             <div class="between small"><span class="muted">Contrat</span><span class="strong" data-recap="contrat">—</span></div>
             <div class="between small"><span class="muted">Type</span><span class="strong" data-type-libelle>—</span></div>
             <div class="between small"><span class="muted">Date</span><span class="strong" data-recap="date">—</span></div>
-            <div class="between small"><span class="muted">Statut à l'envoi</span><ui:statut valeur="DECLARE" /></div>
+            <div class="between small"><span class="muted">Statut à l'envoi</span><ui:status value="DECLARE" /></div>
           </section>
         </aside>
       </div>

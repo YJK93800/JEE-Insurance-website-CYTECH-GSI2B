@@ -30,8 +30,8 @@
                   <tr class="${g0.id == g.id ? 'selected' : ''}">
                     <td class="strong"><c:out value="${g.name}" /></td>
                     <td class="muted small"><c:out value="${g.description}" /></td>
-                    <td class="right"><ui:montant valeur="${g.plafond}" /></td>
-                    <td class="right"><ui:montant valeur="${g.franchise}" /></td>
+                    <td class="right"><ui:amount value="${g.plafond}" /></td>
+                    <td class="right"><ui:amount value="${g.franchise}" /></td>
                     <td class="right">${g.contractCount}</td>
                     <td><div class="actions">
                       <a class="btn btn-sm" href="${ctx}/agent/garanties?id=${g.id}">Modifier</a>
@@ -53,14 +53,14 @@
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <input type="hidden" name="id" value="${g0.id}">
           <h2>${empty g0 ? 'Nouvelle garantie' : 'Modifier la garantie'}</h2>
-          <ui:champ nom="nom" libelle="Nom *" requis="true" valeur="${not empty param.nom ? param.nom : g0.name}" extra="maxlength='80' placeholder='Ex. : Dégâts des eaux'" />
+          <ui:field name="nom" label="Nom *" required="true" value="${not empty param.nom ? param.nom : g0.name}" extra="maxlength='80' placeholder='Ex. : Dégâts des eaux'" />
           <label class="field ${not empty erreurs.description ? 'has-error' : ''}">Description
             <textarea name="description" rows="3" maxlength="500"><c:out value="${not empty param.description ? param.description : g0.description}" /></textarea>
             <c:if test="${not empty erreurs.description}"><span class="field-error"><c:out value="${erreurs.description}" /></span></c:if>
           </label>
           <div class="grid-2">
-            <ui:champ nom="plafond" libelle="Plafond (€)" type="number" valeur="${not empty param.plafond ? param.plafond : g0.plafond}" extra="min='0' step='0.01'" />
-            <ui:champ nom="franchise" libelle="Franchise (€)" type="number" valeur="${not empty param.franchise ? param.franchise : g0.franchise}" extra="min='0' step='0.01'" />
+            <ui:field name="plafond" label="Plafond (€)" type="number" value="${not empty param.plafond ? param.plafond : g0.plafond}" extra="min='0' step='0.01'" />
+            <ui:field name="franchise" label="Franchise (€)" type="number" value="${not empty param.franchise ? param.franchise : g0.franchise}" extra="min='0' step='0.01'" />
           </div>
           <div class="inline">
             <button type="submit" class="btn btn-primary">${empty g0 ? 'Créer' : 'Enregistrer'}</button>

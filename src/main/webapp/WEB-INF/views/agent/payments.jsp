@@ -41,12 +41,12 @@
                   <tbody>
                     <c:forEach items="${payments}" var="p">
                       <tr>
-                        <td><ui:date valeur="${p.paymentDate}" /></td>
+                        <td><ui:date value="${p.paymentDate}" /></td>
                         <td><c:out value="${p.contract.client.firstName} ${p.contract.client.lastName}" /></td>
                         <td class="muted"><c:out value="${p.contract.number}" /></td>
                         <td class="muted"><c:out value="${p.method}" /></td>
-                        <td class="right strong"><ui:montant valeur="${p.amount}" /></td>
-                        <td><ui:statut valeur="${p.status}" /></td>
+                        <td class="right strong"><ui:amount value="${p.amount}" /></td>
+                        <td><ui:status value="${p.status}" /></td>
                       </tr>
                     </c:forEach>
                   </tbody>
@@ -69,8 +69,8 @@
             <c:if test="${not empty erreurs.contratId}"><span class="field-error"><c:out value="${erreurs.contratId}" /></span></c:if>
           </label>
           <div class="grid-2">
-            <ui:champ nom="montant" libelle="Montant (€) *" type="number" requis="true" extra="min='0.01' step='0.01' data-prime-cible" />
-            <ui:champ nom="datePaiement" libelle="Date *" type="date" requis="true" />
+            <ui:field name="montant" label="Montant (€) *" type="number" required="true" extra="min='0.01' step='0.01' data-prime-cible" />
+            <ui:field name="datePaiement" label="Date *" type="date" required="true" />
           </div>
           <div class="grid-2">
             <label class="field">Mode *

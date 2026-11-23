@@ -29,14 +29,14 @@
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
       <section class="grid-3" aria-label="Résumé">
-        <div class="kpi"><span class="kpi-label">Total payé</span><span class="kpi-value"><ui:montant valeur="${totalPaye}" /></span></div>
-        <div class="kpi"><span class="kpi-label">En attente</span><span class="kpi-value"><ui:montant valeur="${totalEnAttente}" /></span></div>
+        <div class="kpi"><span class="kpi-label">Total payé</span><span class="kpi-value"><ui:amount value="${totalPaye}" /></span></div>
+        <div class="kpi"><span class="kpi-label">En attente</span><span class="kpi-value"><ui:amount value="${totalEnAttente}" /></span></div>
         <div class="kpi"><span class="kpi-label">Nombre de paiements</span><span class="kpi-value">${fn:length(payments)}</span></div>
       </section>
 
       <section class="card">
         <c:set var="listePaiements" value="${payments}" />
-        <%@ include file="/WEB-INF/views/client/table-paiements.jspf" %>
+        <%@ include file="/WEB-INF/views/client/payments-table.jspf" %>
       </section>
     </div>
   </main>

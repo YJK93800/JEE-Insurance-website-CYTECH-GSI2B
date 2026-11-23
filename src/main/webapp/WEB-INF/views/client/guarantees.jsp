@@ -21,7 +21,7 @@
               <h2><c:out value="${ct.insuranceType.name}" /></h2>
               <span class="small muted"><c:out value="${ct.number}" /></span>
             </div>
-            <ui:statut valeur="${ct.status}" />
+            <ui:status value="${ct.status}" />
           </div>
           <div class="table-wrap">
             <table class="table">
@@ -31,8 +31,8 @@
                   <tr>
                     <td class="strong"><c:out value="${g.name}" /></td>
                     <td class="muted"><c:out value="${g.description}" /></td>
-                    <td class="right"><ui:montant valeur="${g.plafond}" /></td>
-                    <td class="right"><ui:montant valeur="${g.franchise}" /></td>
+                    <td class="right"><ui:amount value="${g.plafond}" /></td>
+                    <td class="right"><ui:amount value="${g.franchise}" /></td>
                   </tr>
                 </c:forEach>
               </tbody>

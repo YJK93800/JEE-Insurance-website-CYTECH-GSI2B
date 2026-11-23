@@ -48,12 +48,12 @@
             </span>
           </label>
           <div class="grid-2">
-            <ui:champ nom="telephone" libelle="Téléphone" type="tel" valeur="${not empty param.telephone ? param.telephone : user.phone}" extra="pattern='[+0-9][0-9 .]{5,19}' maxlength='20'" />
+            <ui:field name="telephone" label="Téléphone" type="tel" value="${not empty param.telephone ? param.telephone : user.phone}" extra="pattern='[+0-9][0-9 .]{5,19}' maxlength='20'" />
             <label class="field">Date de naissance
-              <input type="text" value="<ui:date valeur='${user.birthDate}' />" disabled>
+              <input type="text" value="<ui:date value='${user.birthDate}' />" disabled>
             </label>
           </div>
-          <ui:champ nom="adresse" libelle="Adresse postale" valeur="${not empty param.adresse ? param.adresse : user.address}" extra="maxlength='255'" />
+          <ui:field name="adresse" label="Adresse postale" value="${not empty param.adresse ? param.adresse : user.address}" extra="maxlength='255'" />
           <div class="form-actions"><span></span><button type="submit" class="btn btn-primary">Enregistrer</button></div>
         </form>
 
@@ -61,9 +61,9 @@
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <input type="hidden" name="action" value="motdepasse">
           <h2>Mot de passe</h2>
-          <ui:champ nom="ancien" libelle="Mot de passe actuel" type="password" requis="true" extra="autocomplete='current-password'" />
-          <ui:champ nom="motDePasse" libelle="Nouveau mot de passe" type="password" requis="true" aide="8 caractères minimum, dont un chiffre." extra="minlength='8' autocomplete='new-password'" />
-          <ui:champ nom="confirmation" libelle="Confirmation" type="password" requis="true" extra="minlength='8' data-match='motDePasse' autocomplete='new-password'" />
+          <ui:field name="ancien" label="Mot de passe actuel" type="password" required="true" extra="autocomplete='current-password'" />
+          <ui:field name="motDePasse" label="Nouveau mot de passe" type="password" required="true" help="8 caractères minimum, dont un chiffre." extra="minlength='8' autocomplete='new-password'" />
+          <ui:field name="confirmation" label="Confirmation" type="password" required="true" extra="minlength='8' data-match='motDePasse' autocomplete='new-password'" />
           <button type="submit" class="btn btn-block">Changer le mot de passe</button>
         </form>
       </div>

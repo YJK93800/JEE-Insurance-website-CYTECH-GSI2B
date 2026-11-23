@@ -28,11 +28,11 @@
                   <c:forEach items="${claims}" var="si">
                     <tr>
                       <td class="strong"><c:out value="${si.number}" /></td>
-                      <td><ui:date valeur="${si.claimDate}" /></td>
-                      <td><ui:typeSinistre valeur="${si.type}" /></td>
+                      <td><ui:date value="${si.claimDate}" /></td>
+                      <td><ui:claimType value="${si.type}" /></td>
                       <td class="muted"><c:out value="${si.contract.number}" /></td>
-                      <td class="right strong"><ui:montant valeur="${si.estimatedAmount}" /></td>
-                      <td><ui:statut valeur="${si.status}" /></td>
+                      <td class="right strong"><ui:amount value="${si.estimatedAmount}" /></td>
+                      <td><ui:status value="${si.status}" /></td>
                       <td class="right"><a class="btn btn-sm" href="${ctx}/client/claims?id=${si.id}">Suivre</a></td>
                     </tr>
                   </c:forEach>

@@ -17,9 +17,9 @@
         <div class="stack-sm">
           <a class="back" href="${ctx}/client/claims">← Mes sinistres</a>
           <h1><c:out value="${sin.number}" /></h1>
-          <span class="muted"><ui:typeSinistre valeur="${sin.type}" /> · contrat <c:out value="${sin.contract.number}" /></span>
+          <span class="muted"><ui:claimType value="${sin.type}" /> · contrat <c:out value="${sin.contract.number}" /></span>
         </div>
-        <ui:statut valeur="${sin.status}" />
+        <ui:status value="${sin.status}" />
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
@@ -28,10 +28,10 @@
           <section class="card" aria-labelledby="h-desc">
             <h2 id="h-desc">Déclaration</h2>
             <div class="grid-3 small">
-              <div class="stack-sm"><span class="muted">Date du sinistre</span><span class="strong"><ui:date valeur="${sin.claimDate}" /></span></div>
-              <div class="stack-sm"><span class="muted">Montant estimé</span><span class="strong"><ui:montant valeur="${sin.estimatedAmount}" /></span></div>
+              <div class="stack-sm"><span class="muted">Date du sinistre</span><span class="strong"><ui:date value="${sin.claimDate}" /></span></div>
+              <div class="stack-sm"><span class="muted">Montant estimé</span><span class="strong"><ui:amount value="${sin.estimatedAmount}" /></span></div>
               <div class="stack-sm"><span class="muted">Indemnisation</span><span class="strong">
-                <c:choose><c:when test="${not empty sin.indemnifiedAmount}"><ui:montant valeur="${sin.indemnifiedAmount}" /></c:when><c:otherwise>—</c:otherwise></c:choose></span></div>
+                <c:choose><c:when test="${not empty sin.indemnifiedAmount}"><ui:amount value="${sin.indemnifiedAmount}" /></c:when><c:otherwise>—</c:otherwise></c:choose></span></div>
             </div>
             <p class="quote"><c:out value="${sin.description}" /></p>
           </section>
@@ -40,7 +40,7 @@
         <aside class="col-side">
           <section class="card" aria-labelledby="h-suivi">
             <h2 id="h-suivi">Avancement</h2>
-            <%@ include file="/WEB-INF/views/common/suivi-sinistre.jspf" %>
+            <%@ include file="/WEB-INF/views/common/claim-timeline.jspf" %>
           </section>
         </aside>
       </div>
