@@ -30,15 +30,15 @@
       <form class="form" method="post" action="${ctx}/register" novalidate data-validate>
         <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
         <div class="grid-2">
-          <ui:champ nom="prenom" libelle="Prénom" requis="true" extra="maxlength='60' autocomplete='given-name'" />
-          <ui:champ nom="nom" libelle="Nom" requis="true" extra="maxlength='60' autocomplete='family-name'" />
+          <ui:champ nom="prenom" libelle="Prénom" requis="true" extra="maxlength='80' autocomplete='given-name'" />
+          <ui:champ nom="nom" libelle="Nom" requis="true" extra="maxlength='80' autocomplete='family-name'" />
         </div>
-        <ui:champ nom="email" libelle="Adresse e-mail" type="email" requis="true" extra="autocomplete='email'" />
+        <ui:champ nom="email" libelle="Adresse e-mail" type="email" requis="true" extra="maxlength='150' autocomplete='email'" />
         <div class="grid-2">
-          <ui:champ nom="telephone" libelle="Téléphone" type="tel" extra="pattern='[0-9 +]{10,15}' autocomplete='tel'" />
+          <ui:champ nom="telephone" libelle="Téléphone" type="tel" extra="pattern='[+0-9][0-9 .]{5,19}' maxlength='20' autocomplete='tel'" />
           <ui:champ nom="dateNaissance" libelle="Date de naissance" type="date" requis="true" />
         </div>
-        <ui:champ nom="adresse" libelle="Adresse postale" extra="maxlength='200' autocomplete='street-address'" />
+        <ui:champ nom="adresse" libelle="Adresse postale" extra="maxlength='255' autocomplete='street-address'" />
         <ui:champ nom="motDePasse" libelle="Mot de passe" type="password" requis="true"
                   aide="8 caractères minimum, dont un chiffre." extra="minlength='8' autocomplete='new-password'" />
         <ui:champ nom="confirmation" libelle="Confirmer le mot de passe" type="password" requis="true"
