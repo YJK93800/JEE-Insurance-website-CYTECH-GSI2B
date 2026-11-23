@@ -83,7 +83,7 @@ public class ContractService {
             Contract contract = new Contract(nextNumber(), req.startDate(), req.endDate(),
                     req.premium() != null ? req.premium() : type.getBasePrice(), client, type);
             contract.setStatus(ContractStatus.EN_ATTENTE);
-            contract.setAgent(userDao.findById(actor.id()).orElseThrow());
+            contract.setAgent(userDao.getReference(actor.id()));
             contract.setGuarantees(guarantees);
             return contractDao.save(contract);
         });

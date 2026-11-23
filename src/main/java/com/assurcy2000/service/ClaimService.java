@@ -132,7 +132,7 @@ public class ClaimService {
                         "Passage de " + claim.getStatus() + " à " + next + " impossible."));
             }
             claim.setStatus(next);
-            claim.setAgent(userDao.findById(actor.id()).orElseThrow());
+            claim.setAgent(userDao.getReference(actor.id()));
             return claimDao.update(claim);
         });
     }
@@ -156,7 +156,7 @@ public class ClaimService {
             claim.setIndemnifiedAmount(amount);
             claim.setIndemnificationDate(LocalDate.now());
             claim.setStatus(ClaimStatus.INDEMNISE);
-            claim.setAgent(userDao.findById(actor.id()).orElseThrow());
+            claim.setAgent(userDao.getReference(actor.id()));
             return claimDao.update(claim);
         });
     }

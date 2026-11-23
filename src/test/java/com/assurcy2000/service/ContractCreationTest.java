@@ -67,6 +67,7 @@ class ContractCreationTest {
         Map<Long, User> users = Map.of(1L, clientUser, 2L, agentUser);
         UserDao userDao = new UserDao() {
             @Override public Optional<User> findById(Long id) { return Optional.ofNullable(users.get(id)); }
+            @Override public User getReference(Long id) { return users.get(id); }
         };
         InsuranceTypeDao typeDao = new InsuranceTypeDao() {
             @Override public Optional<InsuranceType> findById(Long id) { return Optional.of(habitation).filter(t -> t.getId().equals(id)); }

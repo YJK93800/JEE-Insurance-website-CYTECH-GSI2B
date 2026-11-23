@@ -60,7 +60,7 @@ public class PaymentService {
             payment.setStatus(PaymentStatus.EFFECTUE);
             payment.setPaymentDate(LocalDate.now());
             payment.setMethod(method);
-            payment.setRecordedBy(userDao.findById(actor.id()).orElseThrow());
+            payment.setRecordedBy(userDao.getReference(actor.id()));
             return paymentDao.update(payment);
         });
     }

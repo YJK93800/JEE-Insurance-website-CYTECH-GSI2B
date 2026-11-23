@@ -41,6 +41,16 @@ public abstract class BaseDao<T, ID extends Serializable> {
         return Optional.ofNullable(session().find(entityClass, id));
     }
 
+    /**
+     * Référence vers une entité dont on connaît l'id, sans la charger : aucune requête SQL.
+     * Sert à remplir une clé étrangère (ex. contract.setAgent(...)) quand on sait que la ligne existe,
+     * comme l'utilisateur connecté. Seul getId() est utilisable sans transaction ; lire un autre champ
+     * déclenche le chargement, donc uniquement dans la transaction en cours.
+     */
+    public T getReference(ID id) {
+        return session().getReference(entityClass, id);
+    }
+
     public List<T> findAll() {
         return session().createQuery("from " + entityClass.getSimpleName(), entityClass).getResultList();
     }
