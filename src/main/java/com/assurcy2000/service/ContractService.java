@@ -1,6 +1,7 @@
 package com.assurcy2000.service;
 
 import com.assurcy2000.dao.ContractDao;
+import com.assurcy2000.dto.request.ContractSearchRequest;
 import com.assurcy2000.model.Contract;
 import com.assurcy2000.model.enums.ContractStatus;
 import com.assurcy2000.persistence.HibernateTransactionRunner;
@@ -54,10 +55,10 @@ public class ContractService {
         return tx.inTransaction(() -> contractDao.findByClient(clientId));
     }
 
-    public List<Contract> search(SessionUser actor, String keyword) {
+    /** Recherche réservée aux agents et à l'admin (tous les contrats). */
+    public List<Contract> search(SessionUser actor, ContractSearchRequest criteria) {
         Policy.require(actor, CONTRACT_READ_ALL);
-        if (keyword == null || keyword.isBlank()) return tx.inTransaction(contractDao::findAll);
-        return tx.inTransaction(() -> contractDao.search(keyword));
+        return tx.inTransaction(() -> contractDao.search(criteria));
     }
 
     public Contract suspend(SessionUser actor, Long id) {

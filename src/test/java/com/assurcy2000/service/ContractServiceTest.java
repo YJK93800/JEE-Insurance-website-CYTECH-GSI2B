@@ -6,6 +6,7 @@ import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
 import com.assurcy2000.model.enums.ContractStatus;
 import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.dto.request.ContractSearchRequest;
 import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
@@ -93,7 +94,7 @@ class ContractServiceTest {
     void agentCanListContractsOfAGivenClientButClientCannot() {
         assertEquals(List.of(aliceContract), service.listByClient(agent, 1L));
         assertThrows(ForbiddenException.class, () -> service.listByClient(alice, 2L));
-        assertThrows(ForbiddenException.class, () -> service.search(alice, "bob"));
+        assertThrows(ForbiddenException.class, () -> service.search(alice, new ContractSearchRequest("bob", null, null)));
     }
 
     @Test

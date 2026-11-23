@@ -1,5 +1,6 @@
 package com.assurcy2000.dao;
 
+import com.assurcy2000.dto.request.ContractSearchRequest;
 import com.assurcy2000.model.Contract;
 import com.assurcy2000.model.Guarantee;
 import com.assurcy2000.model.enums.ContractStatus;
@@ -57,14 +58,29 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 .getResultList());
     }
 
-    public List<Contract> search(String keyword) {
-        String pattern = "%" + keyword.trim().toLowerCase() + "%";
-        return query(s -> s.createQuery(SELECT
-                + " where lower(c.number) like :p or lower(cl.lastName) like :p"
-                + " or lower(cl.firstName) like :p or lower(cl.email) like :p"
-                + " order by c.startDate desc", Contract.class)
-                .setParameter("p", pattern)
-                .getResultList());
+    /**
+     * Recherche multi-critères : chaque critère null est ignoré.
+     * Le mot-clé cherche dans le numéro de contrat et dans le nom, prénom et email du client.
+     */
+    public List<Contract> search(ContractSearchRequest criteria) {
+        StringBuilder hql = new StringBuilder(SELECT).append(" where 1 = 1");
+        String keyword = criteria.keyword() == null ? "" : criteria.keyword().trim().toLowerCase();
+        if (!keyword.isEmpty()) {
+            hql.append(" and (lower(c.number) like :p or lower(cl.lastName) like :p"
+                    + " or lower(cl.firstName) like :p or lower(cl.email) like :p"
+                    + " or lower(concat(cl.firstName, ' ', cl.lastName)) like :p)");
+        }
+        if (criteria.status() != null) hql.append(" and c.status = :status");
+        if (criteria.insuranceTypeId() != null) hql.append(" and t.id = :typeId");
+        hql.append(" order by c.startDate desc");
+
+        return query(s -> {
+            var q = s.createQuery(hql.toString(), Contract.class);
+            if (!keyword.isEmpty()) q.setParameter("p", "%" + keyword + "%");
+            if (criteria.status() != null) q.setParameter("status", criteria.status());
+            if (criteria.insuranceTypeId() != null) q.setParameter("typeId", criteria.insuranceTypeId());
+            return q.getResultList();
+        });
     }
 
     public List<Contract> findActiveEndedBefore(LocalDate date) {

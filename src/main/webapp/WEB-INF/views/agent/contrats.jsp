@@ -1,8 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET  /agent/contrats?q=texte&statut=ACTIF&type=3   (recherche de contrats)
-     POST /agent/contrats/action (contratId, action = suspendre | resilier | renouveler | activer) -> redirection + flash
-     Attributs : contrats List<Contrat>  statuts StatutContrat[]  typesAssurance List<TypeAssurance>
+<%-- AgentContractsServlet
+     GET  /agent/contrats?q=texte&statut=ACTIF&type=3   (recherche de contrats)
+     POST /agent/contrats/action (contratId, action = suspendre | resilier | renouveler | activer) -> à brancher
+     Attributs : contrats List<Contract>  statuts ContractStatus[]  typesAssurance List<InsuranceType>
      Aussi utilisée par l'admin (/admin/contrats) en consultation seule. --%>
 <c:set var="titre" value="Contrats" />
 <c:set var="estAgent" value="${sessionScope.utilisateur.role == 'AGENT'}" />
@@ -37,7 +38,7 @@
         <label class="field">Type d'assurance
           <select name="type">
             <option value="">Tous</option>
-            <c:forEach items="${typesAssurance}" var="ta"><option value="${ta.id}" ${param.type == fn:trim(ta.id) ? 'selected' : ''}><c:out value="${ta.nom}" /></option></c:forEach>
+            <c:forEach items="${typesAssurance}" var="ta"><option value="${ta.id}" ${param.type == fn:trim(ta.id) ? 'selected' : ''}><c:out value="${ta.name}" /></option></c:forEach>
           </select>
         </label>
         <button class="btn btn-primary" type="submit">Rechercher</button>
@@ -54,17 +55,17 @@
                 <tbody>
                   <c:forEach items="${contrats}" var="ct">
                     <tr>
-                      <td class="strong"><c:out value="${ct.numero}" /></td>
-                      <td><c:out value="${ct.client.prenom} ${ct.client.nom}" /></td>
-                      <td class="muted"><c:out value="${ct.typeAssurance.nom}" /></td>
-                      <td class="muted small"><ui:date valeur="${ct.dateDebut}" /> → <ui:date valeur="${ct.dateFin}" /></td>
-                      <td class="right strong"><ui:montant valeur="${ct.prime}" /></td>
-                      <td><ui:statut valeur="${ct.statut}" /></td>
+                      <td class="strong"><c:out value="${ct.number}" /></td>
+                      <td><c:out value="${ct.client.firstName} ${ct.client.lastName}" /></td>
+                      <td class="muted"><c:out value="${ct.insuranceType.name}" /></td>
+                      <td class="muted small"><ui:date valeur="${ct.startDate}" /> → <ui:date valeur="${ct.endDate}" /></td>
+                      <td class="right strong"><ui:montant valeur="${ct.premium}" /></td>
+                      <td><ui:statut valeur="${ct.status}" /></td>
                       <td>
                         <div class="actions">
                           <c:if test="${estAgent}">
                             <a class="btn btn-sm" href="${ctx}/agent/contrats/edit?id=${ct.id}">Modifier</a>
-                            <c:set var="s" value="${ct.statut}" />
+                            <c:set var="s" value="${ct.status}" />
                             <c:if test="${s == 'EN_ATTENTE' or s == 'SUSPENDU'}">
                               <form method="post" action="${ctx}/agent/contrats/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="activer"><button class="btn-link" type="submit">Activer</button></form>
                             </c:if>
@@ -75,7 +76,7 @@
                               <form method="post" action="${ctx}/agent/contrats/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="renouveler"><button class="btn-link" type="submit">Renouveler</button></form>
                             </c:if>
                             <c:if test="${s != 'RESILIE' and s != 'EXPIRE'}">
-                              <form method="post" action="${ctx}/agent/contrats/action" data-confirm="Résilier le contrat ${fn:escapeXml(ct.numero)} ? Cette action est définitive."><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="resilier"><button class="btn-link danger" type="submit">Résilier</button></form>
+                              <form method="post" action="${ctx}/agent/contrats/action" data-confirm="Résilier le contrat ${fn:escapeXml(ct.number)} ? Cette action est définitive."><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contratId" value="${ct.id}"><input type="hidden" name="action" value="resilier"><button class="btn-link danger" type="submit">Résilier</button></form>
                             </c:if>
                           </c:if>
                         </div>
