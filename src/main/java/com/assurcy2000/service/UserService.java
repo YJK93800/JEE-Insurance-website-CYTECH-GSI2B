@@ -6,13 +6,13 @@ import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
 import com.assurcy2000.persistence.HibernateTransactionRunner;
 import com.assurcy2000.persistence.TransactionRunner;
+import com.assurcy2000.security.Passwords;
 import com.assurcy2000.security.Policy;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.dto.request.UpdateProfileRequest;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.List;
 import java.util.Map;
@@ -61,12 +61,13 @@ public class UserService {
     /** L'utilisateur connecté change son propre mot de passe (le nouveau est validé par la servlet). */
     public void changePassword(SessionUser actor, String oldPassword, String newPassword) {
         if (actor == null) throw new ForbiddenException();
+        String newHash = Passwords.hash(newPassword); // calcul lent : hors transaction
         tx.run(() -> {
             User user = findOrThrow(actor.id());
-            if (oldPassword == null || !checkPassword(oldPassword, user.getPassword())) {
+            if (!Passwords.matches(oldPassword, user.getPassword())) {
                 throw new ValidationException(Map.of("ancien", "Le mot de passe actuel est incorrect."));
             }
-            user.setPassword(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
+            user.setPassword(newHash);
             userDao.update(user);
         });
     }
@@ -109,14 +110,6 @@ public class UserService {
 
     private User findOrThrow(Long id) {
         return userDao.findById(id).orElseThrow(() -> new NotFoundException("Utilisateur introuvable."));
-    }
-
-    private static boolean checkPassword(String plain, String hash) {
-        try {
-            return BCrypt.checkpw(plain, hash);
-        } catch (IllegalArgumentException e) { // hash mal formé
-            return false;
-        }
     }
 
     private static void forbidSelf(SessionUser actor, Long targetId) {

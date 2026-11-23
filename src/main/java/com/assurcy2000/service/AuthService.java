@@ -7,11 +7,11 @@ import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
 import com.assurcy2000.persistence.HibernateTransactionRunner;
 import com.assurcy2000.persistence.TransactionRunner;
+import com.assurcy2000.security.Passwords;
 import com.assurcy2000.service.exceptions.AuthException;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.util.Strings;
 import org.hibernate.exception.ConstraintViolationException;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -19,7 +19,6 @@ import java.util.Optional;
 
 public class AuthService {
 
-    private static final String DUMMY_HASH = BCrypt.hashpw("mot-de-passe-factice", BCrypt.gensalt());
     private final UserDao userDao;
     private final RoleDao roleDao;
     private final TransactionRunner tx;
@@ -40,7 +39,7 @@ public class AuthService {
      */
     public User register(RegisterRequest req) {
         String email = req.email().trim().toLowerCase(); // Mettre l'email en minuscule
-        String hash = BCrypt.hashpw(req.password(), BCrypt.gensalt()); // calcul lent : hors transaction
+        String hash = Passwords.hash(req.password()); // calcul lent : hors transaction
 
         try {
             return tx.inTransaction(() -> {
@@ -70,15 +69,9 @@ public class AuthService {
 
         String normalizedEmail = email;
         Optional<User> found = tx.inTransaction(() -> userDao.findByEmail(normalizedEmail)); // Trouver l'utilisateur avec son email
-        String hash = found.map(User::getPassword).orElse(DUMMY_HASH);
 
-        // Verifier si le mot de passe est bon
-        boolean passwordOk;
-        try {
-            passwordOk = BCrypt.checkpw(password, hash);
-        } catch (IllegalArgumentException e) {
-            passwordOk = false;
-        }
+        // Verifier si le mot de passe est bon (compte introuvable : même temps de calcul, résultat false)
+        boolean passwordOk = Passwords.matches(password, found.map(User::getPassword).orElse(null));
 
         // Renvoyer erreur si mot de passe n'est pas bon, ou l'email n'a pas été rentrée
         if (found.isEmpty() || !passwordOk) {
