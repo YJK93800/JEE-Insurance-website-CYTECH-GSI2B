@@ -5,7 +5,7 @@ import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.model.Guarantee;
 import com.assurcy2000.persistence.HibernateTransactionRunner;
 import com.assurcy2000.persistence.TransactionRunner;
-import com.assurcy2000.service.exceptions.ForbiddenException;
+import com.assurcy2000.security.Policy;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ public class GuaranteeService {
     }
 
     public List<Guarantee> listActive(SessionUser actor) {
-        if (actor == null) throw new ForbiddenException();
+        Policy.requireLoggedIn(actor);
         return tx.inTransaction(guaranteeDao::findAllActive);
     }
 }

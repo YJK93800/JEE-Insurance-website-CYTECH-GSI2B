@@ -10,7 +10,6 @@ import com.assurcy2000.security.Passwords;
 import com.assurcy2000.security.Policy;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.dto.request.UpdateProfileRequest;
-import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
 
@@ -48,7 +47,7 @@ public class UserService {
      * Sinon « introuvable », pour ne pas révéler qu'un id existe.
      */
     public User getById(SessionUser actor, Long id) {
-        if (actor == null) throw new ForbiddenException();
+        Policy.requireLoggedIn(actor);
         return tx.inTransaction(() -> {
             User user = findOrThrow(id);
             if (actor.id().equals(id)) return user;
@@ -60,7 +59,7 @@ public class UserService {
 
     /** L'utilisateur connecté change son propre mot de passe (le nouveau est validé par la servlet). */
     public void changePassword(SessionUser actor, String oldPassword, String newPassword) {
-        if (actor == null) throw new ForbiddenException();
+        Policy.requireLoggedIn(actor);
         String newHash = Passwords.hash(newPassword); // calcul lent : hors transaction
         tx.run(() -> {
             User user = findOrThrow(actor.id());
@@ -77,7 +76,7 @@ public class UserService {
      * Les valeurs ont déjà été vérifiées et nettoyées par la servlet (classe Validation).
      */
     public User updateInfos(SessionUser actor, UpdateProfileRequest req) {
-        if (actor == null) throw new ForbiddenException();
+        Policy.requireLoggedIn(actor);
         return tx.inTransaction(() -> {
             User user = findOrThrow(actor.id());
             user.setPhone(req.phone());

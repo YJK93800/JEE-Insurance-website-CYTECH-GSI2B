@@ -60,6 +60,14 @@ class PolicyTest {
     }
 
     @Test
+    void requireLoggedInAcceptsAnyRoleButNotNobody() {
+        SessionUser client = as(Role.CLIENT);
+        assertSame(client, Policy.requireLoggedIn(client));
+        assertNotNull(Policy.requireLoggedIn(as(Role.ADMIN)));
+        assertThrows(ForbiddenException.class, () -> Policy.requireLoggedIn(null));
+    }
+
+    @Test
     void unknownRoleOrNoUserHasNothing() {
         assertFalse(Policy.can(as("PIRATE"), CONTRACT_READ_OWN));
         assertFalse(Policy.can(null, CONTRACT_READ_OWN));

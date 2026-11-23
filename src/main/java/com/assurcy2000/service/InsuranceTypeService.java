@@ -5,7 +5,7 @@ import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.model.InsuranceType;
 import com.assurcy2000.persistence.HibernateTransactionRunner;
 import com.assurcy2000.persistence.TransactionRunner;
-import com.assurcy2000.service.exceptions.ForbiddenException;
+import com.assurcy2000.security.Policy;
 
 import java.util.List;
 
@@ -27,13 +27,13 @@ public class InsuranceTypeService {
 
     /** Types proposés à la souscription (actifs), avec leurs garanties. */
     public List<InsuranceType> listActive(SessionUser actor) {
-        if (actor == null) throw new ForbiddenException();
+        Policy.requireLoggedIn(actor);
         return tx.inTransaction(insuranceTypeDao::findAllActive);
     }
 
     /** Tous les types, y compris désactivés (un ancien contrat peut en avoir un) : catalogue lisible par tout utilisateur connecté. */
     public List<InsuranceType> listAll(SessionUser actor) {
-        if (actor == null) throw new ForbiddenException();
+        Policy.requireLoggedIn(actor);
         return tx.inTransaction(insuranceTypeDao::findAll);
     }
 }

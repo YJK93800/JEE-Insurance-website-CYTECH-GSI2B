@@ -5,6 +5,7 @@ import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.security.Policy;
 import com.assurcy2000.security.UserSession;
 import com.assurcy2000.util.RequestParams;
 import jakarta.servlet.ServletException;
@@ -30,9 +31,7 @@ public abstract class BaseServlet extends HttpServlet {
     }
 
     protected SessionUser user(HttpServletRequest req) {
-        SessionUser user = UserSession.currentUser(req);
-        if (user == null) throw new ForbiddenException();
-        return user;
+        return Policy.requireLoggedIn(UserSession.currentUser(req));
     }
 
     protected void render(HttpServletRequest req, HttpServletResponse resp, String view)

@@ -32,6 +32,15 @@ public final class Policy {
         if (!can(user, permission)) throw new ForbiddenException();
     }
 
+    /**
+     * Pour ce qui est ouvert à tout utilisateur connecté, quel que soit son rôle
+     * (son profil, le catalogue…). Renvoie l'utilisateur pour pouvoir l'utiliser directement.
+     */
+    public static SessionUser requireLoggedIn(SessionUser user) {
+        if (user == null) throw new ForbiddenException();
+        return user;
+    }
+
     /*
      * Règle de lecture commune aux contrats, sinistres et paiements :
      *   permission "ALL" (agent, admin)  -> tout
