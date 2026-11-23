@@ -6,16 +6,19 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.SecureRandom;
-import java.util.Base64;
 import java.util.Set;
 
+/**
+ * Protection CSRF : toute requête qui modifie quelque chose (POST…) doit renvoyer le jeton de la session,
+ * soit dans le champ caché du formulaire (csrf.jspf), soit dans l'en-tête X-CSRF-Token (appels fetch).
+ * Le jeton est créé et stocké par UserSession.csrfToken ; ce filtre ne fait que le vérifier.
+ */
 public class CsrfFilter implements Filter {
 
-    public static final String ATTRIBUTE = "csrfToken";
+    /** Nom du champ caché des formulaires : le même que l'attribut de session. */
     public static final String PARAMETER = UserSession.CSRF_TOKEN;
+    public static final String HEADER = "X-CSRF-Token";
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS");
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -28,19 +31,11 @@ public class CsrfFilter implements Filter {
             return;
         }
 
-        HttpSession session = req.getSession(true);
-        String token = (String) session.getAttribute(ATTRIBUTE);
-        if (token == null) {
-            byte[] bytes = new byte[32];
-            RANDOM.nextBytes(bytes);
-            token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-            session.setAttribute(ATTRIBUTE, token);
-        }
-        req.setAttribute(ATTRIBUTE, token);
+        String token = UserSession.csrfToken(req);
 
         if (!SAFE_METHODS.contains(req.getMethod())) {
             String sent = req.getParameter(PARAMETER);
-            if (sent == null) sent = req.getHeader("X-CSRF-Token");
+            if (sent == null) sent = req.getHeader(HEADER);
             boolean ok = sent != null && MessageDigest.isEqual(
                     token.getBytes(StandardCharsets.UTF_8), sent.getBytes(StandardCharsets.UTF_8));
             if (!ok) {

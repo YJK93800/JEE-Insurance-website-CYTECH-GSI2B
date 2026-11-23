@@ -50,7 +50,7 @@ public final class UserSession {
 
         req.changeSessionId(); // nouvel identifiant : protège contre la fixation de session
         session.setAttribute(USER, user);
-        session.setAttribute(CSRF_TOKEN, newToken()); // lu par csrf.jspf
+        session.setAttribute(CSRF_TOKEN, newToken()); // nouveau jeton à la connexion (l'ancien était connu avant le login)
         session.setMaxInactiveInterval(TIMEOUT_SECONDS);
         return redirect;
     }
@@ -81,6 +81,22 @@ public final class UserSession {
         session.setAttribute(FLASH_TYPE, type);
     }
 
+    /**
+     * Jeton anti-CSRF de la session, créé au premier appel.
+     * Appelé par CsrfFilter à chaque requête : le jeton existe donc avant l'affichage de tout formulaire
+     * (y compris login et inscription). Les JSP le lisent dans sessionScope.csrfToken (csrf.jspf).
+     */
+    public static String csrfToken(HttpServletRequest req) {
+        HttpSession session = req.getSession(); // crée la session si besoin
+        String token = (String) session.getAttribute(CSRF_TOKEN);
+        if (token == null) {
+            token = newToken();
+            session.setAttribute(CSRF_TOKEN, token);
+        }
+        return token;
+    }
+
+    /** 32 octets aléatoires (SecureRandom), encodés en Base64 utilisable dans une URL. */
     private static String newToken() {
         byte[] bytes = new byte[32];
         RANDOM.nextBytes(bytes);
