@@ -6,6 +6,8 @@ import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.security.UserSession;
 import com.assurcy2000.service.AuthService;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.util.FormView;
+import com.assurcy2000.util.RequestParams;
 import com.assurcy2000.util.Validation;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
@@ -32,8 +34,14 @@ public class RegisterServlet extends BaseServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         RegisterRequest form = new RegisterRequest(
-                param(req, "prenom"), param(req, "nom"), param(req, "email"), param(req, "telephone"),
-                param(req, "dateNaissance"), param(req, "adresse"), param(req, "motDePasse"), param(req, "confirmation"));
+                RequestParams.get(req, "prenom"),
+                RequestParams.get(req, "nom"),
+                RequestParams.get(req, "email"),
+                RequestParams.get(req, "telephone"),
+                RequestParams.get(req, "dateNaissance"),
+                RequestParams.get(req, "adresse"),
+                RequestParams.raw(req, "motDePasse"),     // mot de passe : jamais de trim
+                RequestParams.raw(req, "confirmation"));
 
         // 1. Vérification des saisies par la servlet, avant tout enregistrement (consigne, section 4)
         Map<String, String> errors = validate(form);
@@ -50,7 +58,7 @@ public class RegisterServlet extends BaseServlet {
             }
         }
 
-        req.setAttribute("erreurs", errors);               // lu par <ui:champ> sous chaque champ
+        req.setAttribute(FormView.ERRORS, errors);               // lu par <ui:champ> sous chaque champ
         req.setAttribute("form", new RegisterRequest(      // on réaffiche la saisie SANS les mots de passe
                 form.firstName(), form.lastName(), form.email(), form.phone(),
                 form.birthDate(), form.address(), "", ""));

@@ -4,6 +4,8 @@ import com.assurcy2000.controller.BaseServlet;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.ClaimService;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.util.FormView;
+import com.assurcy2000.util.RequestParams;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -13,7 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
-@WebServlet("/agent/claims")
+@WebServlet({"/agent/claims", "/admin/claims"})
 public class AgentClaimsServlet extends BaseServlet {
 
     private final ClaimService claimService = new ClaimService();
@@ -34,14 +36,14 @@ public class AgentClaimsServlet extends BaseServlet {
         SessionUser user = user(req);
         Long id = idParam(req, "id");
         try {
-            switch (param(req, "action")) {
+            switch (RequestParams.get(req, "action")) {
                 case "status" -> claimService.changeStatus(user, id, claimStatusParam(req, "status"));
-                case "indemnify" -> claimService.indemnify(user, id, param(req, "amount"));
+                case "indemnify" -> claimService.indemnify(user, id, RequestParams.get(req, "amount"));
                 default -> throw new ValidationException(Map.of("action", "Action inconnue."));
             }
             redirect(req, resp, "/agent/claims?id=" + id);
         } catch (ValidationException e) {
-            req.setAttribute("errors", e.getErrors());
+            req.setAttribute(FormView.ERRORS, e.getErrors());
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             showDetail(req, resp, user, id);
         }

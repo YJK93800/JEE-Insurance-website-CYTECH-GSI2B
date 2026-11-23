@@ -4,6 +4,8 @@ import com.assurcy2000.controller.BaseServlet;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.UserService;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.util.FormView;
+import com.assurcy2000.util.RequestParams;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -28,14 +30,14 @@ public class AdminUsersServlet extends BaseServlet {
         SessionUser admin = user(req);
         try {
             Long id = idParam(req, "id");
-            switch (param(req, "action")) {
-                case "active" -> userService.setActive(admin, id, Boolean.parseBoolean(param(req, "value")));
-                case "role" -> userService.changeRole(admin, id, param(req, "role"));
+            switch (RequestParams.get(req, "action")) {
+                case "active" -> userService.setActive(admin, id, Boolean.parseBoolean(RequestParams.get(req, "value")));
+                case "role" -> userService.changeRole(admin, id, RequestParams.get(req, "role"));
                 default -> throw new ValidationException(Map.of("action", "Action inconnue."));
             }
             redirect(req, resp, "/admin/users");
         } catch (ValidationException e) {
-            req.setAttribute("errors", e.getErrors());
+            req.setAttribute(FormView.ERRORS, e.getErrors());
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             showList(req, resp, admin);
         }

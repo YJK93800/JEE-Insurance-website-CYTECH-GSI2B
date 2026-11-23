@@ -6,6 +6,7 @@ import com.assurcy2000.dto.request.ContractSearchRequest;
 import com.assurcy2000.model.enums.ContractStatus;
 import com.assurcy2000.service.ContractService;
 import com.assurcy2000.service.InsuranceTypeService;
+import com.assurcy2000.util.RequestParams;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -32,9 +33,9 @@ public class AgentContractsServlet extends BaseServlet {
 
         // Filtres de recherche : un filtre vide ou invalide est simplement ignoré
         ContractSearchRequest criteria = new ContractSearchRequest(
-                param(req, "q").trim(),
+                RequestParams.get(req, "q"),
                 statusParam(req, "statut"),
-                optionalId(req, "type"));
+                RequestParams.optionalLong(req, "type"));
 
         req.setAttribute("contrats", contractService.search(user, criteria));
         req.setAttribute("statuts", ContractStatus.values());
@@ -44,17 +45,9 @@ public class AgentContractsServlet extends BaseServlet {
 
     private static ContractStatus statusParam(HttpServletRequest req, String name) {
         try {
-            return ContractStatus.valueOf(param(req, name).trim());
+            return ContractStatus.valueOf(RequestParams.get(req, name));
         } catch (IllegalArgumentException e) {
             return null; // "" (Tous) ou valeur inconnue
-        }
-    }
-
-    private static Long optionalId(HttpServletRequest req, String name) {
-        try {
-            return Long.valueOf(param(req, name).trim());
-        } catch (NumberFormatException e) {
-            return null;
         }
     }
 }

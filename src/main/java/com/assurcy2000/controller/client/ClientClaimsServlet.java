@@ -9,6 +9,8 @@ import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.ClaimService;
 import com.assurcy2000.service.ContractService;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.util.FormView;
+import com.assurcy2000.util.RequestParams;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -46,13 +48,17 @@ public class ClientClaimsServlet extends BaseServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         SessionUser user = user(req);
-        DeclareClaimRequest form = new DeclareClaimRequest(param(req, "contractId"), param(req, "claimDate"),
-                param(req, "type"), param(req, "description"), param(req, "estimatedAmount"));
+        DeclareClaimRequest form = new DeclareClaimRequest(
+                RequestParams.get(req, "contractId"),
+                RequestParams.get(req, "claimDate"),
+                RequestParams.get(req, "type"),
+                RequestParams.get(req, "description"),
+                RequestParams.get(req, "estimatedAmount"));
         try {
             Claim claim = claimService.declare(user, form);
             redirect(req, resp, "/client/claims?id=" + claim.getId());
         } catch (ValidationException e) {
-            req.setAttribute("errors", e.getErrors());
+            req.setAttribute(FormView.ERRORS, e.getErrors());
             req.setAttribute("form", form);
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             showForm(req, resp, user);

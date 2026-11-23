@@ -7,6 +7,7 @@ import com.assurcy2000.security.AuthFilter;
 import com.assurcy2000.service.AuthService;
 import com.assurcy2000.service.exceptions.AuthException;
 import com.assurcy2000.security.UserSession;
+import com.assurcy2000.util.RequestParams;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -29,9 +30,9 @@ public class LoginServlet extends BaseServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String email = param(req, "email");
+        String email = RequestParams.get(req, "email");
         try {
-            User user = authService.login(email, param(req, "motDePasse"));
+            User user = authService.login(email, RequestParams.raw(req, "motDePasse"));
             SessionUser sessionUser = SessionUser.from(user);
             String saved = UserSession.login(req, sessionUser);
             String target = (saved != null && AuthFilter.isAllowed(saved, sessionUser)) ? saved : sessionUser.homePath();

@@ -10,6 +10,7 @@ import com.assurcy2000.service.GuaranteeService;
 import com.assurcy2000.service.InsuranceTypeService;
 import com.assurcy2000.service.UserService;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.util.FormView;
 import com.assurcy2000.util.RequestParams;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
@@ -44,7 +45,7 @@ public class ContractFormServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (!param(req, "id").isBlank()) {
+        if (!RequestParams.get(req, "id").isBlank()) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "La modification d'un contrat n'est pas encore disponible.");
             return;
         }
@@ -124,17 +125,14 @@ public class ContractFormServlet extends BaseServlet {
         LocalDate today = LocalDate.now();
         req.setAttribute("dateDebutDefaut", today);
         req.setAttribute("dateFinDefaut", today.plusYears(1).minusDays(1));
-        req.setAttribute("erreurs", errors);
+        req.setAttribute(FormView.ERRORS, errors);
         render(req, resp, Views.AGENT_CONTRACT);
     }
 
     private static Long requiredId(HttpServletRequest req, String name, String message, Map<String, String> errors) {
-        try {
-            return Long.valueOf(RequestParams.get(req, name));
-        } catch (NumberFormatException e) {
-            errors.put(name, message);
-            return null;
-        }
+        Long id = RequestParams.optionalLong(req, name);
+        if (id == null) errors.put(name, message);
+        return id;
     }
 
     private static LocalDate date(HttpServletRequest req, String name, String label, Map<String, String> errors) {

@@ -6,6 +6,7 @@ import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.security.UserSession;
+import com.assurcy2000.util.RequestParams;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,23 +45,16 @@ public abstract class BaseServlet extends HttpServlet {
     }
 
     protected Long idParam(HttpServletRequest req, String name) {
-        try {
-            return Long.valueOf(req.getParameter(name).trim());
-        } catch (RuntimeException e) {
-            throw new NotFoundException("Ressource introuvable.");
-        }
+        Long id = RequestParams.optionalLong(req, name);
+        if (id == null) throw new NotFoundException("Ressource introuvable.");
+        return id;
     }
 
     protected ClaimStatus claimStatusParam(HttpServletRequest req, String name) {
         try {
-            return ClaimStatus.valueOf(req.getParameter(name).trim());
-        } catch (RuntimeException e) {
+            return ClaimStatus.valueOf(RequestParams.get(req, name));
+        } catch (IllegalArgumentException e) {
             throw new ValidationException(Map.of(name, "Statut invalide."));
         }
-    }
-
-    protected static String param(HttpServletRequest req, String name) {
-        String v = req.getParameter(name);
-        return v == null ? "" : v;
     }
 }
