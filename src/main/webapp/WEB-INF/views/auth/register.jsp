@@ -10,7 +10,7 @@
 <body>
 <div class="auth">
   <aside class="auth-aside">
-    <div class="brand"><%@ include file="/WEB-INF/views/common/logo.jspf" %><span class="brand-name">Égide</span></div>
+    <div class="brand"><%@ include file="/WEB-INF/views/common/logo.jspf" %><span class="brand-name">AssurCY2000</span></div>
     <div class="stack">
       <h1>Créez votre espace client.</h1>
       <p>Une fois votre compte créé, votre agent pourra y rattacher vos contrats d'assurance.</p>

@@ -9,7 +9,7 @@
 <body>
 <div class="auth">
   <aside class="auth-aside">
-    <div class="brand"><%@ include file="/WEB-INF/views/common/logo.jspf" %><span class="brand-name">Égide</span></div>
+    <div class="brand"><%@ include file="/WEB-INF/views/common/logo.jspf" %><span class="brand-name">AssurCY2000</span></div>
     <div class="stack">
       <h1>Vos contrats, vos sinistres, au même endroit.</h1>
       <p>Consultez vos garanties, déclarez un sinistre en quelques minutes et suivez son traitement en temps réel.</p>
