@@ -10,7 +10,12 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-
+/**
+ * Contrôle d'accès par rôle, selon le préfixe de l'URL.
+ * RULES est la seule définition de « quel rôle a accès à quel espace » :
+ * le filtre l'applique à chaque requête et LoginServlet l'utilise (via isAllowed)
+ * pour vérifier la page mémorisée avant d'y rediriger après la connexion.
+ */
 public class RoleFilter implements Filter {
 
     private static final Map<String, Set<String>> RULES = Map.of(
@@ -23,18 +28,27 @@ public class RoleFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
-        String path = UserSession.currentPath(req) + "/";
-        SessionUser user = UserSession.currentUser(req);
-
-        for (var rule : RULES.entrySet()) {
-            if (path.startsWith(rule.getKey())) {
-                if (user == null || !rule.getValue().contains(user.role())) {
-                    resp.sendError(HttpServletResponse.SC_FORBIDDEN);
-                    return;
-                }
-                break;
-            }
+        if (!isAllowed(UserSession.currentPath(req), UserSession.currentUser(req))) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
         chain.doFilter(request, response);
+    }
+
+    /**
+     * La page est-elle accessible pour cet utilisateur ?
+     * path : chemin dans l'application, avec ou sans query string ("/admin/users?id=3").
+     * Les pages hors /client/, /agent/ et /admin/ ne dépendent pas du rôle.
+     */
+    public static boolean isAllowed(String path, SessionUser user) {
+        int query = path.indexOf('?');
+        // "/" final : "/admin" doit être traité comme "/admin/"
+        String normalized = (query >= 0 ? path.substring(0, query) : path) + "/";
+        for (var rule : RULES.entrySet()) {
+            if (normalized.startsWith(rule.getKey())) {
+                return user != null && rule.getValue().contains(user.role());
+            }
+        }
+        return true;
     }
 }

@@ -3,7 +3,7 @@ package com.assurcy2000.controller.auth;
 import com.assurcy2000.controller.BaseServlet;
 import com.assurcy2000.model.User;
 import com.assurcy2000.dto.SessionUser;
-import com.assurcy2000.security.AuthFilter;
+import com.assurcy2000.security.RoleFilter;
 import com.assurcy2000.service.AuthService;
 import com.assurcy2000.service.exceptions.AuthException;
 import com.assurcy2000.security.UserSession;
@@ -35,7 +35,7 @@ public class LoginServlet extends BaseServlet {
             User user = authService.login(email, RequestParams.raw(req, "motDePasse"));
             SessionUser sessionUser = SessionUser.from(user);
             String saved = UserSession.login(req, sessionUser);
-            String target = (saved != null && AuthFilter.isAllowed(saved, sessionUser)) ? saved : sessionUser.homePath();
+            String target = (saved != null && RoleFilter.isAllowed(saved, sessionUser)) ? saved : sessionUser.homePath();
             redirect(req, resp, target);
         } catch (AuthException e) {
             req.setAttribute("erreurGlobale", e.getMessage());
