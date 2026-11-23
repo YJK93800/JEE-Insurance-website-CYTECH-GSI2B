@@ -40,7 +40,7 @@ public final class Validation {
 
     /** Email obligatoire, renvoyé en minuscules. */
     public static String email(String value, Map<String, String> errors) {
-        String v = trim(value).toLowerCase();
+        String v = Strings.trimToEmpty(value).toLowerCase();
         if (v.isEmpty()) errors.put("email", "L'email est obligatoire.");
         else if (v.length() > EMAIL_MAX || !EMAIL.matcher(v).matches()) errors.put("email", "L'email n'est pas valide.");
         return v;
@@ -48,7 +48,7 @@ public final class Validation {
 
     /** Téléphone facultatif : renvoie null si vide. */
     public static String phone(String value, Map<String, String> errors) {
-        String v = trim(value);
+        String v = Strings.trimToEmpty(value);
         if (v.isEmpty()) return null;
         if (!PHONE.matcher(v).matches()) errors.put("telephone", "Le numéro de téléphone n'est pas valide.");
         return v;
@@ -56,7 +56,7 @@ public final class Validation {
 
     /** Adresse facultative : renvoie null si vide. */
     public static String address(String value, Map<String, String> errors) {
-        String v = trim(value);
+        String v = Strings.trimToEmpty(value);
         if (v.isEmpty()) return null;
         if (v.length() > ADDRESS_MAX) errors.put("adresse", "L'adresse est trop longue (" + ADDRESS_MAX + " caractères max).");
         return v;
@@ -64,7 +64,7 @@ public final class Validation {
 
     /** Date de naissance obligatoire (format AAAA-MM-JJ du champ date), au moins 18 ans. Renvoie null si invalide. */
     public static LocalDate birthDate(String value, Map<String, String> errors) {
-        String v = trim(value);
+        String v = Strings.trimToEmpty(value);
         if (v.isEmpty()) {
             errors.put("dateNaissance", "La date de naissance est obligatoire.");
             return null;
@@ -101,11 +101,9 @@ public final class Validation {
     }
 
     private static String requiredText(String value, String field, String label, int max, Map<String, String> errors) {
-        String v = trim(value);
+        String v = Strings.trimToEmpty(value);
         if (v.isEmpty()) errors.put(field, label + " est obligatoire.");
         else if (v.length() > max) errors.put(field, label + " est trop long (" + max + " caractères max).");
         return v;
     }
-
-    private static String trim(String s) { return s == null ? "" : s.trim(); }
 }

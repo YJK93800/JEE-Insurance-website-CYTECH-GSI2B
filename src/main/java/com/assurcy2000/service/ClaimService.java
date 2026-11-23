@@ -15,6 +15,7 @@ import com.assurcy2000.security.Policy;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.util.Strings;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -79,7 +80,7 @@ public class ClaimService {
 
         Contract contract = null;
         try {
-            Long contractId = Long.valueOf(trim(req.contractId()));
+            Long contractId = Long.valueOf(Strings.trimToEmpty(req.contractId()));
             contract = contractDao.findById(contractId).orElse(null);
             if (contract == null || !contract.getClient().getId().equals(actor.id())) {
                 errors.put("contractId", "Contrat introuvable.");
@@ -93,7 +94,7 @@ public class ClaimService {
 
         LocalDate date = null;
         try {
-            date = LocalDate.parse(trim(req.claimDate()));
+            date = LocalDate.parse(Strings.trimToEmpty(req.claimDate()));
             if (date.isAfter(LocalDate.now())) errors.put("claimDate", "La date du sinistre ne peut pas être dans le futur.");
             else if (contract != null && date.isBefore(contract.getStartDate()))
                 errors.put("claimDate", "Le sinistre est antérieur au début du contrat.");
@@ -103,18 +104,18 @@ public class ClaimService {
 
         ClaimType type = null;
         try {
-            type = ClaimType.valueOf(trim(req.type()));
+            type = ClaimType.valueOf(Strings.trimToEmpty(req.type()));
         } catch (IllegalArgumentException e) {
             errors.put("type", "Type de sinistre invalide.");
         }
 
-        String description = trim(req.description());
+        String description = Strings.trimToEmpty(req.description());
         if (description.length() < 10) errors.put("description", "Décrivez le sinistre (10 caractères minimum).");
         else if (description.length() > 2000) errors.put("description", "Description trop longue (2000 caractères max).");
 
         BigDecimal amount = null;
         try {
-            amount = new BigDecimal(trim(req.estimatedAmount()).replace(',', '.'));
+            amount = new BigDecimal(Strings.trimToEmpty(req.estimatedAmount()).replace(',', '.'));
             if (amount.signum() <= 0 || amount.compareTo(MAX_AMOUNT) > 0) errors.put("estimatedAmount", "Montant invalide.");
         } catch (NumberFormatException e) {
             errors.put("estimatedAmount", "Le montant n'est pas valide.");
@@ -144,7 +145,7 @@ public class ClaimService {
         Policy.require(actor, CLAIM_UPDATE);
         BigDecimal amount;
         try {
-            amount = new BigDecimal(trim(amountText).replace(',', '.'));
+            amount = new BigDecimal(Strings.trimToEmpty(amountText).replace(',', '.'));
         } catch (NumberFormatException e) {
             throw new ValidationException(Map.of("amount", "Le montant n'est pas valide."));
         }
@@ -171,7 +172,4 @@ public class ClaimService {
         } while (claimDao.existsByNumber(number));
         return number;
     }
-
-    private static String trim(String s) { return s == null ? "" : s.trim(); }
-
 }

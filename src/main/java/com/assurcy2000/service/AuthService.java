@@ -9,6 +9,7 @@ import com.assurcy2000.persistence.HibernateTransactionRunner;
 import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.service.exceptions.AuthException;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.util.Strings;
 import org.hibernate.exception.ConstraintViolationException;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -38,21 +39,21 @@ public class AuthService {
      * ici on ne vérifie que ce qui demande la base : l'email déjà utilisé.
      */
     public User register(RegisterRequest req) {
-        String email = req.email().trim().toLowerCase();
+        String email = req.email().trim().toLowerCase(); // Mettre l'email en minuscule
         String hash = BCrypt.hashpw(req.password(), BCrypt.gensalt()); // calcul lent : hors transaction
 
         try {
             return tx.inTransaction(() -> {
-                if (userDao.existsByEmail(email)) {
+                if (userDao.existsByEmail(email)) { // Si l'email est déjà utilisé
                     throw new ValidationException(Map.of("email", "Cet email est déjà utilisé."));
                 }
-                Role clientRole = roleDao.findByName(Role.CLIENT)
+                Role clientRole = roleDao.findByName(Role.CLIENT) // Trouver le role client dans le BDD
                         .orElseThrow(() -> new IllegalStateException("Le rôle CLIENT n'existe pas en base"));
 
-                User user = new User(req.firstName().trim(), req.lastName().trim(), email, hash, clientRole);
-                user.setBirthDate(LocalDate.parse(req.birthDate().trim()));
-                user.setPhone(blankToNull(req.phone()));
-                user.setAddress(blankToNull(req.address()));
+                User user = new User(req.firstName().trim(), req.lastName().trim(), email, hash, clientRole); // Créer l'utilisateur
+                user.setBirthDate(LocalDate.parse(req.birthDate().trim())); // Mettre la date de naissance rentrée
+                user.setPhone(Strings.blankToNull(req.phone())); //
+                user.setAddress(Strings.blankToNull(req.address()));
                 return userDao.save(user);
             });
         } catch (ConstraintViolationException e) {
@@ -62,15 +63,16 @@ public class AuthService {
     }
 
     public User login(String email, String password) {
-        email = email == null ? "" : email.trim().toLowerCase();
-        if (email == null || email.isBlank() || password == null || password.isEmpty()) {
+        email = Strings.trimToEmpty(email).toLowerCase(); // Mettre l'email en minuscule
+        if (email.isBlank() || password == null || password.isEmpty()) { // Email ou mot de passe invalide
             throw new AuthException("Email ou mot de passe incorrect.");
         }
 
         String normalizedEmail = email;
-        Optional<User> found = tx.inTransaction(() -> userDao.findByEmail(normalizedEmail));
+        Optional<User> found = tx.inTransaction(() -> userDao.findByEmail(normalizedEmail)); // Trouver l'utilisateur avec son email
         String hash = found.map(User::getPassword).orElse(DUMMY_HASH);
 
+        // Verifier si le mot de passe est bon
         boolean passwordOk;
         try {
             passwordOk = BCrypt.checkpw(password, hash);
@@ -78,18 +80,16 @@ public class AuthService {
             passwordOk = false;
         }
 
+        // Renvoyer erreur si mot de passe n'est pas bon, ou l'email n'a pas été rentrée
         if (found.isEmpty() || !passwordOk) {
             throw new AuthException("Email ou mot de passe incorrect.");
         }
 
+        // Verifier si l'utilisateur est active
         User user = found.get();
         if (!user.isActive()) {
             throw new AuthException("Ce compte est désactivé. Contactez un administrateur.");
         }
         return user;
-    }
-
-    private static String blankToNull(String s) {
-        return (s == null || s.isBlank()) ? null : s.trim();
     }
 }
