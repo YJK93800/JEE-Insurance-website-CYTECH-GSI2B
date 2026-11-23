@@ -24,8 +24,8 @@ public record SessionUser(Long id, String prenom, String nom, String email, Stri
     public String homePath() {
         return switch (role) {
             case Role.ADMIN -> "/admin/stats";
-            case Role.AGENT -> "/agent/sinistres";
-            default -> "/client/dashboard";
+            case Role.AGENT -> "/agent/claims";
+            default -> "/client/contracts"; // pas encore de servlet pour /client/dashboard
         };
     }
 }
