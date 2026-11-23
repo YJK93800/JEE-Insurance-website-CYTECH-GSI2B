@@ -6,7 +6,6 @@ import com.assurcy2000.model.Guarantee;
 import com.assurcy2000.model.enums.ContractStatus;
 
 import java.time.LocalDate;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,37 +98,14 @@ public class ContractDao extends BaseDao<Contract, Long> {
     }
 
     public Map<ContractStatus, Long> countByStatus() {
-        return query(s -> {
-            Map<ContractStatus, Long> result = new EnumMap<>(ContractStatus.class);
-            for (ContractStatus status : ContractStatus.values()) {
-                result.put(status, 0L);
-            }
-            s.createQuery("select c.status, count(c) from Contract c group by c.status", Object[].class)
-                    .getResultList()
-                    .forEach(row -> result.put((ContractStatus) row[0], (Long) row[1]));
-            return result;
-        });
+        return countByEnum(ContractStatus.class, "status");
     }
 
     public void addGuarantee(Long contractId, Long guaranteeId) {
-        execute(s -> {
-            Contract contract = s.find(Contract.class, contractId);
-            Guarantee guarantee = s.find(Guarantee.class, guaranteeId);
-            if (contract == null || guarantee == null) {
-                throw new IllegalArgumentException("Contrat ou garantie introuvable");
-            }
-            contract.getGuarantees().add(guarantee);
-        });
+        changeLink(contractId, Guarantee.class, guaranteeId, Contract::getGuarantees, true);
     }
 
     public void removeGuarantee(Long contractId, Long guaranteeId) {
-        execute(s -> {
-            Contract contract = s.find(Contract.class, contractId);
-            Guarantee guarantee = s.find(Guarantee.class, guaranteeId);
-            if (contract == null || guarantee == null) {
-                throw new IllegalArgumentException("Contrat ou garantie introuvable");
-            }
-            contract.getGuarantees().remove(guarantee);
-        });
+        changeLink(contractId, Guarantee.class, guaranteeId, Contract::getGuarantees, false);
     }
 }

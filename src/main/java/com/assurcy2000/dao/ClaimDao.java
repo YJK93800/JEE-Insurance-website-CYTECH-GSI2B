@@ -3,7 +3,6 @@ package com.assurcy2000.dao;
 import com.assurcy2000.model.Claim;
 import com.assurcy2000.model.enums.ClaimStatus;
 
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,15 +68,6 @@ public class ClaimDao extends BaseDao<Claim, Long> {
     }
 
     public Map<ClaimStatus, Long> countByStatus() {
-        return query(s -> {
-            Map<ClaimStatus, Long> result = new EnumMap<>(ClaimStatus.class);
-            for (ClaimStatus status : ClaimStatus.values()) {
-                result.put(status, 0L);
-            }
-            s.createQuery("select s.status, count(s) from Claim s group by s.status", Object[].class)
-                    .getResultList()
-                    .forEach(row -> result.put((ClaimStatus) row[0], (Long) row[1]));
-            return result;
-        });
+        return countByEnum(ClaimStatus.class, "status");
     }
 }

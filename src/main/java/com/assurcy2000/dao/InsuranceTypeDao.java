@@ -41,24 +41,10 @@ public class InsuranceTypeDao extends BaseDao<InsuranceType, Long> {
     }
 
     public void addGuarantee(Long insuranceTypeId, Long guaranteeId) {
-        execute(s -> {
-            InsuranceType type = s.find(InsuranceType.class, insuranceTypeId);
-            Guarantee guarantee = s.find(Guarantee.class, guaranteeId);
-            if (type == null || guarantee == null) {
-                throw new IllegalArgumentException("Type d'assurance ou garantie introuvable");
-            }
-            type.getGuarantees().add(guarantee);
-        });
+        changeLink(insuranceTypeId, Guarantee.class, guaranteeId, InsuranceType::getGuarantees, true);
     }
 
     public void removeGuarantee(Long insuranceTypeId, Long guaranteeId) {
-        execute(s -> {
-            InsuranceType type = s.find(InsuranceType.class, insuranceTypeId);
-            Guarantee guarantee = s.find(Guarantee.class, guaranteeId);
-            if (type == null || guarantee == null) {
-                throw new IllegalArgumentException("Type d'assurance ou garantie introuvable");
-            }
-            type.getGuarantees().remove(guarantee);
-        });
+        changeLink(insuranceTypeId, Guarantee.class, guaranteeId, InsuranceType::getGuarantees, false);
     }
 }
