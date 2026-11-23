@@ -2,9 +2,10 @@
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- Profil commun aux trois rôles (client, agent, admin) — ProfilServlet, URL /profil
      GET  /profil -> cette vue (attribut "user" : entité User connectée)
-     POST /profil  (action=infos      : prenom, nom, telephone, adresse)
+     POST /profil  (action=infos      : telephone, adresse)
                    (action=motdepasse : ancien, motDePasse, confirmation)
-     Erreurs : Map<String,String> "erreurs" (clés = noms des champs). L'e-mail n'est pas modifiable ici. --%>
+     Erreurs : Map<String,String> "erreurs" (clés = noms des champs).
+     Identité (prénom, nom, e-mail, date de naissance) : lecture seule, corrigée par un agent / admin. --%>
 <c:set var="titre" value="Mon profil" />
 <c:set var="role" value="${sessionScope.utilisateur.role}" />
 <!DOCTYPE html>
@@ -33,22 +34,26 @@
           <input type="hidden" name="action" value="infos">
           <h2>Informations personnelles</h2>
           <div class="grid-2">
-            <ui:champ nom="prenom" libelle="Prénom" requis="true" valeur="${not empty param.prenom ? param.prenom : user.firstName}" extra="maxlength='60'" />
-            <ui:champ nom="nom" libelle="Nom" requis="true" valeur="${not empty param.nom ? param.nom : user.lastName}" extra="maxlength='60'" />
+            <label class="field">Prénom
+              <input type="text" value="${fn:escapeXml(user.firstName)}" disabled>
+            </label>
+            <label class="field">Nom
+              <input type="text" value="${fn:escapeXml(user.lastName)}" disabled>
+            </label>
           </div>
           <label class="field">Adresse e-mail
             <input type="email" value="${fn:escapeXml(user.email)}" disabled>
             <span class="field-help">
-              Pour changer d'adresse e-mail, contactez ${role == 'CLIENT' ? 'votre agent' : 'un administrateur'}.
+              Pour corriger votre nom, prénom ou e-mail, contactez ${role == 'CLIENT' ? 'votre agent' : 'un administrateur'}.
             </span>
           </label>
           <div class="grid-2">
-            <ui:champ nom="telephone" libelle="Téléphone" type="tel" valeur="${not empty param.telephone ? param.telephone : user.phone}" extra="pattern='[0-9 +]{10,15}'" />
+            <ui:champ nom="telephone" libelle="Téléphone" type="tel" valeur="${not empty param.telephone ? param.telephone : user.phone}" extra="pattern='[+0-9][0-9 .]{5,19}' maxlength='20'" />
             <label class="field">Date de naissance
               <input type="text" value="<ui:date valeur='${user.birthDate}' />" disabled>
             </label>
           </div>
-          <ui:champ nom="adresse" libelle="Adresse postale" valeur="${not empty param.adresse ? param.adresse : user.address}" extra="maxlength='200'" />
+          <ui:champ nom="adresse" libelle="Adresse postale" valeur="${not empty param.adresse ? param.adresse : user.address}" extra="maxlength='255'" />
           <div class="form-actions"><span></span><button type="submit" class="btn btn-primary">Enregistrer</button></div>
         </form>
 
