@@ -1,0 +1,25 @@
+<%-- Tableau de paiements réutilisable. La page définit "listePaiements" (List<Payment>) avant l'inclusion.
+     Payment : dueDate, paymentDate (null tant que non payé), contract (seul le contrat est chargé : number),
+               method (PaymentMethod, null si non payé), amount, status (PaymentStatus) --%>
+<c:choose>
+  <c:when test="${empty paymentList}"><p class="empty">Aucun paiement à afficher.</p></c:when>
+  <c:otherwise>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Échéance</th><th>Payé le</th><th>Contrat</th><th>Mode</th><th class="right">Montant</th><th>Statut</th></tr></thead>
+        <tbody>
+          <c:forEach items="${paymentList}" var="p">
+            <tr>
+              <td><ui:date value="${p.dueDate}" /></td>
+              <td><ui:date value="${p.paymentDate}" /></td>
+              <td><c:out value="${p.contract.number}" /></td>
+              <td class="muted"><c:out value="${empty p.method ? '—' : p.method}" /></td>
+              <td class="right strong"><ui:amount value="${p.amount}" /></td>
+              <td><ui:status value="${p.status}" /></td>
+            </tr>
+          </c:forEach>
+        </tbody>
+      </table>
+    </div>
+  </c:otherwise>
+</c:choose>

@@ -1,0 +1,4 @@
+<%-- Jeton anti-CSRF à placer dans chaque formulaire POST.
+     Le jeton est créé par UserSession.csrfToken (appelé par CsrfFilter à chaque requête),
+     renouvelé à la connexion, et vérifié par CsrfFilter sur les POST. --%>
+<input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">

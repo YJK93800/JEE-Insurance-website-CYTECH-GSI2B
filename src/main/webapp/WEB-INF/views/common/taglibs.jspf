@@ -1,0 +1,10 @@
+<%-- Bibliothèques de balises communes à toutes les vues.
+     Tomcat 10/11 (Jakarta EE) : URIs "jakarta.tags.*".
+     Si vous êtes sur Tomcat 9 (javax), remplacez par
+     http://java.sun.com/jsp/jstl/core, .../fmt et .../functions. --%>
+<%@ taglib prefix="c"   uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn"  uri="jakarta.tags.functions" %>
+<%@ taglib prefix="ui"  tagdir="/WEB-INF/tags" %>
+<fmt:setLocale value="fr_FR" />
+<c:set var="ctx" value="${pageContext.request.contextPath}" />

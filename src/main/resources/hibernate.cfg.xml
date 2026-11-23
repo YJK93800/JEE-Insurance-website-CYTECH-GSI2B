@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+
+        <!-- ===== Connexion à la base (MySQL) ===== -->
+        <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <!-- URL, utilisateur et mot de passe : dans db.properties, lus par DbConfig
+             et ajoutés dans HibernateUtil. Rien de secret dans ce fichier. -->
+
+        <!-- Hibernate 6+ détecte le dialecte tout seul : pas besoin de hibernate.dialect -->
+
+        <!-- Pool de connexions intégré : suffisant pour le développement -->
+        <property name="hibernate.connection.pool_size">10</property>
+        <property name="hibernate.show_sql">false</property>
+        <!-- Une session par thread : indispensable pour getCurrentSession() dans les DAO -->
+        <property name="hibernate.current_session_context_class">thread</property>
+
+        <!-- Création / mise à jour automatique des tables à partir des entités.
+             update   : garde les données, ajoute les colonnes manquantes (dev)
+             validate : vérifie seulement que les tables correspondent (rendu final) -->
+        <property name="hibernate.hbm2ddl.auto">validate</property>
+
+        <!-- Affiche le SQL dans la console Tomcat (pratique pour déboguer) -->
+        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.format_sql">true</property>
+
+        <!-- ===== Entités ===== -->
+        <mapping class="com.assurcy2000.model.Role"/>
+        <mapping class="com.assurcy2000.model.User"/>
+        <mapping class="com.assurcy2000.model.InsuranceType"/>
+        <mapping class="com.assurcy2000.model.Guarantee"/>
+        <mapping class="com.assurcy2000.model.Contract"/>
+        <mapping class="com.assurcy2000.model.Claim"/>
+        <mapping class="com.assurcy2000.model.ClaimAttachment"/>
+        <mapping class="com.assurcy2000.model.ClaimComment"/>
+        <mapping class="com.assurcy2000.model.ClaimHistory"/>
+        <mapping class="com.assurcy2000.model.Payment"/>
+        <mapping class="com.assurcy2000.model.AiMessage"/>
+
+    </session-factory>
+</hibernate-configuration>
