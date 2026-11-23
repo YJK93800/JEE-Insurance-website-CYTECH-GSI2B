@@ -1,6 +1,7 @@
 package com.assurcy2000.controller.common;
 
 import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.dto.request.UpdateProfileRequest;
 import com.assurcy2000.model.User;
 import com.assurcy2000.service.UserService;
 import com.assurcy2000.service.exceptions.ValidationException;
@@ -73,11 +74,21 @@ public class ProfilServlet extends HttpServlet {
     }
 
     private void updateInfos(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // À faire : lire prenom, nom, telephone, adresse ; valider (mêmes règles que RegisterServlet) ;
-        // appeler userService.updateInfos(current, ...) ;
-        // remettre à jour la session (le prénom et le nom affichés dans la sidebar) ;
-        // puis flash + redirect vers /profil.
-        UserSession.flash(req, "Modification des informations pas encore disponible.", "info");
+        // 1. Vérification des saisies par la servlet ; on garde les valeurs nettoyées renvoyées par Validation
+        Map<String, String> errors = new LinkedHashMap<>();
+        UpdateProfileRequest form = new UpdateProfileRequest(
+                Validation.phone(RequestParams.get(req, "telephone"), errors),
+                Validation.address(RequestParams.get(req, "adresse"), errors));
+
+        if (!errors.isEmpty()) {
+            showForm(req, resp, errors); // les champs ressaisis sont réaffichés via param.xxx dans profil.jsp
+            return;
+        }
+
+        // 2. Enregistrement (le nom ne change pas : rien à mettre à jour dans la session)
+        userService.updateInfos(UserSession.currentUser(req), form);
+
+        UserSession.flash(req, "Vos informations ont été mises à jour.", "success");
         resp.sendRedirect(req.getContextPath() + "/profil");
     }
 
