@@ -4,13 +4,13 @@
      Attributs attendus : requests List<…> triées de la plus récente à la plus ancienne, un DTO à créer avec :
                           date (LocalDate), type (ex. "Déclaration de sinistre", "Souscription"),
                           reference (n° de sinistre ou de contrat), link (URL relative, peut être null), status --%>
-<c:set var="titre" value="Historique des demandes" />
+<c:set var="title" value="Historique des demandes" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="historique" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="history" /></jsp:include>
   <main class="main">
     <div class="container">
       <header class="page-head"><div class="stack-sm"><span class="eyebrow">Espace client</span><h1>Historique des demandes</h1></div></header>

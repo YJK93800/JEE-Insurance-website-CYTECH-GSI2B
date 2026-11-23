@@ -7,6 +7,7 @@ import com.assurcy2000.security.RoleFilter;
 import com.assurcy2000.service.AuthService;
 import com.assurcy2000.service.exceptions.AuthException;
 import com.assurcy2000.security.UserSession;
+import com.assurcy2000.util.FormView;
 import com.assurcy2000.util.RequestParams;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
@@ -32,13 +33,13 @@ public class LoginServlet extends BaseServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String email = RequestParams.get(req, "email");
         try {
-            User user = authService.login(email, RequestParams.raw(req, "motDePasse"));
+            User user = authService.login(email, RequestParams.raw(req, "password"));
             SessionUser sessionUser = SessionUser.from(user);
             String saved = UserSession.login(req, sessionUser);
             String target = (saved != null && RoleFilter.isAllowed(saved, sessionUser)) ? saved : sessionUser.homePath();
             redirect(req, resp, target);
         } catch (AuthException e) {
-            req.setAttribute("erreurGlobale", e.getMessage());
+            req.setAttribute(FormView.GLOBAL_ERROR, e.getMessage());
             req.setAttribute("email", email);
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             render(req, resp, Views.LOGIN);

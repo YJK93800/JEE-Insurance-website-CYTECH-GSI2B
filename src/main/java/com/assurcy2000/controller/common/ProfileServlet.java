@@ -39,21 +39,21 @@ public class ProfileServlet extends BaseServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // Les deux formulaires de common/profile.jsp envoient un champ caché "action"
         switch (RequestParams.get(req, "action")) {
-            case "motdepasse" -> changePassword(req, resp);
-            case "infos"      -> updateInfos(req, resp);
+            case "password" -> changePassword(req, resp);
+            case "details"  -> updateDetails(req, resp);
             default           -> resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
     private void changePassword(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // Noms des champs = attributs "name" des <ui:field> de profile.jsp (les erreurs s'affichent sous ces champs)
-        String oldPassword = RequestParams.raw(req, "ancien");
-        String password = RequestParams.raw(req, "motDePasse");
+        String oldPassword = RequestParams.raw(req, "oldPassword");
+        String password = RequestParams.raw(req, "password");
         String confirmation = RequestParams.raw(req, "confirmation");
 
         Map<String, String> errors = new LinkedHashMap<>();
-        if (oldPassword.isEmpty()) errors.put("ancien", "Le mot de passe actuel est obligatoire.");
-        Validation.validatePassword(password, confirmation, "motDePasse", "confirmation", errors);
+        if (oldPassword.isEmpty()) errors.put("oldPassword", "Le mot de passe actuel est obligatoire.");
+        Validation.validatePassword(password, confirmation, "password", "confirmation", errors);
 
         if (!errors.isEmpty()) {
             showForm(req, resp, errors);
@@ -72,12 +72,12 @@ public class ProfileServlet extends BaseServlet {
         redirect(req, resp, "/profile");
     }
 
-    private void updateInfos(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    private void updateDetails(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // 1. Vérification des saisies par la servlet ; on garde les valeurs nettoyées renvoyées par Validation
         Map<String, String> errors = new LinkedHashMap<>();
         UpdateProfileRequest form = new UpdateProfileRequest(
-                Validation.phone(RequestParams.get(req, "telephone"), errors),
-                Validation.address(RequestParams.get(req, "adresse"), errors));
+                Validation.phone(RequestParams.get(req, "phone"), errors),
+                Validation.address(RequestParams.get(req, "address"), errors));
 
         if (!errors.isEmpty()) {
             showForm(req, resp, errors); // les champs ressaisis sont réaffichés via param.xxx dans profile.jsp
@@ -85,7 +85,7 @@ public class ProfileServlet extends BaseServlet {
         }
 
         // 2. Enregistrement (le nom ne change pas : rien à mettre à jour dans la session)
-        userService.updateInfos(user(req), form);
+        userService.updateDetails(user(req), form);
 
         UserSession.flash(req, "Vos informations ont été mises à jour.", "success");
         redirect(req, resp, "/profile");

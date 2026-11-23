@@ -8,15 +8,15 @@
      label (facultatif) : texte à afficher, ex. ContractStatus.label ; sinon libellé déduit du nom de l'enum. --%>
 <c:set var="code" value="${fn:toUpperCase(value)}" />
 <c:choose>
-  <c:when test="${not empty label}"><c:set var="texte" value="${fn:toUpperCase(label)}" /></c:when>
-  <c:when test="${code == 'RESILIE'}"><c:set var="texte" value="RÉSILIÉ" /></c:when>
-  <c:when test="${code == 'EXPIRE'}"><c:set var="texte" value="EXPIRÉ" /></c:when>
-  <c:when test="${code == 'DECLARE'}"><c:set var="texte" value="DÉCLARÉ" /></c:when>
-  <c:when test="${code == 'ACCEPTE'}"><c:set var="texte" value="ACCEPTÉ" /></c:when>
-  <c:when test="${code == 'REFUSE'}"><c:set var="texte" value="REFUSÉ" /></c:when>
-  <c:when test="${code == 'INDEMNISE'}"><c:set var="texte" value="INDEMNISÉ" /></c:when>
-  <c:when test="${code == 'EFFECTUE'}"><c:set var="texte" value="EFFECTUÉ" /></c:when>
-  <c:when test="${code == 'ANNULE'}"><c:set var="texte" value="ANNULÉ" /></c:when>
-  <c:otherwise><c:set var="texte" value="${fn:replace(code, '_', ' ')}" /></c:otherwise>
+  <c:when test="${not empty label}"><c:set var="text" value="${fn:toUpperCase(label)}" /></c:when>
+  <c:when test="${code == 'RESILIE'}"><c:set var="text" value="RÉSILIÉ" /></c:when>
+  <c:when test="${code == 'EXPIRE'}"><c:set var="text" value="EXPIRÉ" /></c:when>
+  <c:when test="${code == 'DECLARE'}"><c:set var="text" value="DÉCLARÉ" /></c:when>
+  <c:when test="${code == 'ACCEPTE'}"><c:set var="text" value="ACCEPTÉ" /></c:when>
+  <c:when test="${code == 'REFUSE'}"><c:set var="text" value="REFUSÉ" /></c:when>
+  <c:when test="${code == 'INDEMNISE'}"><c:set var="text" value="INDEMNISÉ" /></c:when>
+  <c:when test="${code == 'EFFECTUE'}"><c:set var="text" value="EFFECTUÉ" /></c:when>
+  <c:when test="${code == 'ANNULE'}"><c:set var="text" value="ANNULÉ" /></c:when>
+  <c:otherwise><c:set var="text" value="${fn:replace(code, '_', ' ')}" /></c:otherwise>
 </c:choose>
-<span class="badge badge-${fn:toLowerCase(code)}">${texte}</span>
+<span class="badge badge-${fn:toLowerCase(code)}">${text}</span>

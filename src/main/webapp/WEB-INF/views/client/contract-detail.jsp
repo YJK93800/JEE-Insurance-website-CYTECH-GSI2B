@@ -3,13 +3,13 @@
 <%-- ClientContractsServlet — GET /client/contracts?id=12 (404 si le contrat n'appartient pas au client connecté)
      Attributs : contract Contract (number, insuranceType{name, description}, startDate, endDate, premium, status,
                                    agent{firstName, lastName}, guarantees Set<Guarantee>{name, description}) --%>
-<c:set var="titre" value="Contrat ${contract.number}" />
+<c:set var="title" value="Contrat ${contract.number}" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="contrats" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="contracts" /></jsp:include>
   <main class="main">
     <div class="container">
       <header class="page-head">

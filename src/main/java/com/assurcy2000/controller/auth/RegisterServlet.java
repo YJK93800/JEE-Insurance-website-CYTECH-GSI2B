@@ -34,13 +34,13 @@ public class RegisterServlet extends BaseServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         RegisterRequest form = new RegisterRequest(
-                RequestParams.get(req, "prenom"),
-                RequestParams.get(req, "nom"),
+                RequestParams.get(req, "firstName"),
+                RequestParams.get(req, "lastName"),
                 RequestParams.get(req, "email"),
-                RequestParams.get(req, "telephone"),
-                RequestParams.get(req, "dateNaissance"),
-                RequestParams.get(req, "adresse"),
-                RequestParams.raw(req, "motDePasse"),     // mot de passe : jamais de trim
+                RequestParams.get(req, "phone"),
+                RequestParams.get(req, "birthDate"),
+                RequestParams.get(req, "address"),
+                RequestParams.raw(req, "password"),     // mot de passe : jamais de trim
                 RequestParams.raw(req, "confirmation"));
 
         // 1. Vérification des saisies par la servlet, avant tout enregistrement (consigne, section 4)
@@ -74,7 +74,7 @@ public class RegisterServlet extends BaseServlet {
         Validation.phone(form.phone(), errors);
         Validation.birthDate(form.birthDate(), errors);
         Validation.address(form.address(), errors);
-        Validation.validatePassword(form.password(), form.passwordConfirm(), "motDePasse", "confirmation", errors);
+        Validation.validatePassword(form.password(), form.passwordConfirm(), "password", "confirmation", errors);
         return errors;
     }
 }

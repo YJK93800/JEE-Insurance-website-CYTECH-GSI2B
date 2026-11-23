@@ -9,13 +9,13 @@ import java.util.Base64;
 
 /**
  * Tout ce qui touche à la session HTTP, au même endroit.
- * Les servlets et les filtres n'écrivent jamais "utilisateur" ou "csrfToken" à la main :
+ * Les servlets et les filtres n'écrivent jamais "currentUser" ou "csrfToken" à la main :
  * ils passent par ces méthodes. Si un nom d'attribut change, on ne le change qu'ici.
  */
 public final class UserSession {
 
-    // Noms des attributs de session (utilisés aussi dans les JSP : sessionScope.utilisateur...)
-    public static final String USER = "utilisateur";
+    // Noms des attributs de session (utilisés aussi dans les JSP : sessionScope.currentUser...)
+    public static final String USER = "currentUser";
     public static final String CSRF_TOKEN = "csrfToken";
     public static final String REDIRECT_AFTER_LOGIN = "redirectAfterLogin";
     public static final String FLASH = "flash";
@@ -30,7 +30,7 @@ public final class UserSession {
     public static SessionUser currentUser(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
         if (session == null) return null;
-        // instanceof plutôt qu'un cast : PreviewServlet (dev) met une Map dans "utilisateur",
+        // instanceof plutôt qu'un cast : PreviewServlet (dev) met une Map dans "currentUser",
         // un cast direct ferait planter tous les filtres (erreur 500) sur les requêtes suivantes.
         return session.getAttribute(USER) instanceof SessionUser user ? user : null;
     }

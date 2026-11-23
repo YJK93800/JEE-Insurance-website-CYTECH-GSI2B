@@ -1,90 +1,89 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- AgentClaimsServlet (Views.AGENT_CLAIMS et Views.AGENT_CLAIM)
-     GET  /agent/claims[?statut=EN_ANALYSE&q=texte]  -> liste : attribut claims List<Claim>
+     GET  /agent/claims[?status=EN_ANALYSE&q=texte]  -> liste : attribut claims List<Claim>
      GET  /agent/claims?id=93                        -> détail : attribut claim Claim
      POST /agent/claims  id, action=status, status=EN_ANALYSE|ACCEPTE|REFUSE  -> ClaimService.changeStatus
      POST /agent/claims  id, action=indemnify, amount                         -> ClaimService.indemnify
-     En cas d'erreur, le détail est réaffiché avec erreurs Map<String,String> (clés : status, amount, action).
+     En cas d'erreur, le détail est réaffiché avec errors Map<String,String> (clés : status, amount, action).
      Aussi utilisée par l'admin (/admin/claims) en consultation seule : les formulaires ne sont pas affichés.
      Le filtre par statut et la recherche sont faits ici, sur la liste complète renvoyée par le service.
      Claim : contract, contract.client et agent sont chargés (pas contract.insuranceType). --%>
-<c:set var="titre" value="Sinistres" />
-<c:set var="estAgent" value="${sessionScope.utilisateur.role == 'AGENT'}" />
-<c:set var="base" value="${estAgent ? '/agent/claims' : '/admin/claims'}" />
+<c:set var="title" value="Sinistres" />
+<c:set var="isAgent" value="${sessionScope.currentUser.role == 'AGENT'}" />
+<c:set var="base" value="${isAgent ? '/agent/claims' : '/admin/claims'}" />
 <c:set var="q" value="${fn:toLowerCase(fn:trim(param.q))}" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="sinistres" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="claims" /></jsp:include>
   <main class="main">
     <div class="container">
 <c:choose>
   <%-- ===================== Détail d'un sinistre ===================== --%>
   <c:when test="${not empty claim}">
-      <c:set var="sin" value="${claim}" />
       <header class="page-head">
         <div class="stack-sm">
           <a class="back" href="${ctx}${base}">← Tous les sinistres</a>
-          <h1><c:out value="${sin.number}" /></h1>
-          <span class="muted"><c:out value="${sin.contract.client.firstName} ${sin.contract.client.lastName}" /> · contrat <c:out value="${sin.contract.number}" /> · <ui:claimType value="${sin.type}" /></span>
+          <h1><c:out value="${claim.number}" /></h1>
+          <span class="muted"><c:out value="${claim.contract.client.firstName} ${claim.contract.client.lastName}" /> · contrat <c:out value="${claim.contract.number}" /> · <ui:claimType value="${claim.type}" /></span>
         </div>
-        <ui:status value="${sin.status}" />
+        <ui:status value="${claim.status}" />
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
-      <c:if test="${not empty erreurs.action}"><div class="alert alert-error" role="alert"><span><c:out value="${erreurs.action}" /></span></div></c:if>
+      <c:if test="${not empty errors.action}"><div class="alert alert-error" role="alert"><span><c:out value="${errors.action}" /></span></div></c:if>
 
       <div class="row">
         <div class="col-main">
           <section class="card" aria-labelledby="h-decl">
             <h2 id="h-decl">Déclaration</h2>
             <div class="grid-3 small">
-              <div class="stack-sm"><span class="muted">Survenu le</span><span class="strong"><ui:date value="${sin.claimDate}" /></span></div>
-              <div class="stack-sm"><span class="muted">Déclaré le</span><span class="strong"><ui:date value="${sin.declaredAt}" /></span></div>
-              <div class="stack-sm"><span class="muted">Montant estimé</span><span class="strong"><ui:amount value="${sin.estimatedAmount}" /></span></div>
+              <div class="stack-sm"><span class="muted">Survenu le</span><span class="strong"><ui:date value="${claim.claimDate}" /></span></div>
+              <div class="stack-sm"><span class="muted">Déclaré le</span><span class="strong"><ui:date value="${claim.declaredAt}" /></span></div>
+              <div class="stack-sm"><span class="muted">Montant estimé</span><span class="strong"><ui:amount value="${claim.estimatedAmount}" /></span></div>
             </div>
-            <p class="quote">« <c:out value="${sin.description}" /> »</p>
+            <p class="quote">« <c:out value="${claim.description}" /> »</p>
             <div class="grid-2 small">
-              <div class="stack-sm"><span class="muted">Client</span><span class="strong"><c:out value="${sin.contract.client.firstName} ${sin.contract.client.lastName}" /></span><span class="muted"><c:out value="${sin.contract.client.email}" /></span></div>
+              <div class="stack-sm"><span class="muted">Client</span><span class="strong"><c:out value="${claim.contract.client.firstName} ${claim.contract.client.lastName}" /></span><span class="muted"><c:out value="${claim.contract.client.email}" /></span></div>
               <div class="stack-sm"><span class="muted">Agent en charge</span><span class="strong">
-                <c:choose><c:when test="${not empty sin.agent}"><c:out value="${sin.agent.firstName} ${sin.agent.lastName}" /></c:when><c:otherwise>—</c:otherwise></c:choose></span></div>
+                <c:choose><c:when test="${not empty claim.agent}"><c:out value="${claim.agent.firstName} ${claim.agent.lastName}" /></c:when><c:otherwise>—</c:otherwise></c:choose></span></div>
             </div>
           </section>
 
-          <c:if test="${estAgent}">
+          <c:if test="${isAgent}">
             <%-- Transitions autorisées par ClaimService : DECLARE -> EN_ANALYSE ; EN_ANALYSE -> ACCEPTE | REFUSE --%>
-            <c:if test="${sin.status == 'DECLARE' or sin.status == 'EN_ANALYSE'}">
+            <c:if test="${claim.status == 'DECLARE' or claim.status == 'EN_ANALYSE'}">
               <section class="card" aria-labelledby="h-statut">
                 <h2 id="h-statut">Changer le statut</h2>
                 <form class="form" method="post" action="${ctx}/agent/claims" novalidate data-validate>
                   <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
-                  <input type="hidden" name="id" value="${sin.id}">
+                  <input type="hidden" name="id" value="${claim.id}">
                   <input type="hidden" name="action" value="status">
-                  <label class="field ${not empty erreurs.status ? 'has-error' : ''}">Nouveau statut
+                  <label class="field ${not empty errors.status ? 'has-error' : ''}">Nouveau statut
                     <select name="status" required>
                       <c:choose>
-                        <c:when test="${sin.status == 'DECLARE'}"><option value="EN_ANALYSE">Passer en analyse</option></c:when>
+                        <c:when test="${claim.status == 'DECLARE'}"><option value="EN_ANALYSE">Passer en analyse</option></c:when>
                         <c:otherwise>
                           <option value="ACCEPTE">Accepter</option>
                           <option value="REFUSE">Refuser</option>
                         </c:otherwise>
                       </c:choose>
                     </select>
-                    <c:if test="${not empty erreurs.status}"><span class="field-error"><c:out value="${erreurs.status}" /></span></c:if>
+                    <c:if test="${not empty errors.status}"><span class="field-error"><c:out value="${errors.status}" /></span></c:if>
                   </label>
                   <button type="submit" class="btn btn-primary">Enregistrer</button>
                 </form>
               </section>
             </c:if>
 
-            <c:if test="${sin.status == 'ACCEPTE'}">
+            <c:if test="${claim.status == 'ACCEPTE'}">
               <section class="card" aria-labelledby="h-indem">
                 <h2 id="h-indem">Indemniser</h2>
                 <form class="form" method="post" action="${ctx}/agent/claims" novalidate data-validate>
                   <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
-                  <input type="hidden" name="id" value="${sin.id}">
+                  <input type="hidden" name="id" value="${claim.id}">
                   <input type="hidden" name="action" value="indemnify">
                   <ui:field name="amount" label="Montant de l'indemnisation (€) *" type="number" required="true"
                             extra="min='0.01' step='0.01' inputmode='decimal'"
@@ -109,11 +108,11 @@
   <c:otherwise>
       <header class="page-head">
         <div class="stack-sm">
-          <span class="eyebrow">${estAgent ? 'Espace agent' : 'Administration'}</span>
-          <h1>${estAgent ? 'Sinistres à traiter' : 'Tous les sinistres'}</h1>
+          <span class="eyebrow">${isAgent ? 'Espace agent' : 'Administration'}</span>
+          <h1>${isAgent ? 'Sinistres à traiter' : 'Tous les sinistres'}</h1>
         </div>
         <form class="search" method="get" action="${ctx}${base}">
-          <c:if test="${not empty param.statut}"><input type="hidden" name="statut" value="${fn:escapeXml(param.statut)}"></c:if>
+          <c:if test="${not empty param.status}"><input type="hidden" name="status" value="${fn:escapeXml(param.status)}"></c:if>
           <label class="field">Rechercher
             <input type="search" name="q" value="${fn:escapeXml(param.q)}" placeholder="N° de sinistre, client, contrat…">
           </label>
@@ -123,47 +122,47 @@
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
       <%-- Sinistres qui correspondent à la recherche (avant le filtre par statut, pour les compteurs des onglets) --%>
-      <jsp:useBean id="trouves" class="java.util.ArrayList" />
-      <c:forEach items="${claims}" var="si">
-        <c:set var="texte" value="${fn:toLowerCase(si.number)} ${fn:toLowerCase(si.contract.number)} ${fn:toLowerCase(si.contract.client.firstName)} ${fn:toLowerCase(si.contract.client.lastName)}" />
-        <c:if test="${empty q or fn:contains(texte, q)}"><c:set var="ignore" value="${trouves.add(si)}" /></c:if>
+      <jsp:useBean id="matches" class="java.util.ArrayList" />
+      <c:forEach items="${claims}" var="clm">
+        <c:set var="text" value="${fn:toLowerCase(clm.number)} ${fn:toLowerCase(clm.contract.number)} ${fn:toLowerCase(clm.contract.client.firstName)} ${fn:toLowerCase(clm.contract.client.lastName)}" />
+        <c:if test="${empty q or fn:contains(text, q)}"><c:set var="ignore" value="${matches.add(clm)}" /></c:if>
       </c:forEach>
-      <jsp:useBean id="compteurs" class="java.util.HashMap" />
-      <c:forEach items="${trouves}" var="si">
-        <c:set var="cle" value="${si.status.name()}" />
-        <c:set var="ignore" value="${compteurs.put(cle, (empty compteurs[cle] ? 0 : compteurs[cle]) + 1)}" />
+      <jsp:useBean id="counters" class="java.util.HashMap" />
+      <c:forEach items="${matches}" var="clm">
+        <c:set var="key" value="${clm.status.name()}" />
+        <c:set var="ignore" value="${counters.put(key, (empty counters[key] ? 0 : counters[key]) + 1)}" />
       </c:forEach>
 
       <nav class="tabs" aria-label="Filtrer par statut">
-        <c:url var="lienTous" value="${base}"><c:param name="q" value="${param.q}" /></c:url>
-        <a href="${lienTous}" class="${empty param.statut ? 'active' : ''}">Tous · ${fn:length(trouves)}</a>
+        <c:url var="linkAll" value="${base}"><c:param name="q" value="${param.q}" /></c:url>
+        <a href="${linkAll}" class="${empty param.status ? 'active' : ''}">Tous · ${fn:length(matches)}</a>
         <c:forEach items="DECLARE,EN_ANALYSE,ACCEPTE,REFUSE,INDEMNISE" var="st">
-          <c:url var="lienSt" value="${base}"><c:param name="statut" value="${st}" /><c:param name="q" value="${param.q}" /></c:url>
-          <a href="${lienSt}" class="${param.statut == st ? 'active' : ''}"><ui:status value="${st}" /> ${empty compteurs[st] ? 0 : compteurs[st]}</a>
+          <c:url var="linkStatus" value="${base}"><c:param name="status" value="${st}" /><c:param name="q" value="${param.q}" /></c:url>
+          <a href="${linkStatus}" class="${param.status == st ? 'active' : ''}"><ui:status value="${st}" /> ${empty counters[st] ? 0 : counters[st]}</a>
         </c:forEach>
       </nav>
 
       <section class="card flush" aria-label="Liste des sinistres">
-        <c:set var="affiches" value="0" />
+        <c:set var="shown" value="0" />
         <div class="table-wrap">
           <table class="table">
             <thead><tr><th>N° sinistre</th><th>Client</th><th>Contrat</th><th>Type</th><th>Déclaré le</th><th class="right">Estimé</th><th>Statut</th></tr></thead>
             <tbody>
-              <c:forEach items="${trouves}" var="si">
-                <c:if test="${empty param.statut or si.status.name() == param.statut}">
-                  <c:set var="affiches" value="${affiches + 1}" />
+              <c:forEach items="${matches}" var="clm">
+                <c:if test="${empty param.status or clm.status.name() == param.status}">
+                  <c:set var="shown" value="${shown + 1}" />
                   <tr>
-                    <td class="strong"><a href="${ctx}${base}?id=${si.id}"><c:out value="${si.number}" /></a></td>
-                    <td><c:out value="${si.contract.client.firstName} ${si.contract.client.lastName}" /></td>
-                    <td class="muted"><c:out value="${si.contract.number}" /></td>
-                    <td class="muted"><ui:claimType value="${si.type}" /></td>
-                    <td class="muted"><ui:date value="${si.declaredAt}" /></td>
-                    <td class="right strong"><ui:amount value="${si.estimatedAmount}" /></td>
-                    <td><ui:status value="${si.status}" /></td>
+                    <td class="strong"><a href="${ctx}${base}?id=${clm.id}"><c:out value="${clm.number}" /></a></td>
+                    <td><c:out value="${clm.contract.client.firstName} ${clm.contract.client.lastName}" /></td>
+                    <td class="muted"><c:out value="${clm.contract.number}" /></td>
+                    <td class="muted"><ui:claimType value="${clm.type}" /></td>
+                    <td class="muted"><ui:date value="${clm.declaredAt}" /></td>
+                    <td class="right strong"><ui:amount value="${clm.estimatedAmount}" /></td>
+                    <td><ui:status value="${clm.status}" /></td>
                   </tr>
                 </c:if>
               </c:forEach>
-              <c:if test="${affiches == 0}"><tr><td colspan="7" class="empty">Aucun sinistre pour ce filtre.</td></tr></c:if>
+              <c:if test="${shown == 0}"><tr><td colspan="7" class="empty">Aucun sinistre pour ce filtre.</td></tr></c:if>
             </tbody>
           </table>
         </div>

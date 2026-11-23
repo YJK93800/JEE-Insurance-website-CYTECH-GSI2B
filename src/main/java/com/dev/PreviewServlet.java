@@ -93,16 +93,16 @@ public class PreviewServlet extends HttpServlet {
         session.setAttribute("csrfToken", "preview");
 
         // Utilisateur simulé selon l'espace demandé
-        Map<String, Object> camille = m("id", 1L, "prenom", "Camille", "nom", "Martin", "email", "camille.martin@mail.fr",
+        Map<String, Object> camille = m("id", 1L, "firstName", "Camille", "lastName", "Martin", "email", "camille.martin@mail.fr",
                 "telephone", "06 12 34 56 78", "adresse", "12 rue des Lilas, 69003 Lyon", "role", Role.CLIENT,
                 "dateNaissance", LocalDate.of(1994, 5, 12), "dateInscription", LocalDate.of(2025, 11, 2), "nbContrats", 3, "actif", true);
-        Map<String, Object> julien = m("id", 2L, "prenom", "Julien", "nom", "Lefèvre", "email", "j.lefevre@egide.fr", "role", Role.AGENT, "actif", true);
-        Map<String, Object> sophie = m("id", 3L, "prenom", "Sophie", "nom", "Arnaud", "email", "s.arnaud@egide.fr", "role", Role.ADMIN, "actif", true);
+        Map<String, Object> julien = m("id", 2L, "firstName", "Julien", "lastName", "Lefèvre", "email", "j.lefevre@egide.fr", "role", Role.AGENT, "actif", true);
+        Map<String, Object> sophie = m("id", 3L, "firstName", "Sophie", "lastName", "Arnaud", "email", "s.arnaud@egide.fr", "role", Role.ADMIN, "actif", true);
 
-        if (page.startsWith("auth/")) session.removeAttribute("utilisateur");
-        else if (page.startsWith("client/")) session.setAttribute("utilisateur", camille);
-        else if (page.startsWith("agent/")) session.setAttribute("utilisateur", julien);
-        else session.setAttribute("utilisateur", sophie);
+        if (page.startsWith("auth/")) session.removeAttribute("currentUser");
+        else if (page.startsWith("client/")) session.setAttribute("currentUser", camille);
+        else if (page.startsWith("agent/")) session.setAttribute("currentUser", julien);
+        else session.setAttribute("currentUser", sophie);
 
         /* ---------- Données fictives (celles de la maquette) ---------- */
         Map<String, Map<String, Object>> g = new LinkedHashMap<>();

@@ -4,17 +4,17 @@
      POST /agent/garanties         (id vide = création ; nom, description, plafond, franchise)
      POST /agent/garanties/supprimer (id) -> refusé par la servlet si la garantie est utilisée par un contrat
      Attributs attendus : guarantees List<…>{id, name, description, plafond, franchise, contractCount}
-                          guarantee  Guarantee en cours de modification (null en création)   erreurs Map<String,String>
+                          guarantee  Guarantee en cours de modification (null en création)   errors Map<String,String>
      NB : plafond, franchise et contractCount n'existent pas encore dans Guarantee (DTO ou colonnes à ajouter).
      L'association garantie <-> contrat se fait dans le formulaire de contrat. --%>
-<c:set var="titre" value="Garanties" />
+<c:set var="title" value="Garanties" />
 <c:set var="g0" value="${guarantee}" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="garanties" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="guarantees" /></jsp:include>
   <main class="main">
     <div class="container">
       <header class="page-head"><div class="stack-sm"><span class="eyebrow">Espace agent</span><h1>Garanties</h1></div></header>
@@ -53,14 +53,14 @@
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <input type="hidden" name="id" value="${g0.id}">
           <h2>${empty g0 ? 'Nouvelle garantie' : 'Modifier la garantie'}</h2>
-          <ui:field name="nom" label="Nom *" required="true" value="${not empty param.nom ? param.nom : g0.name}" extra="maxlength='80' placeholder='Ex. : Dégâts des eaux'" />
-          <label class="field ${not empty erreurs.description ? 'has-error' : ''}">Description
+          <ui:field name="name" label="Nom *" required="true" value="${not empty param.name ? param.name : g0.name}" extra="maxlength='80' placeholder='Ex. : Dégâts des eaux'" />
+          <label class="field ${not empty errors.description ? 'has-error' : ''}">Description
             <textarea name="description" rows="3" maxlength="500"><c:out value="${not empty param.description ? param.description : g0.description}" /></textarea>
-            <c:if test="${not empty erreurs.description}"><span class="field-error"><c:out value="${erreurs.description}" /></span></c:if>
+            <c:if test="${not empty errors.description}"><span class="field-error"><c:out value="${errors.description}" /></span></c:if>
           </label>
           <div class="grid-2">
-            <ui:field name="plafond" label="Plafond (€)" type="number" value="${not empty param.plafond ? param.plafond : g0.plafond}" extra="min='0' step='0.01'" />
-            <ui:field name="franchise" label="Franchise (€)" type="number" value="${not empty param.franchise ? param.franchise : g0.franchise}" extra="min='0' step='0.01'" />
+            <ui:field name="coverageLimit" label="Plafond (€)" type="number" value="${not empty param.coverageLimit ? param.coverageLimit : g0.plafond}" extra="min='0' step='0.01'" />
+            <ui:field name="deductible" label="Franchise (€)" type="number" value="${not empty param.deductible ? param.deductible : g0.franchise}" extra="min='0' step='0.01'" />
           </div>
           <div class="inline">
             <button type="submit" class="btn btn-primary">${empty g0 ? 'Créer' : 'Enregistrer'}</button>

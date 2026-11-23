@@ -4,13 +4,13 @@
      Attributs attendus : clients List<…>{id, firstName, lastName, email, phone, createdAt, contractCount} (DTO, contractCount n'est pas dans User)
                           selection (peut être null) {id, firstName, lastName, email, phone, address,
                                      contracts List<Contract>, claims List<Claim>} --%>
-<c:set var="titre" value="Clients" />
+<c:set var="title" value="Clients" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="clients" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="clients" /></jsp:include>
   <main class="main">
     <div class="container">
       <header class="page-head">
@@ -33,9 +33,9 @@
                   <thead><tr><th>Client</th><th>E-mail</th><th>Téléphone</th><th>Inscrit le</th><th class="right">Contrats</th></tr></thead>
                   <tbody>
                     <c:forEach items="${clients}" var="cl">
-                      <c:url var="lienCl" value="/agent/clients"><c:param name="q" value="${param.q}" /><c:param name="id" value="${cl.id}" /></c:url>
+                      <c:url var="linkClient" value="/agent/clients"><c:param name="q" value="${param.q}" /><c:param name="id" value="${cl.id}" /></c:url>
                       <tr class="${selection.id == cl.id ? 'selected' : ''}">
-                        <td class="strong"><a href="${lienCl}"><c:out value="${cl.firstName} ${cl.lastName}" /></a></td>
+                        <td class="strong"><a href="${linkClient}"><c:out value="${cl.firstName} ${cl.lastName}" /></a></td>
                         <td class="muted"><c:out value="${cl.email}" /></td>
                         <td class="muted"><c:out value="${cl.phone}" /></td>
                         <td class="muted"><ui:date value="${cl.createdAt}" /></td>
@@ -66,8 +66,8 @@
             </div>
             <div class="stack">
               <span class="small strong">Sinistres</span>
-              <c:forEach items="${selection.claims}" var="si">
-                <div class="between small"><a href="${ctx}/agent/claims?id=${si.id}"><c:out value="${si.number}" /></a><ui:status value="${si.status}" /></div>
+              <c:forEach items="${selection.claims}" var="clm">
+                <div class="between small"><a href="${ctx}/agent/claims?id=${clm.id}"><c:out value="${clm.number}" /></a><ui:status value="${clm.status}" /></div>
               </c:forEach>
               <c:if test="${empty selection.claims}"><span class="small muted">Aucun sinistre.</span></c:if>
             </div>

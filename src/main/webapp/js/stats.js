@@ -11,8 +11,8 @@
   try { d = JSON.parse(el.textContent); } catch (e) { console.error("Données de statistiques invalides", e); return; }
 
   var TEAL = "#0F6E6E", ORANGE = "#E8913A", GRID = "#EDF0F3", TEXT = "#5B6675";
-  var COULEURS_STATUT = { ACTIF: "#17603F", EN_ATTENTE: "#C9852B", SUSPENDU: "#6A4FC0", EXPIRE: "#8792A2", RESILIE: "#C23B3B" };
-  var euros = function (v) { return Number(v).toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }); };
+  var STATUS_COLORS = { ACTIF: "#17603F", EN_ATTENTE: "#C9852B", SUSPENDU: "#6A4FC0", EXPIRE: "#8792A2", RESILIE: "#C23B3B" };
+  var formatEuros = function (v) { return Number(v).toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }); };
 
   Chart.defaults.font.family = "Inter, system-ui, sans-serif";
   Chart.defaults.color = TEXT;
@@ -24,41 +24,41 @@
     };
   };
 
-  var cRev = document.getElementById("chart-revenus");
+  var cRev = document.getElementById("chart-revenue");
   if (cRev) {
     new Chart(cRev, {
       type: "bar",
       data: {
-        labels: d.mois,
+        labels: d.months,
         datasets: [
-          { label: "Primes encaissées", data: d.primes, backgroundColor: TEAL, borderRadius: 3, maxBarThickness: 18 },
-          { label: "Indemnisations", data: d.indemnisations, backgroundColor: ORANGE, borderRadius: 3, maxBarThickness: 18 }
+          { label: "Primes encaissées", data: d.premiums, backgroundColor: TEAL, borderRadius: 3, maxBarThickness: 18 },
+          { label: "Indemnisations", data: d.indemnities, backgroundColor: ORANGE, borderRadius: 3, maxBarThickness: 18 }
         ]
       },
       options: {
-        scales: axes(euros),
-        plugins: { legend: { position: "top", align: "end" }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + " : " + euros(c.parsed.y); } } } }
+        scales: axes(formatEuros),
+        plugins: { legend: { position: "top", align: "end" }, tooltip: { callbacks: { label: function (c) { return c.dataset.label + " : " + formatEuros(c.parsed.y); } } } }
       }
     });
   }
 
-  var cCon = document.getElementById("chart-contrats");
+  var cCon = document.getElementById("chart-contracts");
   if (cCon) {
     new Chart(cCon, {
       type: "line",
-      data: { labels: d.mois, datasets: [{ label: "Contrats", data: d.contrats, borderColor: TEAL, backgroundColor: "rgba(15,110,110,0.08)", fill: true, tension: 0.3, pointRadius: 3 }] },
+      data: { labels: d.months, datasets: [{ label: "Contrats", data: d.contracts, borderColor: TEAL, backgroundColor: "rgba(15,110,110,0.08)", fill: true, tension: 0.3, pointRadius: 3 }] },
       options: { scales: axes(), plugins: { legend: { display: false } } }
     });
   }
 
-  var cSta = document.getElementById("chart-statuts");
-  if (cSta && d.statuts) {
-    var cles = Object.keys(d.statuts);
+  var cSta = document.getElementById("chart-statuses");
+  if (cSta && d.statuses) {
+    var keys = Object.keys(d.statuses);
     new Chart(cSta, {
       type: "doughnut",
       data: {
-        labels: cles.map(function (k) { return k === "RESILIE" ? "RÉSILIÉ" : k; }),
-        datasets: [{ data: cles.map(function (k) { return d.statuts[k]; }), backgroundColor: cles.map(function (k) { return COULEURS_STATUT[k] || "#8792A2"; }), borderWidth: 2, borderColor: "#FFFFFF" }]
+        labels: keys.map(function (k) { return k === "RESILIE" ? "RÉSILIÉ" : k; }),
+        datasets: [{ data: keys.map(function (k) { return d.statuses[k]; }), backgroundColor: keys.map(function (k) { return STATUS_COLORS[k] || "#8792A2"; }), borderWidth: 2, borderColor: "#FFFFFF" }]
       },
       options: { cutout: "62%", plugins: { legend: { position: "bottom", labels: { boxWidth: 10 } } } }
     });

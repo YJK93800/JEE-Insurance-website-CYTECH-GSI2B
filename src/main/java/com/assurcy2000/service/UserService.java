@@ -64,7 +64,7 @@ public class UserService {
         tx.run(() -> {
             User user = findOrThrow(actor.id());
             if (!Passwords.matches(oldPassword, user.getPassword())) {
-                throw new ValidationException(Map.of("ancien", "Le mot de passe actuel est incorrect."));
+                throw new ValidationException(Map.of("oldPassword", "Le mot de passe actuel est incorrect."));
             }
             user.setPassword(newHash);
             userDao.update(user);

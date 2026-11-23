@@ -3,13 +3,13 @@
 <%-- GET /client/garanties — PAS ENCORE DE SERVLET (vue prête pour le modèle anglais)
      Attributs attendus : contracts List<Contract> (contrats ACTIF et EN_ATTENTE du client, avec insuranceType et guarantees chargés)
      NB : la vue affiche aussi g.plafond et g.franchise, qui n'existent pas encore dans Guarantee. --%>
-<c:set var="titre" value="Mes garanties" />
+<c:set var="title" value="Mes garanties" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="garanties" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="guarantees" /></jsp:include>
   <main class="main">
     <div class="container">
       <header class="page-head"><div class="stack-sm"><span class="eyebrow">Espace client</span><h1>Mes garanties</h1></div></header>

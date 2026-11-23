@@ -6,11 +6,11 @@ import com.assurcy2000.model.User;
 import java.io.Serializable;
 
 /**
- * Ce qu'on garde en session après la connexion (attribut "utilisateur").
+ * Ce qu'on garde en session après la connexion (attribut "currentUser", voir UserSession.USER).
  * Pas l'entité User : elle contient le hash du mot de passe et elle est liée à Hibernate.
- * Dans les JSP : ${sessionScope.utilisateur.prenom}, .nom, .role
+ * Dans les JSP : ${sessionScope.currentUser.firstName}, .lastName, .role
  */
-public record SessionUser(Long id, String prenom, String nom, String email, String role)
+public record SessionUser(Long id, String firstName, String lastName, String email, String role)
         implements Serializable {
 
     public static SessionUser from(User u) {

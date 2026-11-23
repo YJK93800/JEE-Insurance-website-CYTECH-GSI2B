@@ -2,13 +2,13 @@
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- ClientClaimsServlet — GET /client/claims
      Attributs : claims List<Claim> du client connecté (number, claimDate, type, contract{number}, estimatedAmount, status) --%>
-<c:set var="titre" value="Mes sinistres" />
+<c:set var="title" value="Mes sinistres" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="sinistres" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="claims" /></jsp:include>
   <main class="main">
     <div class="container">
       <header class="page-head">
@@ -25,15 +25,15 @@
               <table class="table">
                 <thead><tr><th>N° sinistre</th><th>Date</th><th>Type</th><th>Contrat</th><th class="right">Estimé</th><th>Statut</th><th></th></tr></thead>
                 <tbody>
-                  <c:forEach items="${claims}" var="si">
+                  <c:forEach items="${claims}" var="clm">
                     <tr>
-                      <td class="strong"><c:out value="${si.number}" /></td>
-                      <td><ui:date value="${si.claimDate}" /></td>
-                      <td><ui:claimType value="${si.type}" /></td>
-                      <td class="muted"><c:out value="${si.contract.number}" /></td>
-                      <td class="right strong"><ui:amount value="${si.estimatedAmount}" /></td>
-                      <td><ui:status value="${si.status}" /></td>
-                      <td class="right"><a class="btn btn-sm" href="${ctx}/client/claims?id=${si.id}">Suivre</a></td>
+                      <td class="strong"><c:out value="${clm.number}" /></td>
+                      <td><ui:date value="${clm.claimDate}" /></td>
+                      <td><ui:claimType value="${clm.type}" /></td>
+                      <td class="muted"><c:out value="${clm.contract.number}" /></td>
+                      <td class="right strong"><ui:amount value="${clm.estimatedAmount}" /></td>
+                      <td><ui:status value="${clm.status}" /></td>
+                      <td class="right"><a class="btn btn-sm" href="${ctx}/client/claims?id=${clm.id}">Suivre</a></td>
                     </tr>
                   </c:forEach>
                 </tbody>

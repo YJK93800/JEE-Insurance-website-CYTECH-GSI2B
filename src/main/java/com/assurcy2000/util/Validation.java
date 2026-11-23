@@ -32,11 +32,11 @@ public final class Validation {
     private Validation() {} // classe utilitaire : pas d'instance
 
     public static String firstName(String value, Map<String, String> errors) {
-        return requiredText(value, "prenom", "Le prénom", NAME_MAX, errors);
+        return requiredText(value, "firstName", "Le prénom", NAME_MAX, errors);
     }
 
     public static String lastName(String value, Map<String, String> errors) {
-        return requiredText(value, "nom", "Le nom", NAME_MAX, errors);
+        return requiredText(value, "lastName", "Le nom", NAME_MAX, errors);
     }
 
     /** Email obligatoire, renvoyé en minuscules. */
@@ -51,7 +51,7 @@ public final class Validation {
     public static String phone(String value, Map<String, String> errors) {
         String v = Strings.trimToEmpty(value);
         if (v.isEmpty()) return null;
-        if (!PHONE.matcher(v).matches()) errors.put("telephone", "Le numéro de téléphone n'est pas valide.");
+        if (!PHONE.matcher(v).matches()) errors.put("phone", "Le numéro de téléphone n'est pas valide.");
         return v;
     }
 
@@ -59,7 +59,7 @@ public final class Validation {
     public static String address(String value, Map<String, String> errors) {
         String v = Strings.trimToEmpty(value);
         if (v.isEmpty()) return null;
-        if (v.length() > ADDRESS_MAX) errors.put("adresse", "L'adresse est trop longue (" + ADDRESS_MAX + " caractères max).");
+        if (v.length() > ADDRESS_MAX) errors.put("address", "L'adresse est trop longue (" + ADDRESS_MAX + " caractères max).");
         return v;
     }
 
@@ -67,19 +67,19 @@ public final class Validation {
     public static LocalDate birthDate(String value, Map<String, String> errors) {
         String v = Strings.trimToEmpty(value);
         if (v.isEmpty()) {
-            errors.put("dateNaissance", "La date de naissance est obligatoire.");
+            errors.put("birthDate", "La date de naissance est obligatoire.");
             return null;
         }
         try {
             LocalDate date = LocalDate.parse(v);
             if (date.isAfter(LocalDate.now().minusYears(MIN_AGE))) {
-                errors.put("dateNaissance", "Vous devez avoir au moins " + MIN_AGE + " ans.");
+                errors.put("birthDate", "Vous devez avoir au moins " + MIN_AGE + " ans.");
             } else if (date.isBefore(LocalDate.now().minusYears(120))) {
-                errors.put("dateNaissance", "La date de naissance n'est pas valide.");
+                errors.put("birthDate", "La date de naissance n'est pas valide.");
             }
             return date;
         } catch (DateTimeParseException e) {
-            errors.put("dateNaissance", "La date de naissance n'est pas valide.");
+            errors.put("birthDate", "La date de naissance n'est pas valide.");
             return null;
         }
     }

@@ -69,14 +69,14 @@ public class ContractService {
 
             InsuranceType type = insuranceTypeDao.findById(req.insuranceTypeId())
                     .filter(InsuranceType::isActive)
-                    .orElseThrow(() -> new ValidationException(Map.of("typeAssuranceId", "Type d'assurance introuvable ou désactivé.")));
+                    .orElseThrow(() -> new ValidationException(Map.of("insuranceTypeId", "Type d'assurance introuvable ou désactivé.")));
 
             Set<Guarantee> guarantees = new HashSet<>();
             for (Guarantee g : guaranteeDao.findByInsuranceType(type.getId())) {
                 if (req.guaranteeIds().contains(g.getId())) guarantees.add(g);
             }
             if (guarantees.size() != req.guaranteeIds().size()) {
-                throw new ValidationException(Map.of("garanties",
+                throw new ValidationException(Map.of("guaranteeIds",
                         "Certaines garanties choisies ne sont pas proposées pour « " + type.getName() + " »."));
             }
 

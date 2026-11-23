@@ -34,12 +34,12 @@ public class AgentContractsServlet extends BaseServlet {
         // Filtres de recherche : un filtre vide ou invalide est simplement ignoré
         ContractSearchRequest criteria = new ContractSearchRequest(
                 RequestParams.get(req, "q"),
-                statusParam(req, "statut"),
+                statusParam(req, "status"),
                 RequestParams.optionalLong(req, "type"));
 
-        req.setAttribute("contrats", contractService.search(user, criteria));
-        req.setAttribute("statuts", ContractStatus.values());
-        req.setAttribute("typesAssurance", insuranceTypeService.listAll(user));
+        req.setAttribute("contracts", contractService.search(user, criteria));
+        req.setAttribute("statuses", ContractStatus.values());
+        req.setAttribute("insuranceTypes", insuranceTypeService.listAll(user));
         render(req, resp, Views.AGENT_CONTRACTS);
     }
 

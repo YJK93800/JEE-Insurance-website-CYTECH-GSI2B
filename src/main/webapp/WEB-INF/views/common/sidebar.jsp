@@ -1,11 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- Barre latérale unique : le menu dépend du rôle de l'utilisateur en session.
-     Utilisation : <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="contrats"/></jsp:include>
-     Attendu en session : "utilisateur" (prenom, nom, role = CLIENT | AGENT | ADMIN).
-     Optionnel en requête : "nbSinistresATraiter" (badge du menu agent). --%>
-<c:set var="u" value="${sessionScope.utilisateur}" />
-<c:set var="actif" value="${param.actif}" />
+     Utilisation : <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="contracts"/></jsp:include>
+     Attendu en session : "currentUser" (firstName, lastName, role = CLIENT | AGENT | ADMIN).
+     Optionnel en requête : "pendingClaimCount" (badge du menu agent). --%>
+<c:set var="u" value="${sessionScope.currentUser}" />
+<c:set var="active" value="${param.active}" />
 <nav class="sidebar" aria-label="Navigation principale">
   <div class="brand">
     <%@ include file="/WEB-INF/views/common/logo.jspf" %>
@@ -17,40 +17,40 @@
   <div class="nav">
     <c:choose>
       <c:when test="${u.role == 'AGENT'}">
-        <a href="${ctx}/agent/clients"   class="${actif == 'clients'   ? 'active' : ''}">Clients</a>
-        <a href="${ctx}/agent/contracts"  class="${actif == 'contrats'  ? 'active' : ''}">Contrats</a>
-        <a href="${ctx}/agent/claims" class="${actif == 'sinistres' ? 'active' : ''}">Sinistres
-          <c:if test="${nbSinistresATraiter > 0}"><span class="count">${nbSinistresATraiter}</span></c:if></a>
-        <a href="${ctx}/agent/garanties" class="${actif == 'garanties' ? 'active' : ''}">Garanties</a>
-        <a href="${ctx}/agent/paiements" class="${actif == 'paiements' ? 'active' : ''}">Paiements</a>
-        <a href="${ctx}/agent/stats"     class="${actif == 'stats'     ? 'active' : ''}">Statistiques</a>
+        <a href="${ctx}/agent/clients"   class="${active == 'clients'   ? 'active' : ''}">Clients</a>
+        <a href="${ctx}/agent/contracts"  class="${active == 'contracts'  ? 'active' : ''}">Contrats</a>
+        <a href="${ctx}/agent/claims" class="${active == 'claims' ? 'active' : ''}">Sinistres
+          <c:if test="${pendingClaimCount > 0}"><span class="count">${pendingClaimCount}</span></c:if></a>
+        <a href="${ctx}/agent/garanties" class="${active == 'guarantees' ? 'active' : ''}">Garanties</a>
+        <a href="${ctx}/agent/paiements" class="${active == 'payments' ? 'active' : ''}">Paiements</a>
+        <a href="${ctx}/agent/stats"     class="${active == 'stats'     ? 'active' : ''}">Statistiques</a>
       </c:when>
       <c:when test="${u.role == 'ADMIN'}">
-        <a href="${ctx}/admin/stats"        class="${actif == 'stats'        ? 'active' : ''}">Statistiques</a>
-        <a href="${ctx}/admin/users" class="${actif == 'utilisateurs' ? 'active' : ''}">Utilisateurs &amp; rôles</a>
-        <a href="${ctx}/admin/types"        class="${actif == 'types'        ? 'active' : ''}">Types d'assurance</a>
-        <a href="${ctx}/admin/contracts"     class="${actif == 'contrats'     ? 'active' : ''}">Tous les contrats</a>
-        <a href="${ctx}/admin/claims"    class="${actif == 'sinistres'    ? 'active' : ''}">Tous les sinistres</a>
+        <a href="${ctx}/admin/stats"        class="${active == 'stats'        ? 'active' : ''}">Statistiques</a>
+        <a href="${ctx}/admin/users" class="${active == 'users' ? 'active' : ''}">Utilisateurs &amp; rôles</a>
+        <a href="${ctx}/admin/types"        class="${active == 'types'        ? 'active' : ''}">Types d'assurance</a>
+        <a href="${ctx}/admin/contracts"     class="${active == 'contracts'     ? 'active' : ''}">Tous les contrats</a>
+        <a href="${ctx}/admin/claims"    class="${active == 'claims'    ? 'active' : ''}">Tous les sinistres</a>
         <a href="${ctx}/admin/stats#indicateurs">Indicateurs de performance</a>
       </c:when>
       <c:otherwise>
-        <a href="${ctx}/client/dashboard"  class="${actif == 'dashboard'  ? 'active' : ''}">Tableau de bord</a>
-        <a href="${ctx}/client/contracts"   class="${actif == 'contrats'   ? 'active' : ''}">Mes contrats</a>
-        <a href="${ctx}/client/garanties"  class="${actif == 'garanties'  ? 'active' : ''}">Mes garanties</a>
-        <a href="${ctx}/client/payments"  class="${actif == 'paiements'  ? 'active' : ''}">Paiements</a>
-        <a href="${ctx}/client/claims"  class="${actif == 'sinistres'  ? 'active' : ''}">Sinistres</a>
-        <a href="${ctx}/client/historique" class="${actif == 'historique' ? 'active' : ''}">Historique des demandes</a>
-        <a href="${ctx}/client/assistant"  class="${actif == 'assistant'  ? 'active' : ''}">Assistant IA</a>
+        <a href="${ctx}/client/dashboard"  class="${active == 'dashboard'  ? 'active' : ''}">Tableau de bord</a>
+        <a href="${ctx}/client/contracts"   class="${active == 'contracts'   ? 'active' : ''}">Mes contrats</a>
+        <a href="${ctx}/client/garanties"  class="${active == 'guarantees'  ? 'active' : ''}">Mes garanties</a>
+        <a href="${ctx}/client/payments"  class="${active == 'payments'  ? 'active' : ''}">Paiements</a>
+        <a href="${ctx}/client/claims"  class="${active == 'claims'  ? 'active' : ''}">Sinistres</a>
+        <a href="${ctx}/client/historique" class="${active == 'history' ? 'active' : ''}">Historique des demandes</a>
+        <a href="${ctx}/client/assistant"  class="${active == 'assistant'  ? 'active' : ''}">Assistant IA</a>
       </c:otherwise>
     </c:choose>
   </div>
 
   <div class="user-box">
-    <div class="avatar ${fn:toLowerCase(u.role)}" aria-hidden="true">${fn:toUpperCase(fn:substring(u.prenom, 0, 1))}${fn:toUpperCase(fn:substring(u.nom, 0, 1))}</div>
+    <div class="avatar ${fn:toLowerCase(u.role)}" aria-hidden="true">${fn:toUpperCase(fn:substring(u.firstName, 0, 1))}${fn:toUpperCase(fn:substring(u.lastName, 0, 1))}</div>
     <div class="stack-sm">
-      <span class="user-name"><c:out value="${u.prenom} ${u.nom}" /></span>
+      <span class="user-name"><c:out value="${u.firstName} ${u.lastName}" /></span>
       <span class="user-links">
-        <a href="${ctx}/profile" class="${actif == 'profile' ? 'active' : ''}">Mon profil</a> ·
+        <a href="${ctx}/profile" class="${active == 'profile' ? 'active' : ''}">Mon profil</a> ·
         <form method="post" action="${ctx}/logout" class="logout-form">
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <button type="submit" class="link-button">Déconnexion</button>

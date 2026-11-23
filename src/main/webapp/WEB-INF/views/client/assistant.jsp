@@ -2,17 +2,17 @@
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- GET  /client/assistant[?q=question]  -> cette vue — PAS ENCORE DE SERVLET
      POST /client/assistant/message (JSON {"message": "..."} ) -> AssistantServlet
-          répond {"reponse": "..."} ou {"erreur": "..."}.
+          répond {"reply": "..."} ou {"error": "..."}.
           C'est la servlet qui appelle l'API d'IA avec les données du client : la clé d'API reste côté serveur.
      Attributs attendus : contractCount, guaranteeCount, claimCount, paymentCount (int)
                           referentAgent User (peut être null) --%>
-<c:set var="titre" value="Assistant IA" />
+<c:set var="title" value="Assistant IA" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="assistant" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="assistant" /></jsp:include>
   <main class="main">
     <div class="container">
       <div class="row">
@@ -26,16 +26,16 @@
           </header>
 
           <div class="chat-body" data-chat-body aria-live="polite">
-            <div class="msg bot">Bonjour <c:out value="${sessionScope.utilisateur.prenom}" />, je peux vous renseigner sur vos contrats, vos garanties, vos paiements et le suivi de vos sinistres. Que souhaitez-vous savoir ?</div>
+            <div class="msg bot">Bonjour <c:out value="${sessionScope.currentUser.firstName}" />, je peux vous renseigner sur vos contrats, vos garanties, vos paiements et le suivi de vos sinistres. Que souhaitez-vous savoir ?</div>
           </div>
 
           <div class="chat-foot">
             <div class="inline">
-              <c:forEach items="${['Quels sont mes contrats actifs ?', 'Quelles garanties possède mon assurance automobile ?', 'Comment déclarer un sinistre ?', 'Quels documents dois-je fournir pour mon sinistre ?', 'Quelle est la différence entre vol et incendie ?', 'Où en est mon dernier sinistre ?']}" var="sugg">
-                <button type="button" class="suggestion" data-suggestion>${sugg}</button>
+              <c:forEach items="${['Quels sont mes contrats actifs ?', 'Quelles garanties possède mon assurance automobile ?', 'Comment déclarer un sinistre ?', 'Quels documents dois-je fournir pour mon sinistre ?', 'Quelle est la différence entre vol et incendie ?', 'Où en est mon dernier sinistre ?']}" var="suggestion">
+                <button type="button" class="suggestion" data-suggestion>${suggestion}</button>
               </c:forEach>
             </div>
-            <form class="chat-form" data-chat-form action="${ctx}/client/assistant/message" data-question-initiale="${fn:escapeXml(param.q)}">
+            <form class="chat-form" data-chat-form action="${ctx}/client/assistant/message" data-initial-question="${fn:escapeXml(param.q)}">
               <label class="field">Votre question
                 <textarea name="message" rows="2" maxlength="500" required placeholder="Ex. : quels documents dois-je fournir pour mon sinistre ?"></textarea>
               </label>

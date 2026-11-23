@@ -113,7 +113,7 @@ class ContractCreationTest {
     void guaranteeNotOfferedByTheTypeIsRejected() {
         ValidationException e = assertThrows(ValidationException.class,
                 () -> service.create(agent, request(null, Set.of(10L, 12L))));
-        assertTrue(e.getErrors().containsKey("garanties"));
+        assertTrue(e.getErrors().containsKey("guaranteeIds"));
         assertTrue(contractDao.saved.isEmpty());
     }
 

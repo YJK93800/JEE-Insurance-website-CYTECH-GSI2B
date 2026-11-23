@@ -1,17 +1,17 @@
-<%-- Frise de suivi d'un sinistre. La page doit définir la variable "sin" (un Claim) avant l'inclusion.
+<%-- Frise de suivi d'un sinistre. La page doit définir la variable "claim" (un Claim) avant l'inclusion.
      Statuts (ClaimStatus) : DECLARE -> EN_ANALYSE -> ACCEPTE | REFUSE -> INDEMNISE --%>
-<c:set var="s" value="${fn:toUpperCase(sin.status)}" />
-<c:set var="apresAnalyse" value="${s == 'ACCEPTE' or s == 'REFUSE' or s == 'INDEMNISE'}" />
+<c:set var="s" value="${fn:toUpperCase(claim.status)}" />
+<c:set var="afterReview" value="${s == 'ACCEPTE' or s == 'REFUSE' or s == 'INDEMNISE'}" />
 <ol class="timeline" aria-label="Avancement du sinistre">
   <li class="done">
     <div class="rail"><span class="dot" aria-hidden="true">✓</span><span class="bar"></span></div>
-    <div class="stack-sm"><span class="label">Déclaré</span><span class="xsmall muted"><ui:date value="${sin.declaredAt}" /></span></div>
+    <div class="stack-sm"><span class="label">Déclaré</span><span class="xsmall muted"><ui:date value="${claim.declaredAt}" /></span></div>
   </li>
-  <li class="${apresAnalyse ? 'done' : (s == 'EN_ANALYSE' ? 'current' : 'todo')}">
-    <div class="rail"><span class="dot" aria-hidden="true">${apresAnalyse ? '✓' : ''}</span><span class="bar"></span></div>
+  <li class="${afterReview ? 'done' : (s == 'EN_ANALYSE' ? 'current' : 'todo')}">
+    <div class="rail"><span class="dot" aria-hidden="true">${afterReview ? '✓' : ''}</span><span class="bar"></span></div>
     <div class="stack-sm">
       <span class="label">En analyse <c:if test="${s == 'EN_ANALYSE'}"><span class="badge badge-en_analyse">EN COURS</span></c:if></span>
-      <c:if test="${not empty sin.agent}"><span class="xsmall muted">Dossier suivi par <c:out value="${sin.agent.firstName} ${sin.agent.lastName}" /></span></c:if>
+      <c:if test="${not empty claim.agent}"><span class="xsmall muted">Dossier suivi par <c:out value="${claim.agent.firstName} ${claim.agent.lastName}" /></span></c:if>
     </div>
   </li>
   <c:choose>
@@ -30,7 +30,7 @@
         <div class="rail"><span class="dot" aria-hidden="true">${s == 'INDEMNISE' ? '✓' : ''}</span></div>
         <div class="stack-sm">
           <span class="label">Indemnisé</span>
-          <c:if test="${not empty sin.indemnifiedAmount}"><span class="xsmall muted"><ui:amount value="${sin.indemnifiedAmount}" /> · <ui:date value="${sin.indemnificationDate}" /></span></c:if>
+          <c:if test="${not empty claim.indemnifiedAmount}"><span class="xsmall muted"><ui:amount value="${claim.indemnifiedAmount}" /> · <ui:date value="${claim.indemnificationDate}" /></span></c:if>
         </div>
       </li>
     </c:otherwise>

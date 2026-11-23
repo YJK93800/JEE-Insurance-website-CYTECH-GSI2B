@@ -8,20 +8,20 @@
        openClaimCount       int             lastClaim   Claim (peut être null, avec contract.insuranceType chargé)
        nextPayment          Payment         (peut être null, avec contract.insuranceType chargé)
        recentPayments       List<Payment>   (les 5 plus récents) --%>
-<c:set var="titre" value="Tableau de bord" />
+<c:set var="title" value="Tableau de bord" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="dashboard" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="active" value="dashboard" /></jsp:include>
 
   <main class="main">
     <div class="container">
       <header class="page-head">
         <div class="stack-sm">
           <span class="eyebrow">Espace client</span>
-          <h1>Bonjour <c:out value="${sessionScope.utilisateur.prenom}" /></h1>
+          <h1>Bonjour <c:out value="${sessionScope.currentUser.firstName}" /></h1>
         </div>
         <div class="inline">
           <a class="btn" href="${ctx}/client/assistant">Poser une question</a>
@@ -36,7 +36,7 @@
           <span><strong>Échéance le <ui:date value="${nextPayment.paymentDate}" /></strong>
             · <c:out value="${nextPayment.contract.insuranceType.name}" /> <c:out value="${nextPayment.contract.number}" />
             · <ui:amount value="${nextPayment.amount}" /></span>
-          <a href="${ctx}/client/payments?filtre=echeances">Voir l'échéancier</a>
+          <a href="${ctx}/client/payments?filter=due">Voir l'échéancier</a>
         </div>
       </c:if>
 
@@ -98,7 +98,7 @@
                 <h2 id="h-suivi">Suivi de mon sinistre</h2>
                 <span class="small muted"><c:out value="${lastClaim.number}" /> · <ui:claimType value="${lastClaim.type}" /> · <c:out value="${lastClaim.contract.insuranceType.name}" /></span>
               </div>
-              <c:set var="sin" value="${lastClaim}" />
+              <c:set var="claim" value="${lastClaim}" />
               <%@ include file="/WEB-INF/views/common/claim-timeline.jspf" %>
               <a class="strong small" href="${ctx}/client/claims?id=${lastClaim.id}">Voir le détail et les échanges</a>
             </section>
@@ -109,8 +109,8 @@
             <p class="small muted">L'assistant connaît vos contrats, garanties et sinistres.</p>
             <div class="stack">
               <c:forEach items="${['Où en est mon dernier sinistre ?', 'Quels sont mes contrats actifs ?', 'Comment déclarer un sinistre ?']}" var="question">
-                <c:url var="lienQ" value="/client/assistant"><c:param name="q" value="${question}" /></c:url>
-                <a class="quick-q" href="${lienQ}">${question}</a>
+                <c:url var="linkQuery" value="/client/assistant"><c:param name="q" value="${question}" /></c:url>
+                <a class="quick-q" href="${linkQuery}">${question}</a>
               </c:forEach>
             </div>
           </section>
@@ -122,7 +122,7 @@
           <h2 id="h-paiements">Derniers paiements</h2>
           <a href="${ctx}/client/payments">Historique complet</a>
         </div>
-        <c:set var="listePaiements" value="${recentPayments}" />
+        <c:set var="paymentList" value="${recentPayments}" />
         <%@ include file="/WEB-INF/views/client/payments-table.jspf" %>
       </section>
     </div>

@@ -79,30 +79,30 @@ public class ContractFormServlet extends BaseServlet {
 
     private CreateContractRequest readForm(HttpServletRequest req, Map<String, String> errors) {
         Long clientId = requiredId(req, "clientId", "Choisissez un client.", errors);
-        Long typeId = requiredId(req, "typeAssuranceId", "Choisissez un type d'assurance.", errors);
+        Long typeId = requiredId(req, "insuranceTypeId", "Choisissez un type d'assurance.", errors);
 
-        LocalDate start = date(req, "dateDebut", "La date de début", errors);
-        LocalDate end = date(req, "dateFin", "La date de fin", errors);
+        LocalDate start = date(req, "startDate", "La date de début", errors);
+        LocalDate end = date(req, "endDate", "La date de fin", errors);
         if (start != null && end != null && !end.isAfter(start)) {
-            errors.put("dateFin", "La date de fin doit être après la date de début.");
+            errors.put("endDate", "La date de fin doit être après la date de début.");
         }
 
         // facultative : vide = prix de base du type (décidé par le service)
-        BigDecimal premium = Validation.amount(RequestParams.get(req, "prime"), "prime", "La prime",
+        BigDecimal premium = Validation.amount(RequestParams.get(req, "premium"), "premium", "La prime",
                 PREMIUM_MAX, false, errors);
 
         Set<Long> guaranteeIds = new LinkedHashSet<>();
-        String[] values = req.getParameterValues("garantieIds");
+        String[] values = req.getParameterValues("guaranteeIds");
         if (values != null) {
             for (String v : values) {
                 try {
                     guaranteeIds.add(Long.valueOf(v.trim()));
                 } catch (NumberFormatException e) {
-                    errors.put("garanties", "Garantie invalide.");
+                    errors.put("guaranteeIds", "Garantie invalide.");
                 }
             }
         }
-        if (guaranteeIds.isEmpty()) errors.putIfAbsent("garanties", "Choisissez au moins une garantie.");
+        if (guaranteeIds.isEmpty()) errors.putIfAbsent("guaranteeIds", "Choisissez au moins une garantie.");
 
         return new CreateContractRequest(clientId, typeId, start, end, premium, guaranteeIds);
     }
@@ -112,11 +112,11 @@ public class ContractFormServlet extends BaseServlet {
             throws ServletException, IOException {
         SessionUser user = user(req);
         req.setAttribute("clients", userService.listClients(user));
-        req.setAttribute("typesAssurance", insuranceTypeService.listActive(user));
-        req.setAttribute("garanties", guaranteeService.listActive(user));
+        req.setAttribute("insuranceTypes", insuranceTypeService.listActive(user));
+        req.setAttribute("guarantees", guaranteeService.listActive(user));
         LocalDate today = LocalDate.now();
-        req.setAttribute("dateDebutDefaut", today);
-        req.setAttribute("dateFinDefaut", today.plusYears(1).minusDays(1));
+        req.setAttribute("defaultStartDate", today);
+        req.setAttribute("defaultEndDate", today.plusYears(1).minusDays(1));
         req.setAttribute(FormView.ERRORS, errors);
         render(req, resp, Views.AGENT_CONTRACT);
     }

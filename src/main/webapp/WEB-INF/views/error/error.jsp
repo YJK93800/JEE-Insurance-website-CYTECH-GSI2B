@@ -3,7 +3,7 @@
 <%-- Page d'erreur unique, déclarée dans web.xml pour les codes 403, 404 et 500.
      Le détail technique de l'exception n'est jamais montré à l'utilisateur. --%>
 <c:set var="code" value="${requestScope['jakarta.servlet.error.status_code']}" />
-<c:set var="titre" value="Erreur ${code}" />
+<c:set var="title" value="Erreur ${code}" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>

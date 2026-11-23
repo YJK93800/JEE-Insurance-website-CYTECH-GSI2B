@@ -1,8 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- GET /login -> cette vue. POST /login (email, motDePasse) -> LoginServlet.
-     En cas d'échec : request.setAttribute("erreurGlobale", "Email ou mot de passe incorrect.") puis forward ici. --%>
-<c:set var="titre" value="Connexion" />
+     En cas d'échec : request.setAttribute("globalError", "Email ou mot de passe incorrect.") puis forward ici. --%>
+<c:set var="title" value="Connexion" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
@@ -29,7 +29,7 @@
       <form class="form" method="post" action="${ctx}/login" novalidate data-validate>
         <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
         <ui:field name="email" label="Adresse e-mail" type="email" required="true" extra="autocomplete='username'" />
-        <ui:field name="motDePasse" label="Mot de passe" type="password" required="true" extra="autocomplete='current-password'" />
+        <ui:field name="password" label="Mot de passe" type="password" required="true" extra="autocomplete='current-password'" />
         <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
       </form>
     </div>

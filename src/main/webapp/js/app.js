@@ -127,16 +127,16 @@
   });
 
   /* ---------- Déclaration de sinistre ---------- */
-  var formSin = document.getElementById("form-sinistre");
-  if (formSin) {
+  var claimForm = document.getElementById("claim-form");
+  if (claimForm) {
     var docsList = document.querySelector("[data-docs-list]");
-    var recapContrat = document.querySelector('[data-recap="contrat"]');
+    var recapContract = document.querySelector('[data-recap="contract"]');
     var recapDate = document.querySelector('[data-recap="date"]');
-    var recapPieces = document.querySelector('[data-recap="pieces"]');
+    var recapFiles = document.querySelector('[data-recap="files"]');
 
-    var majType = function () {
-      var t = formSin.querySelector('input[name="type"]:checked');
-      document.querySelectorAll("[data-type-libelle]").forEach(function (el) { el.textContent = t ? t.dataset.libelle : "—"; });
+    var updateType = function () {
+      var t = claimForm.querySelector('input[name="type"]:checked');
+      document.querySelectorAll("[data-type-label]").forEach(function (el) { el.textContent = t ? t.dataset.label : "—"; });
       if (docsList) {
         docsList.innerHTML = "";
         (t && t.dataset.docs ? t.dataset.docs.split("|") : []).forEach(function (d) {
@@ -146,127 +146,127 @@
         });
       }
     };
-    var majContrat = function () {
-      var c = formSin.querySelector('input[name="contractId"]:checked');
-      if (recapContrat) recapContrat.textContent = c ? c.dataset.numero : "—";
+    var updateContract = function () {
+      var c = claimForm.querySelector('input[name="contractId"]:checked');
+      if (recapContract) recapContract.textContent = c ? c.dataset.number : "—";
     };
-    var champDate = formSin.querySelector('input[name="claimDate"]');
-    var majDate = function () {
-      if (!recapDate || !champDate) return;
-      var v = champDate.value;
+    var dateInput = claimForm.querySelector('input[name="claimDate"]');
+    var updateDate = function () {
+      if (!recapDate || !dateInput) return;
+      var v = dateInput.value;
       recapDate.textContent = v ? v.split("-").reverse().join("/") : "—";
     };
-    if (champDate) champDate.max = today();
+    if (dateInput) dateInput.max = today();
 
-    formSin.addEventListener("change", function (e) {
-      if (e.target.name === "type") majType();
-      if (e.target.name === "contractId") majContrat();
-      if (e.target.name === "claimDate") majDate();
+    claimForm.addEventListener("change", function (e) {
+      if (e.target.name === "type") updateType();
+      if (e.target.name === "contractId") updateContract();
+      if (e.target.name === "claimDate") updateDate();
     });
-    majType(); majContrat(); majDate();
+    updateType(); updateContract(); updateDate();
 
     /* Pièces justificatives : liste, retrait, glisser-déposer */
-    var input = formSin.querySelector('input[type="file"][name="pieces"]');
-    var zone = formSin.querySelector("[data-dropzone]");
-    var liste = formSin.querySelector("[data-file-list]");
-    var fichiers = [];
+    var input = claimForm.querySelector('input[type="file"][name="attachments"]');
+    var dropZone = claimForm.querySelector("[data-dropzone]");
+    var fileList = claimForm.querySelector("[data-file-list]");
+    var files = [];
 
-    var taille = function (o) { return o > 1048576 ? (o / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.round(o / 1024) + " Ko"; };
-    var synchroniser = function () {
+    var formatSize = function (o) { return o > 1048576 ? (o / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.round(o / 1024) + " Ko"; };
+    var syncFiles = function () {
       var dt = new DataTransfer();
-      fichiers.forEach(function (f) { dt.items.add(f); });
+      files.forEach(function (f) { dt.items.add(f); });
       input.files = dt.files;
-      liste.innerHTML = "";
-      fichiers.forEach(function (f, i) {
+      fileList.innerHTML = "";
+      files.forEach(function (f, i) {
         var li = document.createElement("li");
-        var nom = document.createElement("span");
+        var nameEl = document.createElement("span");
         var strong = document.createElement("strong");
         strong.textContent = f.name;
-        nom.appendChild(strong);
-        nom.appendChild(document.createTextNode(" · " + taille(f.size)));
+        nameEl.appendChild(strong);
+        nameEl.appendChild(document.createTextNode(" · " + formatSize(f.size)));
         var btn = document.createElement("button");
         btn.type = "button";
         btn.className = "btn-link danger";
         btn.textContent = "Retirer";
         btn.setAttribute("aria-label", "Retirer " + f.name);
-        btn.addEventListener("click", function () { fichiers.splice(i, 1); synchroniser(); });
-        li.appendChild(nom);
+        btn.addEventListener("click", function () { files.splice(i, 1); syncFiles(); });
+        li.appendChild(nameEl);
         li.appendChild(btn);
-        liste.appendChild(li);
+        fileList.appendChild(li);
       });
-      if (recapPieces) recapPieces.textContent = fichiers.length;
-      setError(input, checkInput(input, formSin));
+      if (recapFiles) recapFiles.textContent = files.length;
+      setError(input, checkInput(input, claimForm));
     };
-    var ajouter = function (list) {
+    var addFiles = function (list) {
       Array.prototype.forEach.call(list, function (f) {
-        if (!fichiers.some(function (x) { return x.name === f.name && x.size === f.size; })) fichiers.push(f);
+        if (!files.some(function (x) { return x.name === f.name && x.size === f.size; })) files.push(f);
       });
-      synchroniser();
+      syncFiles();
     };
-    if (input && liste) {
-      input.addEventListener("change", function () { ajouter(input.files); });
+    if (input && fileList) {
+      input.addEventListener("change", function () { addFiles(input.files); });
       ["dragenter", "dragover"].forEach(function (ev) {
-        zone.addEventListener(ev, function (e) { e.preventDefault(); zone.classList.add("drag"); });
+        dropZone.addEventListener(ev, function (e) { e.preventDefault(); dropZone.classList.add("drag"); });
       });
       ["dragleave", "drop"].forEach(function (ev) {
-        zone.addEventListener(ev, function (e) { e.preventDefault(); zone.classList.remove("drag"); });
+        dropZone.addEventListener(ev, function (e) { e.preventDefault(); dropZone.classList.remove("drag"); });
       });
-      zone.addEventListener("drop", function (e) { ajouter(e.dataTransfer.files); });
+      dropZone.addEventListener("drop", function (e) { addFiles(e.dataTransfer.files); });
     }
   }
 
   /* ---------- Formulaire de contrat : prix de base et garanties du type ---------- */
-  var selType = document.querySelector("select[data-type-assurance]");
+  var selType = document.querySelector("select[data-insurance-type]");
   if (selType) {
-    var prime = document.querySelector("input[data-prime]");
-    var majGaranties = function (preRemplir) {
+    var premium = document.querySelector("input[data-premium]");
+    var updateGuarantees = function (prefill) {
       var opt = selType.options[selType.selectedIndex];
-      var dispo = opt && opt.dataset.garanties ? opt.dataset.garanties.split(",") : [];
-      var aucuneCochee = !document.querySelector('input[name="garantieIds"]:checked');
-      document.querySelectorAll("[data-garantie]").forEach(function (lab) {
-        var ok = dispo.indexOf(lab.dataset.garantie) !== -1;
-        lab.style.opacity = dispo.length && !ok ? "0.55" : "1";
-        if (preRemplir && aucuneCochee && ok) lab.querySelector("input").checked = true;
+      var available = opt && opt.dataset.guarantees ? opt.dataset.guarantees.split(",") : [];
+      var noneChecked = !document.querySelector('input[name="guaranteeIds"]:checked');
+      document.querySelectorAll("[data-guarantee]").forEach(function (lab) {
+        var ok = available.indexOf(lab.dataset.guarantee) !== -1;
+        lab.style.opacity = available.length && !ok ? "0.55" : "1";
+        if (prefill && noneChecked && ok) lab.querySelector("input").checked = true;
       });
-      if (preRemplir && prime && !prime.value && opt && opt.dataset.prix) prime.value = opt.dataset.prix;
+      if (prefill && premium && !premium.value && opt && opt.dataset.price) premium.value = opt.dataset.price;
     };
-    selType.addEventListener("change", function () { majGaranties(true); });
-    majGaranties(false);
+    selType.addEventListener("change", function () { updateGuarantees(true); });
+    updateGuarantees(false);
   }
 
   /* ---------- Formulaire de contrat : date de fin = début + 1 an - 1 jour ---------- */
   /* Mise à jour tant que l'agent n'a pas modifié la date de fin lui-même. */
-  var finAuto = document.querySelector("input[data-fin-auto]");
-  var debut = document.querySelector('input[name="dateDebut"]');
-  if (finAuto && debut) {
-    var finTouchee = false;
-    finAuto.addEventListener("input", function () { finTouchee = true; });
-    debut.addEventListener("change", function () {
-      if (finTouchee || !debut.value) return;
-      var d = new Date(debut.value + "T00:00:00");
+  var autoEnd = document.querySelector("input[data-auto-end]");
+  var startInput = document.querySelector('input[name="startDate"]');
+  if (autoEnd && startInput) {
+    var endTouched = false;
+    autoEnd.addEventListener("input", function () { endTouched = true; });
+    startInput.addEventListener("change", function () {
+      if (endTouched || !startInput.value) return;
+      var d = new Date(startInput.value + "T00:00:00");
       d.setFullYear(d.getFullYear() + 1);
       d.setDate(d.getDate() - 1);
       var p = function (n) { return (n < 10 ? "0" : "") + n; };
-      finAuto.value = d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+      autoEnd.value = d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
     });
   }
 
   /* ---------- Enregistrement d'un paiement : montant = prime du contrat ---------- */
-  var selContrat = document.querySelector("select[data-contrat-prime]");
-  if (selContrat) {
-    selContrat.addEventListener("change", function () {
-      var cible = document.querySelector("input[data-prime-cible]");
-      var opt = selContrat.options[selContrat.selectedIndex];
-      if (cible && !cible.value && opt.dataset.prime) cible.value = opt.dataset.prime;
+  var selContract = document.querySelector("select[data-contract-premium]");
+  if (selContract) {
+    selContract.addEventListener("change", function () {
+      var target = document.querySelector("input[data-premium-target]");
+      var opt = selContract.options[selContract.selectedIndex];
+      if (target && !target.value && opt.dataset.premium) target.value = opt.dataset.premium;
     });
   }
 
   /* ---------- Décision sur un sinistre : indemnisation obligatoire si INDEMNISE ---------- */
-  var selStatut = document.querySelector("select[data-toggle-indemnisation]");
-  if (selStatut) {
-    var montant = document.querySelector("input[data-indemnisation]");
-    var maj = function () { if (montant) montant.required = selStatut.value === "INDEMNISE"; };
-    selStatut.addEventListener("change", maj);
-    maj();
+  var selStatus = document.querySelector("select[data-toggle-indemnity]");
+  if (selStatus) {
+    var amount = document.querySelector("input[data-indemnity]");
+    var update = function () { if (amount) amount.required = selStatus.value === "INDEMNISE"; };
+    selStatus.addEventListener("change", update);
+    update();
   }
 })();
