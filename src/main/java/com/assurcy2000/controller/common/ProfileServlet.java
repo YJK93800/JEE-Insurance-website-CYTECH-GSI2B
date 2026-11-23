@@ -85,7 +85,7 @@ public class ProfileServlet extends BaseServlet {
         }
 
         // 2. Enregistrement (le nom ne change pas : rien à mettre à jour dans la session)
-        userService.updateDetails(user(req), form);
+        userService.updateInfos(user(req), form);
 
         UserSession.flash(req, "Vos informations ont été mises à jour.", "success");
         redirect(req, resp, "/profile");
