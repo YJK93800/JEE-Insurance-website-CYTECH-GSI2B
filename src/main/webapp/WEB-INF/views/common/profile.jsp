@@ -1,8 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- Profil commun aux trois rôles (client, agent, admin) — ProfilServlet, URL /profil
-     GET  /profil -> cette vue (attribut "user" : entité User connectée)
-     POST /profil  (action=infos      : telephone, adresse)
+<%-- Profil commun aux trois rôles (client, agent, admin) — ProfileServlet, URL /profile
+     GET  /profile -> cette vue (attribut "user" : entité User connectée)
+     POST /profile (action=infos      : telephone, adresse)
                    (action=motdepasse : ancien, motDePasse, confirmation)
      Erreurs : Map<String,String> "erreurs" (clés = noms des champs).
      Identité (prénom, nom, e-mail, date de naissance) : lecture seule, corrigée par un agent / admin. --%>
@@ -13,7 +13,7 @@
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
 <body>
 <div class="app">
-  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="profil" /></jsp:include>
+  <jsp:include page="/WEB-INF/views/common/sidebar.jsp"><jsp:param name="actif" value="profile" /></jsp:include>
   <main class="main">
     <div class="container">
       <header class="page-head"><div class="stack-sm">
@@ -29,7 +29,7 @@
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
       <div class="row">
-        <form class="card form col-main" method="post" action="${ctx}/profil" novalidate data-validate>
+        <form class="card form col-main" method="post" action="${ctx}/profile" novalidate data-validate>
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <input type="hidden" name="action" value="infos">
           <h2>Informations personnelles</h2>
@@ -57,7 +57,7 @@
           <div class="form-actions"><span></span><button type="submit" class="btn btn-primary">Enregistrer</button></div>
         </form>
 
-        <form class="card form col-side" method="post" action="${ctx}/profil" novalidate data-validate>
+        <form class="card form col-side" method="post" action="${ctx}/profile" novalidate data-validate>
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <input type="hidden" name="action" value="motdepasse">
           <h2>Mot de passe</h2>

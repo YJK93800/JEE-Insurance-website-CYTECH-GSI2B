@@ -6,7 +6,7 @@ public final class Views {
     public static final String LOGIN = BASE + "auth/login.jsp";
     public static final String REGISTER = BASE + "auth/register.jsp";
 
-    public static final String PROFIL = BASE + "common/profile.jsp";
+    public static final String PROFILE = BASE + "common/profile.jsp";
 
     public static final String CLIENT_CONTRACTS = BASE + "client/contracts.jsp";
     public static final String CLIENT_CONTRACT = BASE + "client/contract-detail.jsp";

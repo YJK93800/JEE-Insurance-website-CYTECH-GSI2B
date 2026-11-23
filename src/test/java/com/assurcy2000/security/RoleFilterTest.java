@@ -32,7 +32,7 @@ class RoleFilterTest {
 
     @Test
     void otherPagesDoNotDependOnRole() {
-        assertTrue(RoleFilter.isAllowed("/profil", as(Role.CLIENT)));
+        assertTrue(RoleFilter.isAllowed("/profile", as(Role.CLIENT)));
         assertTrue(RoleFilter.isAllowed("/", as(Role.AGENT)));
         assertTrue(RoleFilter.isAllowed("/administration", as(Role.CLIENT))); // pas le préfixe "/admin/"
     }

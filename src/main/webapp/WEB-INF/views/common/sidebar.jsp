@@ -50,7 +50,7 @@
     <div class="stack-sm">
       <span class="user-name"><c:out value="${u.prenom} ${u.nom}" /></span>
       <span class="user-links">
-        <a href="${ctx}/profil" class="${actif == 'profil' ? 'active' : ''}">Mon profil</a> ·
+        <a href="${ctx}/profile" class="${actif == 'profile' ? 'active' : ''}">Mon profil</a> ·
         <form method="post" action="${ctx}/logout" class="logout-form">
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <button type="submit" class="link-button">Déconnexion</button>
