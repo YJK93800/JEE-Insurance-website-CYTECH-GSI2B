@@ -8,6 +8,7 @@ import com.assurcy2000.persistence.HibernateTransactionRunner;
 import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.security.Policy;
 import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.dto.request.UpdateProfileRequest;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
@@ -67,6 +68,20 @@ public class UserService {
             }
             user.setPassword(BCrypt.hashpw(newPassword, BCrypt.gensalt()));
             userDao.update(user);
+        });
+    }
+
+    /**
+     * L'utilisateur connecté modifie ses coordonnées (téléphone, adresse).
+     * Les valeurs ont déjà été vérifiées et nettoyées par la servlet (classe Validation).
+     */
+    public User updateInfos(SessionUser actor, UpdateProfileRequest req) {
+        if (actor == null) throw new ForbiddenException();
+        return tx.inTransaction(() -> {
+            User user = findOrThrow(actor.id());
+            user.setPhone(req.phone());
+            user.setAddress(req.address());
+            return userDao.update(user);
         });
     }
 
