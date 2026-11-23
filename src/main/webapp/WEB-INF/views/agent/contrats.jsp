@@ -32,7 +32,7 @@
         <label class="field">Statut
           <select name="statut">
             <option value="">Tous</option>
-            <c:forEach items="${statuts}" var="st"><option value="${st}" ${param.statut == st.name() ? 'selected' : ''}>${st}</option></c:forEach>
+            <c:forEach items="${statuts}" var="st"><option value="${st}" ${param.statut == st.name() ? 'selected' : ''}>${st.label}</option></c:forEach>
           </select>
         </label>
         <label class="field">Type d'assurance
