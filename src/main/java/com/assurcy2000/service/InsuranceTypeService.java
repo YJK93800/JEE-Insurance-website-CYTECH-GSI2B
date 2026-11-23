@@ -25,6 +25,12 @@ public class InsuranceTypeService {
         this.tx = tx;
     }
 
+    /** Types proposés à la souscription (actifs), avec leurs garanties. */
+    public List<InsuranceType> listActive(SessionUser actor) {
+        if (actor == null) throw new ForbiddenException();
+        return tx.inTransaction(insuranceTypeDao::findAllActive);
+    }
+
     /** Tous les types, y compris désactivés (un ancien contrat peut en avoir un) : catalogue lisible par tout utilisateur connecté. */
     public List<InsuranceType> listAll(SessionUser actor) {
         if (actor == null) throw new ForbiddenException();

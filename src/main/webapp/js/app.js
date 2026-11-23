@@ -234,6 +234,23 @@
     majGaranties(false);
   }
 
+  /* ---------- Formulaire de contrat : date de fin = début + 1 an - 1 jour ---------- */
+  /* Mise à jour tant que l'agent n'a pas modifié la date de fin lui-même. */
+  var finAuto = document.querySelector("input[data-fin-auto]");
+  var debut = document.querySelector('input[name="dateDebut"]');
+  if (finAuto && debut) {
+    var finTouchee = false;
+    finAuto.addEventListener("input", function () { finTouchee = true; });
+    debut.addEventListener("change", function () {
+      if (finTouchee || !debut.value) return;
+      var d = new Date(debut.value + "T00:00:00");
+      d.setFullYear(d.getFullYear() + 1);
+      d.setDate(d.getDate() - 1);
+      var p = function (n) { return (n < 10 ? "0" : "") + n; };
+      finAuto.value = d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+    });
+  }
+
   /* ---------- Enregistrement d'un paiement : montant = prime du contrat ---------- */
   var selContrat = document.querySelector("select[data-contrat-prime]");
   if (selContrat) {

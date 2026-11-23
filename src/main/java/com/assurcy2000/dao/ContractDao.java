@@ -39,6 +39,14 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 .uniqueResultOptional());
     }
 
+    /** Plus grand numéro commençant par le préfixe (ex. "CTR-2026-"), vide s'il n'y en a pas encore. */
+    public Optional<String> findMaxNumberWithPrefix(String prefix) {
+        return query(s -> Optional.ofNullable(s.createQuery(
+                "select max(c.number) from Contract c where c.number like :p", String.class)
+                .setParameter("p", prefix + "%")
+                .getSingleResult()));
+    }
+
     public boolean existsByNumber(String number) {
         return query(s -> s.createQuery(
                 "select count(c) from Contract c where c.number = :number", Long.class)
