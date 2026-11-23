@@ -1,18 +1,18 @@
 package com.assurcy2000.controller.common;
 
+import com.assurcy2000.controller.BaseServlet;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.dto.request.UpdateProfileRequest;
 import com.assurcy2000.model.User;
+import com.assurcy2000.security.UserSession;
 import com.assurcy2000.service.UserService;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.util.FormView;
 import com.assurcy2000.util.RequestParams;
-import com.assurcy2000.security.UserSession;
 import com.assurcy2000.util.Validation;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -20,23 +20,23 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@WebServlet("/profil")
-public class ProfilServlet extends HttpServlet {
-
-    private static final String VIEW = Views.PROFIL;
+/**
+ * Profil de l'utilisateur connecté, commun aux trois rôles : coordonnées et mot de passe.
+ * Hérite de BaseServlet : encodage UTF-8, NotFound/Forbidden convertis en 404/403, user(req) jamais null.
+ */
+@WebServlet("/profile")
+public class ProfileServlet extends BaseServlet {
 
     private final UserService userService = new UserService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         loadUser(req);
-        req.getRequestDispatcher(VIEW).forward(req, resp);
+        render(req, resp, Views.PROFILE);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-
         // Les deux formulaires de common/profile.jsp envoient un champ caché "action"
         switch (RequestParams.get(req, "action")) {
             case "motdepasse" -> changePassword(req, resp);
@@ -60,9 +60,8 @@ public class ProfilServlet extends HttpServlet {
             return;
         }
 
-        SessionUser current = UserSession.currentUser(req);
         try {
-            userService.changePassword(current, oldPassword, password);
+            userService.changePassword(user(req), oldPassword, password);
         } catch (ValidationException e) {
             errors.putAll(e.getErrors());
             showForm(req, resp, errors);
@@ -70,7 +69,7 @@ public class ProfilServlet extends HttpServlet {
         }
 
         UserSession.flash(req, "Votre mot de passe a été modifié.", "success");
-        resp.sendRedirect(req.getContextPath() + "/profil");
+        redirect(req, resp, "/profile");
     }
 
     private void updateInfos(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -86,22 +85,22 @@ public class ProfilServlet extends HttpServlet {
         }
 
         // 2. Enregistrement (le nom ne change pas : rien à mettre à jour dans la session)
-        userService.updateInfos(UserSession.currentUser(req), form);
+        userService.updateInfos(user(req), form);
 
         UserSession.flash(req, "Vos informations ont été mises à jour.", "success");
-        resp.sendRedirect(req.getContextPath() + "/profil");
+        redirect(req, resp, "/profile");
     }
 
     /** Réaffiche la page avec les erreurs (et l'utilisateur, pour remplir le formulaire d'informations). */
     private void showForm(HttpServletRequest req, HttpServletResponse resp, Map<String, String> errors)
             throws ServletException, IOException {
         loadUser(req);
-        FormView.show(req, resp, VIEW, errors);
+        FormView.show(req, resp, Views.PROFILE, errors);
     }
 
     /** Met l'utilisateur connecté en attribut "user", lu par profile.jsp. */
     private void loadUser(HttpServletRequest req) {
-        SessionUser current = UserSession.currentUser(req);
+        SessionUser current = user(req);
         User user = userService.getById(current, current.id());
         req.setAttribute("user", user);
     }
