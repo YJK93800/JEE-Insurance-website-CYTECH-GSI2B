@@ -18,10 +18,10 @@ public final class Views {
     public static final String AGENT_CONTRACTS = BASE + "agent/contrats.jsp";
     public static final String AGENT_CONTRACT = BASE + "agent/contrat-form.jsp";
     public static final String AGENT_CLAIMS = BASE + "agent/sinistres.jsp";
-    public static final String AGENT_CLAIM = BASE + "agent/claim.jsp";
+    public static final String AGENT_CLAIM = BASE + "agent/sinistres.jsp";
 
     public static final String ADMIN_USERS = BASE + "admin/utilisateurs.jsp";
-    public static final String STATS = BASE + "shared/stats.jsp";
+    public static final String STATS = BASE + "admin/stats.jsp";
 
     private Views() { }
 }
