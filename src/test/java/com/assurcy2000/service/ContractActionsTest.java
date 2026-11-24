@@ -43,6 +43,7 @@ class ContractActionsTest {
     private Guarantee vol, incendie, ancienne;
     private final List<Contract> saved = new ArrayList<>();
     private Contract existingRenewal;
+    private LocalDate expiredBefore;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -64,6 +65,7 @@ class ContractActionsTest {
             @Override public Contract save(Contract c) { saved.add(c); return c; }
             @Override public Optional<String> findMaxNumberWithPrefix(String prefix) { return Optional.empty(); }
             @Override public Optional<Contract> findRenewalOf(Long id) { return Optional.ofNullable(existingRenewal); }
+            @Override public int expireEndedBefore(LocalDate today) { expiredBefore = today; return 3; }
         };
         UserDao userDao = new UserDao() {
             @Override public Optional<User> findById(Long id) { return Optional.ofNullable(Map.of(1L, alice, 2L, agentUser).get(id)); }
@@ -159,6 +161,14 @@ class ContractActionsTest {
     void pendingContractCannotBeRenewed() {
         contract.setStatus(ContractStatus.EN_ATTENTE);
         assertThrows(ValidationException.class, () -> service.renew(agent, 100L));
+    }
+
+    // ---- expiration automatique ----
+
+    @Test
+    void expirationUsesTodayAndReturnsTheCount() {
+        assertEquals(3, service.expireEndedContracts());
+        assertEquals(LocalDate.now(), expiredBefore);
     }
 
     private static <T> T withId(T entity, Long id) throws Exception {

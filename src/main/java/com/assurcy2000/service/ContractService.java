@@ -280,6 +280,15 @@ public class ContractService {
         });
     }
 
+    /**
+     * Tâche système (ContractExpirationListener) : les contrats actifs ou suspendus dont la date de fin
+     * est passée deviennent EXPIRE. Pas d'utilisateur connecté, donc pas de vérification de droits.
+     * @return nombre de contrats expirés
+     */
+    public int expireEndedContracts() {
+        return tx.inTransaction(() -> contractDao.expireEndedBefore(LocalDate.now()));
+    }
+
     public Contract suspend(SessionUser actor, Long id) {
         Policy.require(actor, CONTRACT_WRITE);
         return tx.inTransaction(() -> {

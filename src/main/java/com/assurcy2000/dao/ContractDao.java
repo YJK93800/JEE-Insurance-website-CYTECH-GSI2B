@@ -52,6 +52,20 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 .getSingleResult()));
     }
 
+    /**
+     * Passe en EXPIRE les contrats actifs ou suspendus dont la date de fin est antérieure à {@code today}.
+     * Une seule requête UPDATE ; renvoie le nombre de contrats modifiés.
+     */
+    public int expireEndedBefore(LocalDate today) {
+        return query(s -> s.createMutationQuery("update Contract c set c.status = :expired"
+                        + " where c.status in (:active, :suspended) and c.endDate < :today")
+                .setParameter("expired", ContractStatus.EXPIRE)
+                .setParameter("active", ContractStatus.ACTIF)
+                .setParameter("suspended", ContractStatus.SUSPENDU)
+                .setParameter("today", today)
+                .executeUpdate());
+    }
+
     /** Contrat issu du renouvellement de celui-ci, s'il existe (contrat_precedent_id). */
     public Optional<Contract> findRenewalOf(Long previousId) {
         return query(s -> s.createQuery(SELECT + " where c.previousContract.id = :id", Contract.class)

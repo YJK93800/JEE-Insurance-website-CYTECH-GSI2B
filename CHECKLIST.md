@@ -32,13 +32,14 @@ Le cœur de l'application : sinistres, paiements et garanties dépendent tous d'
 - [x] Agent : créer un contrat (`ContractFormServlet`, numéro `CTR-AAAA-NNNN`, prime = prix de base par défaut)
 - [x] Agent : modifier un contrat (client et type seulement tant que EN_ATTENTE ; statut via les actions)
 - [x] Agent : rechercher un contrat (numéro ou client, statut, type)
-- [ ] Agent : consulter le détail d'un contrat
+- [x] Agent / admin : consulter le détail d'un contrat (`/agent/contracts?id=`, historique de renouvellement et résiliation)
 - [x] Agent : activer / suspendre un contrat (boutons de la liste, `ContractActionServlet`)
 - [x] Agent : résilier un contrat (page de confirmation avec date + motif)
 - [x] Agent : renouveler un contrat (nouveau contrat EN_ATTENTE lié à `contrat_precedent_id`, une seule fois)
-- [ ] Client : consulter ses contrats, avec filtre par statut
-- [ ] Client : consulter le détail d'un contrat et ses garanties
-- [ ] Charger les garanties dans les requêtes de liste (`join fetch`), sinon `LazyInitializationException` dans la JSP
+- [x] Client : consulter ses contrats, avec filtre par statut (onglets)
+- [x] Client : consulter le détail d'un contrat et ses garanties
+- [x] Charger ce que les pages affichent (`join fetch` dans `ContractDao.findById` ; les listes n'affichent pas les garanties)
+- [ ] Passer automatiquement en EXPIRE les contrats dont la date de fin est dépassée (rien ne le fait aujourd'hui)
 - [ ] Décider : prime mensuelle ou annuelle (les prix de base ressemblent à des montants annuels)
 
 ## Étape 2 — Sinistres (2.5)
