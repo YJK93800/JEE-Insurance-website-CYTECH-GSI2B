@@ -19,9 +19,14 @@ public class ContractDao extends BaseDao<Contract, Long> {
     public ContractDao() { super(Contract.class); }
 
 
+    /**
+     * Contrat avec ses garanties ET les garanties proposées par son type : la page de modification
+     * les affiche après la fin de la transaction (sinon LazyInitializationException -> erreur 500).
+     */
     @Override
     public Optional<Contract> findById(Long id) {
-        return query(s -> s.createQuery(SELECT + " left join fetch c.guarantees where c.id = :id", Contract.class)
+        return query(s -> s.createQuery(SELECT + " left join fetch c.guarantees left join fetch t.guarantees"
+                        + " where c.id = :id", Contract.class)
                 .setParameter("id", id)
                 .uniqueResultOptional());
     }
