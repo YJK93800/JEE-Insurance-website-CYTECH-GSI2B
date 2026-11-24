@@ -3,21 +3,24 @@ package com.assurcy2000.service;
 import com.assurcy2000.dao.RoleDao;
 import com.assurcy2000.dao.UserDao;
 import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.dto.request.UpdateProfileRequest;
 import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
 import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.service.exceptions.NotFoundException;
+import com.assurcy2000.service.exceptions.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Règles d'accès de UserService.getById, sans base de données. */
+/** Règles de UserService (accès avec getById, modification du profil), sans base de données. */
 class UserServiceTest {
 
     static final TransactionRunner DIRECT = new TransactionRunner() {
@@ -28,6 +31,10 @@ class UserServiceTest {
         final Map<Long, User> store;
         FakeUserDao(Map<Long, User> store) { this.store = store; }
         @Override public Optional<User> findById(Long id) { return Optional.ofNullable(store.get(id)); }
+        @Override public Optional<User> findByEmail(String email) {
+            return store.values().stream().filter(u -> u.getEmail().equals(email)).findFirst();
+        }
+        @Override public User update(User user) { return user; }
     }
 
     private UserService service;
@@ -76,6 +83,28 @@ class UserServiceTest {
     @Test
     void unknownUserIsNotFound() {
         assertThrows(NotFoundException.class, () -> service.getById(admin, 999L));
+    }
+
+    @Test
+    void userCanChangeOwnEmailAndBirthDate() {
+        LocalDate birth = LocalDate.of(1990, 5, 17);
+        User updated = service.updateInfos(alice, new UpdateProfileRequest("alice.new@x.fr", birth, null, null));
+        assertEquals("alice.new@x.fr", updated.getEmail());
+        assertEquals(birth, updated.getBirthDate());
+    }
+
+    @Test
+    void keepingOwnEmailIsAllowed() {
+        assertDoesNotThrow(() -> service.updateInfos(alice,
+                new UpdateProfileRequest("alice@x.fr", LocalDate.of(1990, 1, 1), null, null)));
+    }
+
+    @Test
+    void emailOfAnotherAccountIsRejected() {
+        ValidationException e = assertThrows(ValidationException.class, () -> service.updateInfos(alice,
+                new UpdateProfileRequest("bob@x.fr", LocalDate.of(1990, 1, 1), null, null)));
+        assertTrue(e.getErrors().containsKey("email"));
+        assertEquals("alice@x.fr", aliceUser.getEmail()); // rien n'a été modifié
     }
 
     private static User user(Long id, String name, String role) throws Exception {

@@ -21,7 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Profil de l'utilisateur connecté, commun aux trois rôles : coordonnées et mot de passe.
+ * Profil de l'utilisateur connecté, commun aux trois rôles :
+ * informations personnelles (email, date de naissance, téléphone, adresse) et mot de passe.
  * Hérite de BaseServlet : encodage UTF-8, NotFound/Forbidden convertis en 404/403, user(req) jamais null.
  */
 @WebServlet("/profile")
@@ -76,6 +77,8 @@ public class ProfileServlet extends BaseServlet {
         // 1. Vérification des saisies par la servlet ; on garde les valeurs nettoyées renvoyées par Validation
         Map<String, String> errors = new LinkedHashMap<>();
         UpdateProfileRequest form = new UpdateProfileRequest(
+                Validation.email(RequestParams.get(req, "email"), errors),
+                Validation.birthDate(RequestParams.get(req, "birthDate"), errors),
                 Validation.phone(RequestParams.get(req, "phone"), errors),
                 Validation.address(RequestParams.get(req, "address"), errors));
 
@@ -84,8 +87,18 @@ public class ProfileServlet extends BaseServlet {
             return;
         }
 
-        // 2. Enregistrement (le nom ne change pas : rien à mettre à jour dans la session)
-        userService.updateInfos(user(req), form);
+        // 2. Le service vérifie ce qui demande la base (email déjà utilisé par un autre compte)
+        User updated;
+        try {
+            updated = userService.updateInfos(user(req), form);
+        } catch (ValidationException e) {
+            errors.putAll(e.getErrors());
+            showForm(req, resp, errors);
+            return;
+        }
+
+        // 3. L'email est aussi gardé en session (SessionUser) : on le remet à jour
+        UserSession.refresh(req, SessionUser.from(updated));
 
         UserSession.flash(req, "Vos informations ont été mises à jour.", "success");
         redirect(req, resp, "/profile");

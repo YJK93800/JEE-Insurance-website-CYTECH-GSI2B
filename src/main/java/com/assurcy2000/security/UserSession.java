@@ -55,6 +55,17 @@ public final class UserSession {
         return redirect;
     }
 
+    /**
+     * Remplace l'utilisateur gardé en session après une modification de son compte (ex. nouvel email),
+     * sans changer l'identifiant de session ni le jeton CSRF (contrairement à login).
+     */
+    public static void refresh(HttpServletRequest req, SessionUser user) {
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            session.setAttribute(USER, user);
+        }
+    }
+
     /** Ferme la session (supprime tous les attributs d'un coup). */
     public static void logout(HttpServletRequest req) {
         HttpSession session = req.getSession(false);

@@ -12,6 +12,7 @@ import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.dto.request.UpdateProfileRequest;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
+import org.hibernate.exception.ConstraintViolationException;
 
 import java.util.List;
 import java.util.Map;
@@ -72,17 +73,31 @@ public class UserService {
     }
 
     /**
-     * L'utilisateur connecté modifie ses coordonnées (téléphone, adresse).
-     * Les valeurs ont déjà été vérifiées et nettoyées par la servlet (classe Validation).
+     * L'utilisateur connecté modifie ses informations : email, date de naissance, téléphone, adresse.
+     * Le format a déjà été vérifié et nettoyé par la servlet (classe Validation) ;
+     * ici on ne vérifie que ce qui demande la base : l'email déjà utilisé par un autre compte.
      */
     public User updateInfos(SessionUser actor, UpdateProfileRequest req) {
         Policy.requireLoggedIn(actor);
-        return tx.inTransaction(() -> {
-            User user = findOrThrow(actor.id());
-            user.setPhone(req.phone());
-            user.setAddress(req.address());
-            return userDao.update(user);
-        });
+        try {
+            return tx.inTransaction(() -> {
+                User user = findOrThrow(actor.id());
+                boolean emailTaken = userDao.findByEmail(req.email())
+                        .filter(other -> !other.getId().equals(user.getId()))
+                        .isPresent();
+                if (emailTaken) {
+                    throw new ValidationException(Map.of("email", "Cet email est déjà utilisé."));
+                }
+                user.setEmail(req.email());
+                user.setBirthDate(req.birthDate());
+                user.setPhone(req.phone());
+                user.setAddress(req.address());
+                return userDao.update(user);
+            });
+        } catch (ConstraintViolationException e) {
+            // deux comptes qui prennent le même email en même temps : la contrainte UNIQUE tranche
+            throw new ValidationException(Map.of("email", "Cet email est déjà utilisé."));
+        }
     }
 
     public User setActive(SessionUser actor, Long userId, boolean active) {
