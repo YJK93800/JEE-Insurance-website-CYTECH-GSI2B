@@ -1,8 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- ClientContractsServlet — GET /client/contracts
-     Attributs : contracts List<Contract> du client connecté (client, insuranceType et agent chargés ;
-                 les garanties ne sont chargées que sur le détail). --%>
+<%-- ClientContractsServlet — GET /client/contracts[?status=ACTIF]
+     Attributs : contracts      List<Contract> du client connecté, filtrée par statut
+                                (client, insuranceType et agent chargés ; les garanties ne sont chargées que sur le détail)
+                 statuses       ContractStatus[] (onglets)   selectedStatus ContractStatus ou null (Tous)
+                 totalCount     nombre total de contrats du client --%>
 <c:set var="title" value="Mes contrats" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -16,6 +18,15 @@
         <div class="stack-sm"><span class="eyebrow">Espace client</span><h1>Mes contrats</h1></div>
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
+
+      <c:if test="${totalCount > 0}">
+        <nav class="tabs" aria-label="Filtrer par statut">
+          <a href="${ctx}/client/contracts" class="${empty selectedStatus ? 'active' : ''}">Tous</a>
+          <c:forEach items="${statuses}" var="st">
+            <a href="${ctx}/client/contracts?status=${st}" class="${selectedStatus == st ? 'active' : ''}"><c:out value="${st.label}" /></a>
+          </c:forEach>
+        </nav>
+      </c:if>
 
       <section class="stack" aria-label="Liste des contrats">
         <c:forEach items="${contracts}" var="ct">
@@ -39,7 +50,14 @@
             </div>
           </article>
         </c:forEach>
-        <c:if test="${empty contracts}"><div class="card"><p class="empty">Vous n'avez aucun contrat.</p></div></c:if>
+        <c:if test="${empty contracts}">
+          <div class="card"><p class="empty">
+            <c:choose>
+              <c:when test="${totalCount == 0}">Vous n'avez aucun contrat.</c:when>
+              <c:otherwise>Aucun contrat « <c:out value="${selectedStatus.label}" /> ».</c:otherwise>
+            </c:choose>
+          </p></div>
+        </c:if>
       </section>
     </div>
   </main>

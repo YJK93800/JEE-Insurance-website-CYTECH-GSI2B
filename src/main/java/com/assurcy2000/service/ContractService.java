@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.assurcy2000.security.Permission.*;
@@ -166,6 +167,14 @@ public class ContractService {
         return tx.inTransaction(() -> contractDao.findById(id)
                 .filter(c -> Policy.canRead(actor, CONTRACT_READ_ALL, CONTRACT_READ_OWN, c.getClient().getId()))
                 .orElseThrow(() -> new NotFoundException("Contrat introuvable.")));
+    }
+
+    /** Contrat issu du renouvellement de celui-ci, s'il existe (même règle d'accès que get). */
+    public Optional<Contract> findRenewal(SessionUser actor, Long id) {
+        return tx.inTransaction(() -> {
+            Contract contract = get(actor, id);
+            return contractDao.findRenewalOf(contract.getId());
+        });
     }
 
     public List<Contract> listByClient(SessionUser actor, Long clientId) {

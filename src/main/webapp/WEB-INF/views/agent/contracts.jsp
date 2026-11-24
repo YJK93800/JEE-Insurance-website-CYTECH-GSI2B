@@ -56,7 +56,7 @@
                 <tbody>
                   <c:forEach items="${contracts}" var="ct">
                     <tr>
-                      <td class="strong"><c:out value="${ct.number}" /></td>
+                      <td class="strong"><a href="${ctx}${base}?id=${ct.id}"><c:out value="${ct.number}" /></a></td>
                       <td><c:out value="${ct.client.firstName} ${ct.client.lastName}" /></td>
                       <td class="muted"><c:out value="${ct.insuranceType.name}" /></td>
                       <td class="muted small"><ui:date value="${ct.startDate}" /> → <ui:date value="${ct.endDate}" /></td>
