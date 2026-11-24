@@ -5,7 +5,8 @@ import java.time.LocalDate;
 import java.util.Set;
 
 /**
- * Formulaire « Nouveau contrat » (agent/contract-form.jsp), déjà vérifié par la servlet.
+ * Formulaire de contrat (agent/contract-form.jsp), déjà vérifié par la servlet.
+ * Sert à la création (ContractService.create) et à la modification (ContractService.update).
  * Le numéro et le statut (EN_ATTENTE) sont décidés par le serveur, pas par le formulaire.
  *
  * @param premium prime saisie ; null = prix de base du type d'assurance

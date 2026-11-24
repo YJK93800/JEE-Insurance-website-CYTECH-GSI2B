@@ -64,8 +64,11 @@
                       <td>
                         <div class="actions">
                           <c:if test="${isAgent}">
-                            <a class="btn btn-sm" href="${ctx}/agent/contracts/edit?id=${ct.id}">Modifier</a>
                             <c:set var="s" value="${ct.status}" />
+                            <%-- Un contrat résilié ou expiré n'est plus modifiable (règle de ContractService.update) --%>
+                            <c:if test="${s != 'RESILIE' and s != 'EXPIRE'}">
+                              <a class="btn btn-sm" href="${ctx}/agent/contracts/edit?id=${ct.id}">Modifier</a>
+                            </c:if>
                             <c:if test="${s == 'EN_ATTENTE' or s == 'SUSPENDU'}">
                               <form method="post" action="${ctx}/agent/contracts/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="activate"><button class="btn-link" type="submit">Activer</button></form>
                             </c:if>

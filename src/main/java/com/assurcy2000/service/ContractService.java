@@ -21,6 +21,7 @@ import com.assurcy2000.service.exceptions.ValidationException;
 
 import java.time.Year;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,22 +64,9 @@ public class ContractService {
     public Contract create(SessionUser actor, CreateContractRequest req) {
         Policy.require(actor, CONTRACT_WRITE);
         return tx.inTransaction(() -> {
-            User client = userDao.findById(req.clientId())
-                    .filter(u -> Role.CLIENT.equals(u.getRole().getName()))
-                    .orElseThrow(() -> new ValidationException(Map.of("clientId", "Client introuvable.")));
-
-            InsuranceType type = insuranceTypeDao.findById(req.insuranceTypeId())
-                    .filter(InsuranceType::isActive)
-                    .orElseThrow(() -> new ValidationException(Map.of("insuranceTypeId", "Type d'assurance introuvable ou désactivé.")));
-
-            Set<Guarantee> guarantees = new HashSet<>();
-            for (Guarantee g : guaranteeDao.findByInsuranceType(type.getId())) {
-                if (req.guaranteeIds().contains(g.getId())) guarantees.add(g);
-            }
-            if (guarantees.size() != req.guaranteeIds().size()) {
-                throw new ValidationException(Map.of("guaranteeIds",
-                        "Certaines garanties choisies ne sont pas proposées pour « " + type.getName() + " »."));
-            }
+            User client = findClient(req.clientId());
+            InsuranceType type = findActiveType(req.insuranceTypeId());
+            Set<Guarantee> guarantees = guaranteesOfType(type, req.guaranteeIds());
 
             Contract contract = new Contract(nextNumber(), req.startDate(), req.endDate(),
                     req.premium() != null ? req.premium() : type.getBasePrice(), client, type);
@@ -87,6 +75,70 @@ public class ContractService {
             contract.setGuarantees(guarantees);
             return contractDao.save(contract);
         });
+    }
+
+    /**
+     * Modifie un contrat (même formulaire que la création).
+     * - Dates, prime et garanties : toujours modifiables (sauf contrat résilié ou expiré).
+     * - Client et type d'assurance : seulement tant que le contrat est EN_ATTENTE.
+     * - Statut : jamais ici, uniquement par les actions (activer, suspendre, résilier, renouveler).
+     * - Numéro : jamais.
+     * Prime vide = prime actuelle conservée.
+     */
+    public Contract update(SessionUser actor, Long id, CreateContractRequest req) {
+        Policy.require(actor, CONTRACT_WRITE);
+        return tx.inTransaction(() -> {
+            Contract contract = contractDao.findById(id)
+                    .orElseThrow(() -> new NotFoundException("Contrat introuvable."));
+
+            if (contract.getStatus() == ContractStatus.RESILIE || contract.getStatus() == ContractStatus.EXPIRE) {
+                throw new ValidationException(Map.of("status",
+                        "Un contrat " + contract.getStatus().getLabel().toLowerCase() + " ne peut plus être modifié."));
+            }
+
+            boolean clientChanged = !contract.getClient().getId().equals(req.clientId());
+            boolean typeChanged = !contract.getInsuranceType().getId().equals(req.insuranceTypeId());
+            if (contract.getStatus() != ContractStatus.EN_ATTENTE && (clientChanged || typeChanged)) {
+                Map<String, String> errors = new LinkedHashMap<>();
+                String msg = "Modifiable seulement tant que le contrat est en attente.";
+                if (clientChanged) errors.put("clientId", msg);
+                if (typeChanged) errors.put("insuranceTypeId", msg);
+                throw new ValidationException(errors);
+            }
+            if (clientChanged) contract.setClient(findClient(req.clientId()));
+            if (typeChanged) contract.setInsuranceType(findActiveType(req.insuranceTypeId()));
+
+            contract.setGuarantees(guaranteesOfType(contract.getInsuranceType(), req.guaranteeIds()));
+            contract.setStartDate(req.startDate());
+            contract.setEndDate(req.endDate());
+            if (req.premium() != null) contract.setPremium(req.premium());
+            return contractDao.update(contract);
+        });
+    }
+
+    private User findClient(Long clientId) {
+        return userDao.findById(clientId)
+                .filter(u -> Role.CLIENT.equals(u.getRole().getName()))
+                .orElseThrow(() -> new ValidationException(Map.of("clientId", "Client introuvable.")));
+    }
+
+    private InsuranceType findActiveType(Long typeId) {
+        return insuranceTypeDao.findById(typeId)
+                .filter(InsuranceType::isActive)
+                .orElseThrow(() -> new ValidationException(Map.of("insuranceTypeId", "Type d'assurance introuvable ou désactivé.")));
+    }
+
+    /** Les garanties choisies, à condition qu'elles soient toutes proposées par le type (sinon erreur sur le formulaire). */
+    private Set<Guarantee> guaranteesOfType(InsuranceType type, Set<Long> guaranteeIds) {
+        Set<Guarantee> guarantees = new HashSet<>();
+        for (Guarantee g : guaranteeDao.findByInsuranceType(type.getId())) {
+            if (guaranteeIds.contains(g.getId())) guarantees.add(g);
+        }
+        if (guarantees.size() != guaranteeIds.size()) {
+            throw new ValidationException(Map.of("guaranteeIds",
+                    "Certaines garanties choisies ne sont pas proposées pour « " + type.getName() + " »."));
+        }
+        return guarantees;
     }
 
     /** Numéro suivant de l'année en cours ; la contrainte UNIQUE sur contrat.numero protège des doublons. */
