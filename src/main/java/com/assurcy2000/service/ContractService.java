@@ -19,6 +19,7 @@ import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
 
+import java.time.LocalDate;
 import java.time.Year;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -177,6 +178,97 @@ public class ContractService {
     public List<Contract> search(SessionUser actor, ContractSearchRequest criteria) {
         Policy.require(actor, CONTRACT_READ_ALL);
         return tx.inTransaction(() -> contractDao.search(criteria));
+    }
+
+    /* ------------------------------------------------------------------
+     * Actions de statut (boutons de la liste des contrats)
+     *   EN_ATTENTE ─activer─▶ ACTIF ─suspendre─▶ SUSPENDU ─activer─▶ ACTIF
+     *   EN_ATTENTE / ACTIF / SUSPENDU ─résilier─▶ RESILIE (définitif)
+     *   ACTIF / EXPIRE ─renouveler─▶ nouveau contrat EN_ATTENTE lié à l'ancien
+     * ------------------------------------------------------------------ */
+
+    /** Active un contrat en attente ou suspendu, à condition que sa période ne soit pas terminée. */
+    public Contract activate(SessionUser actor, Long id) {
+        Policy.require(actor, CONTRACT_WRITE);
+        return tx.inTransaction(() -> {
+            Contract contract = get(actor, id);
+            if (contract.getStatus() != ContractStatus.EN_ATTENTE && contract.getStatus() != ContractStatus.SUSPENDU) {
+                throw new ValidationException(Map.of("status", "Seul un contrat en attente ou suspendu peut être activé."));
+            }
+            if (contract.getEndDate().isBefore(LocalDate.now())) {
+                throw new ValidationException(Map.of("status",
+                        "La période de ce contrat est terminée : renouvelez-le plutôt que de l'activer."));
+            }
+            contract.setStatus(ContractStatus.ACTIF);
+            return contractDao.update(contract);
+        });
+    }
+
+    /**
+     * Résilie un contrat (définitif). La date doit être dans la période du contrat
+     * (contrainte chk_contrat_date_resil) et le motif est obligatoire.
+     */
+    public Contract terminate(SessionUser actor, Long id, LocalDate date, String reason) {
+        Policy.require(actor, CONTRACT_WRITE);
+        return tx.inTransaction(() -> {
+            Contract contract = get(actor, id);
+            if (!isTerminable(contract)) {
+                throw new ValidationException(Map.of("status", "Ce contrat est déjà résilié ou expiré."));
+            }
+            if (date.isBefore(contract.getStartDate()) || date.isAfter(contract.getEndDate())) {
+                throw new ValidationException(Map.of("terminationDate",
+                        "La date de résiliation doit être comprise dans la période du contrat."));
+            }
+            contract.setStatus(ContractStatus.RESILIE);
+            contract.setTerminationDate(date);
+            contract.setTerminationReason(reason);
+            return contractDao.update(contract);
+        });
+    }
+
+    public static boolean isTerminable(Contract contract) {
+        return contract.getStatus() == ContractStatus.EN_ATTENTE
+                || contract.getStatus() == ContractStatus.ACTIF
+                || contract.getStatus() == ContractStatus.SUSPENDU;
+    }
+
+    /**
+     * Renouvelle un contrat actif ou expiré : nouveau contrat EN_ATTENTE pour la période suivante
+     * (début = lendemain de la fin, durée 1 an), même client, type, prime et garanties encore proposées.
+     * Un contrat ne se renouvelle qu'une fois.
+     */
+    public Contract renew(SessionUser actor, Long id) {
+        Policy.require(actor, CONTRACT_WRITE);
+        return tx.inTransaction(() -> {
+            Contract previous = get(actor, id);
+            if (previous.getStatus() != ContractStatus.ACTIF && previous.getStatus() != ContractStatus.EXPIRE) {
+                throw new ValidationException(Map.of("status", "Seul un contrat actif ou expiré peut être renouvelé."));
+            }
+            contractDao.findRenewalOf(previous.getId()).ifPresent(r -> {
+                throw new ValidationException(Map.of("status",
+                        "Ce contrat a déjà été renouvelé (" + r.getNumber() + ")."));
+            });
+            InsuranceType type = previous.getInsuranceType();
+            if (!type.isActive()) {
+                throw new ValidationException(Map.of("status",
+                        "Le type « " + type.getName() + " » n'est plus proposé : créez un nouveau contrat."));
+            }
+
+            // Garanties de l'ancien contrat encore proposées par le type
+            Set<Guarantee> guarantees = new HashSet<>();
+            for (Guarantee g : guaranteeDao.findByInsuranceType(type.getId())) {
+                if (previous.getGuarantees().contains(g)) guarantees.add(g);
+            }
+
+            LocalDate start = previous.getEndDate().plusDays(1);
+            Contract renewal = new Contract(nextNumber(), start, start.plusYears(1).minusDays(1),
+                    previous.getPremium(), previous.getClient(), type);
+            renewal.setStatus(ContractStatus.EN_ATTENTE);
+            renewal.setAgent(userDao.getReference(actor.id()));
+            renewal.setPreviousContract(previous);
+            renewal.setGuarantees(guarantees);
+            return contractDao.save(renewal);
+        });
     }
 
     public Contract suspend(SessionUser actor, Long id) {

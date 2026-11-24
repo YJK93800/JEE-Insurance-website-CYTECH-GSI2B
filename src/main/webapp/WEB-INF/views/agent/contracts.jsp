@@ -2,7 +2,8 @@
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- AgentContractsServlet
      GET  /agent/contracts?q=texte&status=ACTIF&type=3   (recherche de contrats)
-     POST /agent/contracts/action (contratId, action = suspendre | resilier | renouveler | activer) -> à brancher
+     POST /agent/contracts/action (contractId, action = activate | suspend | renew) -> ContractActionServlet
+     GET  /agent/contracts/terminate?id=12   -> page de résiliation (date + motif)
      Attributs : contracts List<Contract>  statuses ContractStatus[]  insuranceTypes List<InsuranceType>
      Aussi utilisée par l'admin (/admin/contracts) en consultation seule. --%>
 <c:set var="title" value="Contrats" />
@@ -76,10 +77,11 @@
                               <form method="post" action="${ctx}/agent/contracts/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="suspend"><button class="btn-link" type="submit">Suspendre</button></form>
                             </c:if>
                             <c:if test="${s == 'ACTIF' or s == 'EXPIRE'}">
-                              <form method="post" action="${ctx}/agent/contracts/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="renew"><button class="btn-link" type="submit">Renouveler</button></form>
+                              <form method="post" action="${ctx}/agent/contracts/action" data-confirm="Créer le contrat de renouvellement de ${fn:escapeXml(ct.number)} ?"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="renew"><button class="btn-link" type="submit">Renouveler</button></form>
                             </c:if>
                             <c:if test="${s != 'RESILIE' and s != 'EXPIRE'}">
-                              <form method="post" action="${ctx}/agent/contracts/action" data-confirm="Résilier le contrat ${fn:escapeXml(ct.number)} ? Cette action est définitive."><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="terminate"><button class="btn-link danger" type="submit">Résilier</button></form>
+                              <%-- La résiliation demande une date et un motif : page de confirmation dédiée --%>
+                              <a class="btn-link danger" href="${ctx}/agent/contracts/terminate?id=${ct.id}">Résilier</a>
                             </c:if>
                           </c:if>
                         </div>

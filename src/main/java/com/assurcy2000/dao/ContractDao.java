@@ -46,6 +46,14 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 .getSingleResult()));
     }
 
+    /** Contrat issu du renouvellement de celui-ci, s'il existe (contrat_precedent_id). */
+    public Optional<Contract> findRenewalOf(Long previousId) {
+        return query(s -> s.createQuery(SELECT + " where c.previousContract.id = :id", Contract.class)
+                .setParameter("id", previousId)
+                .setMaxResults(1)
+                .uniqueResultOptional());
+    }
+
     public boolean existsByNumber(String number) {
         return query(s -> s.createQuery(
                 "select count(c) from Contract c where c.number = :number", Long.class)

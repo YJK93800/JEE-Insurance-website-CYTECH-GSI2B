@@ -30,12 +30,12 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 Le cœur de l'application : sinistres, paiements et garanties dépendent tous d'un contrat.
 
 - [x] Agent : créer un contrat (`ContractFormServlet`, numéro `CTR-AAAA-NNNN`, prime = prix de base par défaut)
-- [ ] Agent : modifier un contrat
+- [x] Agent : modifier un contrat (client et type seulement tant que EN_ATTENTE ; statut via les actions)
 - [x] Agent : rechercher un contrat (numéro ou client, statut, type)
 - [ ] Agent : consulter le détail d'un contrat
-- [x] Agent : suspendre un contrat (`ContractService.suspend`, bouton à brancher)
-- [ ] Agent : résilier un contrat (date + motif)
-- [ ] Agent : renouveler un contrat (nouveau contrat lié à `contrat_precedent_id`)
+- [x] Agent : activer / suspendre un contrat (boutons de la liste, `ContractActionServlet`)
+- [x] Agent : résilier un contrat (page de confirmation avec date + motif)
+- [x] Agent : renouveler un contrat (nouveau contrat EN_ATTENTE lié à `contrat_precedent_id`, une seule fois)
 - [ ] Client : consulter ses contrats, avec filtre par statut
 - [ ] Client : consulter le détail d'un contrat et ses garanties
 - [ ] Charger les garanties dans les requêtes de liste (`join fetch`), sinon `LazyInitializationException` dans la JSP
