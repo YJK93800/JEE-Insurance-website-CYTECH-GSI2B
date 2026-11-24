@@ -39,8 +39,45 @@ Le cœur de l'application : sinistres, paiements et garanties dépendent tous d'
 - [x] Client : consulter ses contrats, avec filtre par statut (onglets)
 - [x] Client : consulter le détail d'un contrat et ses garanties
 - [x] Charger ce que les pages affichent (`join fetch` dans `ContractDao.findById` ; les listes n'affichent pas les garanties)
-- [ ] Passer automatiquement en EXPIRE les contrats dont la date de fin est dépassée (rien ne le fait aujourd'hui)
-- [ ] Décider : prime mensuelle ou annuelle (les prix de base ressemblent à des montants annuels)
+- [x] Passer automatiquement en EXPIRE les contrats dont la date de fin est dépassée (`ContractExpirationListener`, toutes les heures)
+- [x] Décider : prime **mensuelle** (une échéance par mois à générer à l'étape 3)
+
+### Tests à faire dans Tomcat (contrats)
+
+Compte agent `agent@assurance.local`, puis admin et client. Redémarrer Tomcat avant.
+
+Liste et recherche (`/agent/contracts`)
+- [ ] Le contrat de démo s'affiche, avec le statut en libellé (ACTIF, EN ATTENTE…)
+- [ ] Recherche par numéro, par nom de client, par email ; filtre par statut ; filtre par type ; « Réinitialiser »
+- [ ] Le numéro de contrat ouvre la page de détail
+
+Création (`+ Nouveau contrat`)
+- [ ] Choisir un type pré-remplit la prime et coche ses garanties ; les autres garanties sont grisées
+- [ ] Changer la date de début décale la date de fin (+1 an − 1 jour)
+- [ ] Erreurs affichées : aucun client, aucun type, fin avant début, prime négative ou texte, aucune garantie
+- [ ] Création valide : message « Contrat CTR-2026-000X créé (en attente) », numéro qui s'incrémente
+
+Modification
+- [ ] Contrat en attente : client, type, dates, prime et garanties modifiables
+- [ ] Contrat actif ou suspendu : client et type en lecture seule, le reste modifiable, pas d'erreur 500
+- [ ] Prime laissée vide : l'ancienne prime est conservée
+- [ ] Contrat résilié ou expiré : pas de bouton « Modifier » ; l'enregistrement est refusé
+
+Actions
+- [ ] Activer un contrat en attente, puis suspendre, puis réactiver
+- [ ] Renouveler un contrat actif : nouveau contrat en attente du lendemain de la fin, ouvert en modification
+- [ ] Renouveler une 2e fois le même contrat : message d'erreur « déjà renouvelé »
+- [ ] Détail : liens « Renouvelle » / « Renouvelé par » entre les deux contrats
+- [ ] Résilier : page de confirmation, motif obligatoire, date hors période refusée, puis statut RÉSILIÉ avec date et motif dans le détail
+
+Expiration automatique
+- [ ] Dans MySQL, mettre une date de fin passée à un contrat actif, redémarrer, attendre 1 minute : le contrat passe EXPIRÉ
+
+Admin et client
+- [ ] Admin `/admin/contracts` : liste et détail visibles, aucun bouton d'action
+- [ ] Client `/client/contracts` : seulement ses contrats, onglets par statut, détail avec garanties
+- [ ] Client : `/client/contracts?id=` d'un contrat d'un autre client renvoie une 404
+- [ ] Lancer `mvn test` (tests unitaires des contrats : création, modification, actions)
 
 ## Étape 2 — Sinistres (2.5)
 
