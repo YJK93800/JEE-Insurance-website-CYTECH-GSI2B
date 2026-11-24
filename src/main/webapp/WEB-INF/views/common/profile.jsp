@@ -2,10 +2,11 @@
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- Profil commun aux trois rôles (client, agent, admin) — ProfileServlet, URL /profile
      GET  /profile -> cette vue (attribut "user" : entité User connectée)
-     POST /profile (action=infos      : telephone, adresse)
-                   (action=motdepasse : ancien, motDePasse, confirmation)
-     Erreurs : Map<String,String> "errors" (clés = noms des champs).
-     Identité (prénom, nom, e-mail, date de naissance) : lecture seule, corrigée par un agent / admin. --%>
+     POST /profile (action=details  : email, birthDate (aaaa-mm-jj), phone, address)
+                   (action=password : oldPassword, password, confirmation)
+     Erreurs : Map<String,String> "errors" (clés = noms des champs ci-dessus).
+     Après une erreur, les valeurs ressaisies sont réaffichées via param.xxx, sinon celles de "user".
+     Prénom et nom : lecture seule, corrigés par un agent / admin. --%>
 <c:set var="title" value="Mon profil" />
 <c:set var="role" value="${sessionScope.currentUser.role}" />
 <!DOCTYPE html>
@@ -33,6 +34,7 @@
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
           <input type="hidden" name="action" value="details">
           <h2>Informations personnelles</h2>
+          <%-- Champs disabled sans name : non envoyés, la servlet ne les lit pas --%>
           <div class="grid-2">
             <label class="field">Prénom
               <input type="text" value="${fn:escapeXml(user.firstName)}" disabled>
@@ -41,19 +43,16 @@
               <input type="text" value="${fn:escapeXml(user.lastName)}" disabled>
             </label>
           </div>
-          <label class="field">Adresse e-mail
-            <input type="email" value="${fn:escapeXml(user.email)}" disabled>
-            <span class="field-help">
-              Pour corriger votre nom, prénom ou e-mail, contactez ${role == 'CLIENT' ? 'votre agent' : 'un administrateur'}.
-            </span>
-          </label>
+          <p class="field-help">
+            Pour corriger votre nom ou prénom, contactez ${role == 'CLIENT' ? 'votre agent' : 'un administrateur'}.
+          </p>
+          <ui:field name="email" label="Adresse e-mail" type="email" required="true" value="${not empty param.email ? param.email : user.email}" extra="maxlength='150' autocomplete='email'" />
           <div class="grid-2">
-            <ui:field name="phone" label="Téléphone" type="tel" value="${not empty param.phone ? param.phone : user.phone}" extra="pattern='[+0-9][0-9 .]{5,19}' maxlength='20'" />
-            <label class="field">Date de naissance
-              <input type="text" value="<ui:date value='${user.birthDate}' />" disabled>
-            </label>
+            <ui:field name="phone" label="Téléphone" type="tel" value="${not empty param.phone ? param.phone : user.phone}" extra="pattern='[+0-9][0-9 .]{5,19}' maxlength='20' autocomplete='tel'" />
+            <%-- type="date" : le navigateur envoie et attend aaaa-mm-jj (= LocalDate.toString()) --%>
+            <ui:field name="birthDate" label="Date de naissance" type="date" required="true" value="${not empty param.birthDate ? param.birthDate : user.birthDate}" />
           </div>
-          <ui:field name="address" label="Adresse postale" value="${not empty param.address ? param.address : user.address}" extra="maxlength='255'" />
+          <ui:field name="address" label="Adresse postale" value="${not empty param.address ? param.address : user.address}" extra="maxlength='255' autocomplete='street-address'" />
           <div class="form-actions"><span></span><button type="submit" class="btn btn-primary">Enregistrer</button></div>
         </form>
 
