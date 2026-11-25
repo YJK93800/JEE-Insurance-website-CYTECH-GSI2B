@@ -125,6 +125,15 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 .getResultList());
     }
 
+    /** Nombre de contrats par client (id du client -> nombre), en une seule requête. Les clients sans contrat sont absents. */
+    public Map<Long, Long> countByClient() {
+        return query(s -> s.createQuery(
+                        "select c.client.id, count(c) from Contract c group by c.client.id", Object[].class)
+                .getResultList()
+                .stream()
+                .collect(java.util.stream.Collectors.toMap(r -> (Long) r[0], r -> (Long) r[1])));
+    }
+
     public Map<ContractStatus, Long> countByStatus() {
         return countByEnum(ContractStatus.class, "status");
     }

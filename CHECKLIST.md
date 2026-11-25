@@ -18,7 +18,7 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 
 ## Utilisateurs côté agent et admin (2.1)
 
-- [ ] Agent : consulter les clients (`agent/clients.jsp`, pas encore de servlet)
+- [x] Agent : consulter les clients (`AgentClientsServlet`, `ClientService` : recherche, nombre de contrats, fiche avec contrats et sinistres)
 - [ ] Admin : gérer les utilisateurs et les rôles (`/admin/users` : activer, désactiver, changer le rôle)
 - [ ] Permettre à un agent ou un admin de corriger le nom d'un utilisateur (le profil ne le permet plus)
 - [x] Admin : consulter l'ensemble des contrats (`/admin/contracts`)

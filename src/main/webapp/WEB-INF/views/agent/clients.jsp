@@ -1,9 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /agent/clients?q=texte[&id=5] — PAS ENCORE DE SERVLET (vue prête pour le modèle anglais)
-     Attributs attendus : clients List<…>{id, firstName, lastName, email, phone, createdAt, contractCount} (DTO, contractCount n'est pas dans User)
-                          selection (peut être null) {id, firstName, lastName, email, phone, address,
-                                     contracts List<Contract>, claims List<Claim>} --%>
+<%-- AgentClientsServlet — GET /agent/clients?q=texte[&id=5]
+     Attributs : clients   List<ClientSummary>{id, firstName, lastName, email, phone, createdAt, contractCount}
+                 selection ClientDetail (null sans ?id=) {id, firstName, lastName, email, phone, address,
+                           contracts List<Contract>, claims List<Claim>}
+     Accessible à l'agent et à l'admin ; seul l'agent voit le bouton « Nouveau contrat » (CONTRACT_WRITE). --%>
 <c:set var="title" value="Clients" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -56,11 +57,13 @@
               <span class="small muted"><c:out value="${selection.email}" /> · <c:out value="${selection.phone}" /></span>
               <span class="small muted"><c:out value="${selection.address}" /></span>
             </div>
-            <a class="btn btn-primary btn-sm" href="${ctx}/agent/contracts/edit?clientId=${selection.id}">+ Nouveau contrat pour ce client</a>
+            <c:if test="${sessionScope.currentUser.role == 'AGENT'}">
+              <a class="btn btn-primary btn-sm" href="${ctx}/agent/contracts/edit?clientId=${selection.id}">+ Nouveau contrat pour ce client</a>
+            </c:if>
             <div class="stack">
               <span class="small strong">Contrats</span>
               <c:forEach items="${selection.contracts}" var="ct">
-                <div class="between small"><a href="${ctx}/agent/contracts/edit?id=${ct.id}"><c:out value="${ct.number}" /> · <c:out value="${ct.insuranceType.name}" /></a><ui:status value="${ct.status}" /></div>
+                <div class="between small"><a href="${ctx}/agent/contracts?id=${ct.id}"><c:out value="${ct.number}" /> · <c:out value="${ct.insuranceType.name}" /></a><ui:status value="${ct.status}" /></div>
               </c:forEach>
               <c:if test="${empty selection.contracts}"><span class="small muted">Aucun contrat.</span></c:if>
             </div>
