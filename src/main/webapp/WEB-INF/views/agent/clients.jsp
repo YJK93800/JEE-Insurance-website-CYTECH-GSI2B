@@ -4,6 +4,8 @@
      Attributs : clients   List<ClientSummary>{id, firstName, lastName, email, phone, createdAt, contractCount}
                  selection ClientDetail (null sans ?id=) {id, firstName, lastName, email, phone, address,
                            contracts List<Contract>, claims List<Claim>}
+     POST /agent/clients  action=name, id, firstName, lastName, q -> UserService.updateName
+                 errors Map<String,String> en cas d'échec (clés : firstName, lastName, user, action)
      Accessible à l'agent et à l'admin ; seul l'agent voit le bouton « Nouveau contrat » (CONTRACT_WRITE). --%>
 <c:set var="title" value="Clients" />
 <!DOCTYPE html>
@@ -23,6 +25,10 @@
           <button class="btn" type="submit">Rechercher</button>
         </form>
       </header>
+      <%@ include file="/WEB-INF/views/common/flash.jspf" %>
+      <c:if test="${not empty errors.action or not empty errors.user}">
+        <div class="alert alert-error" role="alert"><span><c:out value="${errors.action} ${errors.user}" /></span></div>
+      </c:if>
 
       <div class="row">
         <section class="card flush col-main" aria-label="Liste des clients">
@@ -57,6 +63,21 @@
               <span class="small muted"><c:out value="${selection.email}" /> · <c:out value="${selection.phone}" /></span>
               <span class="small muted"><c:out value="${selection.address}" /></span>
             </div>
+            <%-- Correction du nom : POST /agent/clients (action=name). Ouvert d'office s'il y a une erreur. --%>
+            <details ${not empty errors.firstName or not empty errors.lastName ? 'open' : ''}>
+              <summary class="small">Corriger le nom</summary>
+              <form class="form stack-sm" method="post" action="${ctx}/agent/clients" novalidate data-validate>
+                <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
+                <input type="hidden" name="action" value="name">
+                <input type="hidden" name="id" value="${selection.id}">
+                <input type="hidden" name="q" value="${fn:escapeXml(param.q)}">
+                <ui:field name="firstName" label="Prénom" required="true" extra="maxlength='80'"
+                          value="${not empty param.firstName ? param.firstName : selection.firstName}" />
+                <ui:field name="lastName" label="Nom" required="true" extra="maxlength='80'"
+                          value="${not empty param.lastName ? param.lastName : selection.lastName}" />
+                <button type="submit" class="btn btn-sm">Enregistrer</button>
+              </form>
+            </details>
             <c:if test="${sessionScope.currentUser.role == 'AGENT'}">
               <a class="btn btn-primary btn-sm" href="${ctx}/agent/contracts/edit?clientId=${selection.id}">+ Nouveau contrat pour ce client</a>
             </c:if>

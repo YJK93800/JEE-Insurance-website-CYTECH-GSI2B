@@ -205,6 +205,48 @@ class UserServiceTest {
         assertEquals(Role.CLIENT, aliceUser.getRole().getName());
     }
 
+    // ---- Correction du nom par un agent ou l'admin ----
+
+    @Test
+    void agentCanCorrectClientName() {
+        User updated = service.updateName(agent, 2L, "Robert", "Dupont");
+        assertEquals("Robert", updated.getFirstName());
+        assertEquals("Dupont", bobUser.getLastName());
+    }
+
+    @Test
+    void agentCannotCorrectStaffName() {
+        assertThrows(NotFoundException.class, () -> service.updateName(agent, 4L, "X", "Y"));
+        assertEquals("admin", adminUser.getFirstName());
+    }
+
+    @Test
+    void adminCanCorrectAnyoneElse() {
+        service.updateName(admin, 3L, "Agent", "Corrigé");
+        service.updateName(admin, 2L, "Bob", "Corrigé");
+        assertEquals("Corrigé", agentUser.getLastName());
+        assertEquals("Corrigé", bobUser.getLastName());
+    }
+
+    @Test
+    void clientCannotCorrectNames() {
+        assertThrows(ForbiddenException.class, () -> service.updateName(alice, 2L, "X", "Y"));
+        assertThrows(ForbiddenException.class, () -> service.updateName(null, 2L, "X", "Y"));
+        assertEquals("bob", bobUser.getFirstName());
+    }
+
+    @Test
+    void nobodyCorrectsOwnNameHere() {
+        assertThrows(ValidationException.class, () -> service.updateName(agent, 3L, "X", "Y"));
+        assertThrows(ValidationException.class, () -> service.updateName(admin, 4L, "X", "Y"));
+        assertEquals("agent", agentUser.getFirstName());
+    }
+
+    @Test
+    void correctingUnknownUserIsNotFound() {
+        assertThrows(NotFoundException.class, () -> service.updateName(admin, 999L, "X", "Y"));
+    }
+
     @Test
     void adminCannotChangeOwnRole() {
         assertThrows(ValidationException.class, () -> service.changeRole(admin, 4L, "CLIENT"));

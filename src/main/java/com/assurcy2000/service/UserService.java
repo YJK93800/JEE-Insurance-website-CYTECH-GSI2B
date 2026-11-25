@@ -10,6 +10,7 @@ import com.assurcy2000.security.Passwords;
 import com.assurcy2000.security.Policy;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.dto.request.UpdateProfileRequest;
+import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
 import org.hibernate.exception.ConstraintViolationException;
@@ -118,6 +119,27 @@ public class UserService {
             Role role = roleDao.findByName(roleName == null ? "" : roleName.trim())
                     .orElseThrow(() -> new ValidationException(Map.of("role", "Rôle inconnu.")));
             user.setRole(role);
+            return userDao.update(user);
+        });
+    }
+
+    /**
+     * Correction du prénom et du nom d'un autre utilisateur (le profil ne permet pas de changer les siens).
+     * Admin : tout le monde. Agent : les clients seulement ; un autre agent ou un admin donne « introuvable »,
+     * comme getById. Client : interdit.
+     * Les valeurs ont déjà été vérifiées et nettoyées par la servlet (classe Validation).
+     */
+    public User updateName(SessionUser actor, Long userId, String firstName, String lastName) {
+        if (!Policy.can(actor, USER_MANAGE) && !Policy.can(actor, CLIENT_READ)) {
+            throw new ForbiddenException();
+        }
+        forbidSelf(actor, userId);
+        return tx.inTransaction(() -> {
+            User user = findOrThrow(userId);
+            boolean allowed = Policy.can(actor, USER_MANAGE) || Role.CLIENT.equals(user.getRole().getName());
+            if (!allowed) throw new NotFoundException("Utilisateur introuvable.");
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
             return userDao.update(user);
         });
     }

@@ -3,6 +3,7 @@
 <%-- AdminUsersServlet — GET  /admin/users[?roleFilter=AGENT&q=texte]
                          POST /admin/users  id, action=active, value=true|false  -> UserService.setActive
                          POST /admin/users  id, action=role, role=CLIENT|AGENT|ADMIN -> UserService.changeRole
+     Lien « Corriger le nom » -> AdminUserEditServlet (GET /admin/users/edit?id=…)
      Attributs : users   List<User>{id, firstName, lastName, email, role{name}, active, createdAt}
                  errors Map<String,String> en cas d'échec (clés : role, user, action)
      Le filtre par rôle et la recherche sont faits ici, sur la liste complète renvoyée par le service.
@@ -69,6 +70,7 @@
                     <td><span class="badge ${usr.active ? 'badge-actif' : 'badge-suspendu'}">${usr.active ? 'ACTIF' : 'DÉSACTIVÉ'}</span></td>
                     <td><div class="actions">
                       <c:if test="${not isMe}">
+                        <a class="btn-link" href="${ctx}/admin/users/edit?id=${usr.id}">Corriger le nom</a>
                         <form method="post" action="${ctx}/admin/users"
                               <c:if test="${usr.active}">data-confirm="Désactiver le compte de ${fn:escapeXml(usr.email)} ?"</c:if>>
                           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
