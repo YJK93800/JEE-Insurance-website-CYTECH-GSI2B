@@ -12,7 +12,7 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 - [x] Se connecter / se déconnecter
 - [x] Modifier ses coordonnées : téléphone et adresse (`updateInfos`, `UpdateProfileRequest`)
 - [x] Changer son mot de passe (vérification de l'ancien dans `UserService`)
-- [x] Identité verrouillée sur `/profil` (nom, prénom, email, date de naissance)
+- [x] Nom et prénom verrouillés sur `/profil` ; email et date de naissance modifiables
 - [ ] Tester l'inscription : champ vide, moins de 18 ans, email déjà pris, puis inscription valide
 - [ ] Tester la connexion avec les 3 comptes de démo
 - [ ] Tester `/profil` : modifier téléphone et adresse, puis changer le mot de passe (mauvais puis bon mot de passe actuel)
@@ -21,11 +21,11 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 ## Utilisateurs côté agent et admin (2.1)
 
 - [x] Agent : consulter les clients (`AgentClientsServlet`, `ClientService` : recherche, nombre de contrats, fiche avec contrats et sinistres)
-- [ ] Admin : gérer les utilisateurs et les rôles (`/admin/users` : activer, désactiver, changer le rôle)
-- [ ] Permettre à un agent ou un admin de corriger le nom d'un utilisateur (le profil ne le permet plus)
+- [x] Admin : gérer les utilisateurs et les rôles (`/admin/users` : activer, désactiver, changer le rôle)
+- [x] Permettre à un agent ou un admin de corriger le nom d'un utilisateur (`UserService.updateName` : fiche client de `/agent/clients`, `/admin/users/edit`)
 - [x] Admin : consulter l'ensemble des contrats (`/admin/contracts`)
-- [ ] Admin : consulter l'ensemble des sinistres (`/admin/claims`) → dépend de l'Étape 2 (sinistres)
-- [ ] Client : consulter l'historique de ses demandes (`client/history.jsp`) → dépend de l'Étape 2 (déclarations de sinistre ; les souscriptions de contrats sont déjà disponibles)
+- [ ] Admin : consulter l'ensemble des sinistres (`/admin/claims`, déjà branché sur `AgentClaimsServlet`) → à tester avec l'Étape 2 (sinistres)
+- [ ] Client : consulter l'historique de ses demandes (`client/history.jsp`, pas encore de servlet : `/client/historique` donne une 404) : faisable maintenant, contrats et sinistres du client sont déjà lisibles
 
 ## Étape 1 — Contrats (2.2)
 
