@@ -33,6 +33,16 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- Toutes les vues et leurs fragments inclus (.jspf) sont lus en UTF-8.
+         Sans ça, Tomcat lit les .jspf en ISO-8859-1 : « Déclaré » s'affiche « DÃ©clarÃ© ». -->
+    <jsp-config>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <url-pattern>*.jspf</url-pattern>
+            <page-encoding>UTF-8</page-encoding>
+        </jsp-property-group>
+    </jsp-config>
+
     <session-config>
         <session-timeout>30</session-timeout>
         <cookie-config>
