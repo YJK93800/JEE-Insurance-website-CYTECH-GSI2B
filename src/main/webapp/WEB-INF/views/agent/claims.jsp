@@ -5,7 +5,9 @@
      GET  /agent/claims?id=93                        -> détail : attributs claim Claim, history List<ClaimHistory>
      POST /agent/claims  id, action=status, status=EN_ANALYSE|ACCEPTE|REFUSE  -> ClaimService.changeStatus
      POST /agent/claims  id, action=indemnify, amount                         -> ClaimService.indemnify
-     En cas d'erreur, le détail est réaffiché avec errors Map<String,String> (clés : status, amount, action).
+     POST /agent/claims  id, action=comment, content                          -> ClaimService.addComment
+     Détail : attribut comments List<ClaimComment> (content, createdAt, author{firstName, lastName}), notes internes
+     En cas d'erreur, le détail est réaffiché avec errors Map<String,String> (clés : status, amount, content, action).
      Aussi utilisée par l'admin (/admin/claims) en consultation seule : les formulaires ne sont pas affichés.
      Le filtre par statut et la recherche sont faits ici, sur la liste complète renvoyée par le service.
      Claim : contract, contract.client et agent sont chargés (pas contract.insuranceType). --%>
@@ -93,6 +95,37 @@
               </section>
             </c:if>
           </c:if>
+
+          <section class="card" id="comments" aria-labelledby="h-comm">
+            <h2 id="h-comm">Commentaires <span class="xsmall muted">(internes, non visibles par le client)</span></h2>
+            <c:choose>
+              <c:when test="${empty comments}"><p class="small muted">Aucun commentaire.</p></c:when>
+              <c:otherwise>
+                <ul class="stack-sm small" aria-label="Commentaires de l'agent">
+                  <c:forEach var="cm" items="${comments}">
+                    <li class="stack-sm">
+                      <span class="xsmall muted"><c:out value="${cm.author.firstName} ${cm.author.lastName}" /> · <ui:date value="${cm.createdAt}" /><c:if test="${not empty cm.createdAt}"> à ${cm.createdAt.hour lt 10 ? '0' : ''}${cm.createdAt.hour}h${cm.createdAt.minute lt 10 ? '0' : ''}${cm.createdAt.minute}</c:if></span>
+                      <p class="quote" style="white-space: pre-line"><c:out value="${cm.content}" /></p>
+                    </li>
+                  </c:forEach>
+                </ul>
+              </c:otherwise>
+            </c:choose>
+
+            <c:if test="${isAgent}">
+              <form class="form" method="post" action="${ctx}/agent/claims" novalidate data-validate>
+                <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
+                <input type="hidden" name="id" value="${claim.id}">
+                <input type="hidden" name="action" value="comment">
+                <label class="field ${not empty errors.content ? 'has-error' : ''}">Ajouter un commentaire
+                  <textarea name="content" rows="3" maxlength="2000" required
+                            <c:if test="${not empty errors.content}">aria-invalid="true" aria-describedby="e-content"</c:if>><c:out value="${param.action == 'comment' ? param.content : ''}" /></textarea>
+                  <c:if test="${not empty errors.content}"><span class="field-error" id="e-content"><c:out value="${errors.content}" /></span></c:if>
+                </label>
+                <button type="submit" class="btn btn-primary">Publier</button>
+              </form>
+            </c:if>
+          </section>
         </div>
 
         <aside class="col-side">

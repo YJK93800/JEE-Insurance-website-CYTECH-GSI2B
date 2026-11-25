@@ -1,5 +1,6 @@
 package com.assurcy2000.service;
 
+import com.assurcy2000.dao.ClaimCommentDao;
 import com.assurcy2000.dao.ClaimDao;
 import com.assurcy2000.dao.ClaimHistoryDao;
 import com.assurcy2000.dao.ContractDao;
@@ -73,7 +74,7 @@ class ClaimHistoryTest {
         UserDao userDao = new UserDao() {
             @Override public User getReference(Long id) { return Map.of(1L, alice, 2L, agentUser).get(id); }
         };
-        service = new ClaimService(claimDao, historyDao, contractDao, userDao, DIRECT);
+        service = new ClaimService(claimDao, historyDao, new ClaimCommentDao(), contractDao, userDao, DIRECT);
         client = SessionUser.from(alice);
         agent = SessionUser.from(agentUser);
     }

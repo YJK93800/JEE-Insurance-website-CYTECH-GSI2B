@@ -88,7 +88,7 @@ Admin et client
 - [ ] Client : suivre l'état d'un sinistre
 - [ ] Agent : consulter les déclarations
 - [ ] Agent : changer le statut (DECLARE → EN_ANALYSE → ACCEPTE / REFUSE → INDEMNISE)
-- [ ] Agent : ajouter des commentaires
+- [x] Agent : ajouter des commentaires (notes internes : lisibles par l'agent et l'admin, pas par le client ; `ClaimCommentTest`)
 - [ ] Agent : enregistrer le montant d'indemnisation
 - [x] Enregistrer chaque changement de statut dans `historique_sinistre` (`ClaimService.record`, affiché sur le détail client et agent, testé dans `ClaimHistoryTest`)
 
