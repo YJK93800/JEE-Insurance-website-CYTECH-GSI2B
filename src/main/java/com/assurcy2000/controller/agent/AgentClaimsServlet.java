@@ -52,6 +52,7 @@ public class AgentClaimsServlet extends BaseServlet {
     private void showDetail(HttpServletRequest req, HttpServletResponse resp, SessionUser user, Long id)
             throws ServletException, IOException {
         req.setAttribute("claim", claimService.get(user, id));
+        req.setAttribute("history", claimService.history(user, id));
         render(req, resp, Views.AGENT_CLAIM);
     }
 }

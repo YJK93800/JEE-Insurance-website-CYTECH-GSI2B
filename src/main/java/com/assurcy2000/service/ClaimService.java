@@ -1,10 +1,12 @@
 package com.assurcy2000.service;
 
 import com.assurcy2000.dao.ClaimDao;
+import com.assurcy2000.dao.ClaimHistoryDao;
 import com.assurcy2000.dao.ContractDao;
 import com.assurcy2000.dao.UserDao;
 import com.assurcy2000.dto.request.DeclareClaimRequest;
 import com.assurcy2000.model.Claim;
+import com.assurcy2000.model.ClaimHistory;
 import com.assurcy2000.model.Contract;
 import com.assurcy2000.model.enums.ClaimStatus;
 import com.assurcy2000.model.enums.ClaimType;
@@ -42,14 +44,19 @@ public class ClaimService {
     private static final BigDecimal MAX_AMOUNT = new BigDecimal("10000000");
 
     private final ClaimDao claimDao;
+    private final ClaimHistoryDao historyDao;
     private final ContractDao contractDao;
     private final UserDao userDao;
     private final TransactionRunner tx;
 
-    public ClaimService() { this(new ClaimDao(), new ContractDao(), new UserDao(), new HibernateTransactionRunner()); }
+    public ClaimService() {
+        this(new ClaimDao(), new ClaimHistoryDao(), new ContractDao(), new UserDao(), new HibernateTransactionRunner());
+    }
 
-    public ClaimService(ClaimDao claimDao, ContractDao contractDao, UserDao userDao, TransactionRunner tx) {
+    public ClaimService(ClaimDao claimDao, ClaimHistoryDao historyDao, ContractDao contractDao,
+                        UserDao userDao, TransactionRunner tx) {
         this.claimDao = claimDao;
+        this.historyDao = historyDao;
         this.contractDao = contractDao;
         this.userDao = userDao;
         this.tx = tx;
@@ -64,6 +71,14 @@ public class ClaimService {
         return tx.inTransaction(() -> claimDao.findById(id)
                 .filter(c -> Policy.canRead(actor, CLAIM_READ_ALL, CLAIM_READ_OWN, c.getContract().getClient().getId()))
                 .orElseThrow(() -> new NotFoundException("Sinistre introuvable.")));
+    }
+
+    /** Changements de statut d'un sinistre, du plus ancien au plus récent (mêmes droits de lecture que get). */
+    public List<ClaimHistory> history(SessionUser actor, Long id) {
+        return tx.inTransaction(() -> {
+            get(actor, id);
+            return historyDao.findByClaim(id);
+        });
     }
 
     /** Vérification du contrat + génération du numéro + insertion : une seule transaction. */
@@ -115,8 +130,9 @@ public class ClaimService {
 
         if (!errors.isEmpty()) throw new ValidationException(errors);
 
-        Claim claim = new Claim(nextNumber(), date, description, type, amount, contract);
-        return claimDao.save(claim);
+        Claim claim = claimDao.save(new Claim(nextNumber(), date, description, type, amount, contract));
+        record(claim, null, ClaimStatus.DECLARE, actor);
+        return claim;
     }
 
     public Claim changeStatus(SessionUser actor, Long id, ClaimStatus next) {
@@ -127,9 +143,12 @@ public class ClaimService {
                 throw new ValidationException(Map.of("status",
                         "Passage de " + claim.getStatus() + " à " + next + " impossible."));
             }
+            ClaimStatus previous = claim.getStatus();
             claim.setStatus(next);
             claim.setAgent(userDao.getReference(actor.id()));
-            return claimDao.update(claim);
+            Claim updated = claimDao.update(claim);
+            record(updated, previous, next, actor);
+            return updated;
         });
     }
 
@@ -147,8 +166,15 @@ public class ClaimService {
             claim.setIndemnificationDate(LocalDate.now());
             claim.setStatus(ClaimStatus.INDEMNISE);
             claim.setAgent(userDao.getReference(actor.id()));
-            return claimDao.update(claim);
+            Claim updated = claimDao.update(claim);
+            record(updated, ClaimStatus.ACCEPTE, ClaimStatus.INDEMNISE, actor);
+            return updated;
         });
+    }
+
+    /** Trace un changement de statut dans historique_sinistre, dans la transaction en cours. */
+    private void record(Claim claim, ClaimStatus from, ClaimStatus to, SessionUser actor) {
+        historyDao.save(new ClaimHistory(claim, from, to, userDao.getReference(actor.id())));
     }
 
     private String nextNumber() {

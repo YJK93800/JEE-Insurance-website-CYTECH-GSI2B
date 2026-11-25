@@ -2,7 +2,8 @@
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- ClientClaimsServlet — GET /client/claims?id=93 (404 si le sinistre n'appartient pas au client connecté)
      Attributs : claim Claim (number, claimDate, declaredAt, type, description, estimatedAmount,
-                 indemnifiedAmount, indemnificationDate, status, contract{number}, agent{firstName, lastName}) --%>
+                 indemnifiedAmount, indemnificationDate, status, contract{number}, agent{firstName, lastName})
+                 history List<ClaimHistory> (changements de statut, du plus ancien au plus récent) --%>
 <c:set var="title" value="Sinistre ${claim.number}" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -40,6 +41,10 @@
           <section class="card" aria-labelledby="h-suivi">
             <h2 id="h-suivi">Avancement</h2>
             <%@ include file="/WEB-INF/views/common/claim-timeline.jspf" %>
+          </section>
+          <section class="card" aria-labelledby="h-histo">
+            <h2 id="h-histo">Historique</h2>
+            <%@ include file="/WEB-INF/views/common/claim-history.jspf" %>
           </section>
         </aside>
       </div>

@@ -1,0 +1,26 @@
+<%-- Historique des changements de statut d'un sinistre (table historique_sinistre).
+     La page doit définir l'attribut "history" (List<ClaimHistory>, du plus ancien au plus récent) avant l'inclusion.
+     ClaimHistory : oldStatus (null à la déclaration), newStatus, changedAt, changedBy{firstName, lastName} --%>
+<c:choose>
+  <c:when test="${empty history}"><p class="small muted">Aucun changement enregistré.</p></c:when>
+  <c:otherwise>
+    <ul class="stack-sm small" aria-label="Changements de statut">
+      <c:forEach var="h" items="${history}">
+        <li class="stack-sm">
+          <span>
+            <c:choose>
+              <c:when test="${empty h.oldStatus}">Déclaration</c:when>
+              <c:otherwise><ui:status value="${h.oldStatus}" /> →</c:otherwise>
+            </c:choose>
+            <ui:status value="${h.newStatus}" />
+          </span>
+          <span class="xsmall muted">
+            <ui:date value="${h.changedAt}" />
+            <c:if test="${not empty h.changedAt}"> à ${h.changedAt.hour lt 10 ? '0' : ''}${h.changedAt.hour}h${h.changedAt.minute lt 10 ? '0' : ''}${h.changedAt.minute}</c:if>
+            <c:if test="${not empty h.changedBy}"> · <c:out value="${h.changedBy.firstName} ${h.changedBy.lastName}" /></c:if>
+          </span>
+        </li>
+      </c:forEach>
+    </ul>
+  </c:otherwise>
+</c:choose>

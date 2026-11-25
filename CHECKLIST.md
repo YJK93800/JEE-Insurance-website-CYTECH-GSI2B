@@ -90,7 +90,7 @@ Admin et client
 - [ ] Agent : changer le statut (DECLARE → EN_ANALYSE → ACCEPTE / REFUSE → INDEMNISE)
 - [ ] Agent : ajouter des commentaires
 - [ ] Agent : enregistrer le montant d'indemnisation
-- [ ] Enregistrer chaque changement de statut dans `historique_sinistre`
+- [x] Enregistrer chaque changement de statut dans `historique_sinistre` (`ClaimService.record`, affiché sur le détail client et agent, testé dans `ClaimHistoryTest`)
 
 ## Étape 3 — Paiements (2.6)
 

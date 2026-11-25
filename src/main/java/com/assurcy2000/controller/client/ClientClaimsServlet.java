@@ -21,7 +21,7 @@ import java.io.IOException;
 
 /**
  * GET  /client/claims            → mes sinistres
- * GET  /client/claims?id=3       → détail d'un de mes sinistres
+ * GET  /client/claims?id=3       → détail d'un de mes sinistres (+ historique des statuts)
  * GET  /client/claims?new=1      → formulaire de déclaration
  * POST /client/claims            → déclarer un sinistre
  */
@@ -37,7 +37,9 @@ public class ClientClaimsServlet extends BaseServlet {
         if (req.getParameter("new") != null) {
             showForm(req, resp, user);
         } else if (req.getParameter("id") != null) {
-            req.setAttribute("claim", claimService.get(user, idParam(req, "id")));
+            Long id = idParam(req, "id");
+            req.setAttribute("claim", claimService.get(user, id));
+            req.setAttribute("history", claimService.history(user, id));
             render(req, resp, Views.CLIENT_CLAIM);
         } else {
             req.setAttribute("claims", claimService.listFor(user));

@@ -2,7 +2,7 @@
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- AgentClaimsServlet (Views.AGENT_CLAIMS et Views.AGENT_CLAIM)
      GET  /agent/claims[?status=EN_ANALYSE&q=texte]  -> liste : attribut claims List<Claim>
-     GET  /agent/claims?id=93                        -> détail : attribut claim Claim
+     GET  /agent/claims?id=93                        -> détail : attributs claim Claim, history List<ClaimHistory>
      POST /agent/claims  id, action=status, status=EN_ANALYSE|ACCEPTE|REFUSE  -> ClaimService.changeStatus
      POST /agent/claims  id, action=indemnify, amount                         -> ClaimService.indemnify
      En cas d'erreur, le détail est réaffiché avec errors Map<String,String> (clés : status, amount, action).
@@ -99,6 +99,10 @@
           <section class="card" aria-labelledby="h-suivi">
             <h2 id="h-suivi">Avancement</h2>
             <%@ include file="/WEB-INF/views/common/claim-timeline.jspf" %>
+          </section>
+          <section class="card" aria-labelledby="h-histo">
+            <h2 id="h-histo">Historique</h2>
+            <%@ include file="/WEB-INF/views/common/claim-history.jspf" %>
           </section>
         </aside>
       </div>
