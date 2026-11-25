@@ -1,6 +1,8 @@
 # Projet JEE AssurCY2000 — Checklist
 
-Mise à jour le 24/11/2026. Cochez les cases dans vos commits au fur et à mesure.
+Mise à jour le 25/11/2026. Cochez les cases dans vos commits au fur et à mesure.
+
+« → dépend de l'Étape N » : à faire une fois l'étape indiquée terminée.
 
 ## Étape 0 — Authentification et profil (section 2.1)
 
@@ -22,8 +24,8 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 - [ ] Admin : gérer les utilisateurs et les rôles (`/admin/users` : activer, désactiver, changer le rôle)
 - [ ] Permettre à un agent ou un admin de corriger le nom d'un utilisateur (le profil ne le permet plus)
 - [x] Admin : consulter l'ensemble des contrats (`/admin/contracts`)
-- [ ] Admin : consulter l'ensemble des sinistres (`/admin/claims`)
-- [ ] Client : consulter l'historique de ses demandes (`client/history.jsp`)
+- [ ] Admin : consulter l'ensemble des sinistres (`/admin/claims`) → dépend de l'Étape 2 (sinistres)
+- [ ] Client : consulter l'historique de ses demandes (`client/history.jsp`) → dépend de l'Étape 2 (déclarations de sinistre ; les souscriptions de contrats sont déjà disponibles)
 
 ## Étape 1 — Contrats (2.2)
 
@@ -96,12 +98,12 @@ Admin et client
 - [ ] Consulter les paiements en attente et les échéances
 - [ ] Consulter l'historique des paiements
 - [ ] Agent : enregistrer un paiement (`PaymentService.markPaid` existe, aucune servlet ne l'appelle)
-- [ ] Générer les échéances à la création et au renouvellement d'un contrat
+- [ ] Générer les échéances à la création et au renouvellement d'un contrat (à brancher dans `ContractService.create` et `renew`, Étape 1)
 
 ## Étape 4 — Garanties et types d'assurance (2.3, 2.4)
 
 - [ ] Agent : créer, modifier, supprimer une garantie
-- [ ] Agent : associer une garantie à un contrat
+- [ ] Agent : associer une garantie à un contrat (déjà possible dans le formulaire de contrat de l'Étape 1)
 - [ ] Client : consulter ses garanties
 - [ ] Admin : gérer les types d'assurance (nom, description, prix de base, garanties disponibles)
 - [ ] Ajouter un type sans toucher au code : les types viennent de la base, pas d'un `enum`
@@ -110,9 +112,9 @@ Admin et client
 
 - [ ] Statistiques clients : total, nouveaux, répartition par type d'assurance
 - [ ] Statistiques contrats : actifs, expirés, résiliés, évolution
-- [ ] Statistiques financières : chiffre d'affaires, primes, indemnisations, évolution des revenus
+- [ ] Statistiques financières : chiffre d'affaires, primes, indemnisations, évolution des revenus → dépend des Étapes 2 (indemnisations) et 3 (paiements)
 - [ ] Accessible à l'agent et à l'admin, pas au client
-- [ ] Admin uniquement : indicateurs de performance (taux d'acceptation, délai moyen de traitement, ratio indemnisations / primes)
+- [ ] Admin uniquement : indicateurs de performance (taux d'acceptation, délai moyen de traitement, ratio indemnisations / primes) → dépend de l'Étape 2 (sinistres)
 
 ## Étape 6 — Assistant IA (2.7)
 
@@ -120,7 +122,7 @@ En dernier : il réutilise les services des étapes précédentes pour fournir a
 
 - [ ] Choisir l'API d'IA et gérer la clé (hors du dépôt Git)
 - [ ] Page de discussion client, messages enregistrés dans `message_ia`
-- [ ] Répondre à : mes contrats actifs, garanties de mon assurance auto, comment déclarer un sinistre, documents à fournir, différence entre deux garanties, où en est mon dernier sinistre
+- [ ] Répondre à : mes contrats actifs, garanties de mon assurance auto, comment déclarer un sinistre, documents à fournir, différence entre deux garanties, où en est mon dernier sinistre → dépend des Étapes 2 (sinistres) et 4 (garanties)
 
 ## Architecture et contraintes (sections 3 et 4)
 
@@ -139,7 +141,7 @@ Pour chaque page branchée : même URL dans la servlet et dans les liens, mêmes
 - [x] `homePath()` de l'agent pointe vers `/agent/claims`, qui a une servlet
 - [x] `Views.STATS` pointe vers `admin/stats.jsp`, qui existe
 - [x] `Views.AGENT_CLAIM` pointe vers `agent/claims.jsp`, qui existe
-- [ ] `/client/dashboard` n'a pas de servlet : le client est envoyé sur `/client/contracts` en attendant
+- [ ] `/client/dashboard` n'a pas de servlet : le client est envoyé sur `/client/contracts` en attendant → dépend des Étapes 2 (dernier sinistre) et 3 (prochain paiement)
 
 ## Avant le rendu
 
