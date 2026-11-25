@@ -2,7 +2,8 @@
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- AgentContractsServlet
      GET  /agent/contracts?q=texte&status=ACTIF&type=3   (recherche de contrats)
-     POST /agent/contracts/action (contratId, action = suspendre | resilier | renouveler | activer) -> à brancher
+     POST /agent/contracts/action (contractId, action = activate | suspend | renew) -> ContractActionServlet
+     GET  /agent/contracts/terminate?id=12   -> page de résiliation (date + motif)
      Attributs : contracts List<Contract>  statuses ContractStatus[]  insuranceTypes List<InsuranceType>
      Aussi utilisée par l'admin (/admin/contracts) en consultation seule. --%>
 <c:set var="title" value="Contrats" />
@@ -55,7 +56,7 @@
                 <tbody>
                   <c:forEach items="${contracts}" var="ct">
                     <tr>
-                      <td class="strong"><c:out value="${ct.number}" /></td>
+                      <td class="strong"><a href="${ctx}${base}?id=${ct.id}"><c:out value="${ct.number}" /></a></td>
                       <td><c:out value="${ct.client.firstName} ${ct.client.lastName}" /></td>
                       <td class="muted"><c:out value="${ct.insuranceType.name}" /></td>
                       <td class="muted small"><ui:date value="${ct.startDate}" /> → <ui:date value="${ct.endDate}" /></td>
@@ -64,8 +65,11 @@
                       <td>
                         <div class="actions">
                           <c:if test="${isAgent}">
-                            <a class="btn btn-sm" href="${ctx}/agent/contracts/edit?id=${ct.id}">Modifier</a>
                             <c:set var="s" value="${ct.status}" />
+                            <%-- Un contrat résilié ou expiré n'est plus modifiable (règle de ContractService.update) --%>
+                            <c:if test="${s != 'RESILIE' and s != 'EXPIRE'}">
+                              <a class="btn btn-sm" href="${ctx}/agent/contracts/edit?id=${ct.id}">Modifier</a>
+                            </c:if>
                             <c:if test="${s == 'EN_ATTENTE' or s == 'SUSPENDU'}">
                               <form method="post" action="${ctx}/agent/contracts/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="activate"><button class="btn-link" type="submit">Activer</button></form>
                             </c:if>
@@ -73,10 +77,11 @@
                               <form method="post" action="${ctx}/agent/contracts/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="suspend"><button class="btn-link" type="submit">Suspendre</button></form>
                             </c:if>
                             <c:if test="${s == 'ACTIF' or s == 'EXPIRE'}">
-                              <form method="post" action="${ctx}/agent/contracts/action"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="renew"><button class="btn-link" type="submit">Renouveler</button></form>
+                              <form method="post" action="${ctx}/agent/contracts/action" data-confirm="Créer le contrat de renouvellement de ${fn:escapeXml(ct.number)} ?"><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="renew"><button class="btn-link" type="submit">Renouveler</button></form>
                             </c:if>
                             <c:if test="${s != 'RESILIE' and s != 'EXPIRE'}">
-                              <form method="post" action="${ctx}/agent/contracts/action" data-confirm="Résilier le contrat ${fn:escapeXml(ct.number)} ? Cette action est définitive."><%@ include file="/WEB-INF/views/common/csrf.jspf" %><input type="hidden" name="contractId" value="${ct.id}"><input type="hidden" name="action" value="terminate"><button class="btn-link danger" type="submit">Résilier</button></form>
+                              <%-- La résiliation demande une date et un motif : page de confirmation dédiée --%>
+                              <a class="btn-link danger" href="${ctx}/agent/contracts/terminate?id=${ct.id}">Résilier</a>
                             </c:if>
                           </c:if>
                         </div>

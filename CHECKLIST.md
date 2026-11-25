@@ -30,16 +30,54 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 Le cœur de l'application : sinistres, paiements et garanties dépendent tous d'un contrat.
 
 - [x] Agent : créer un contrat (`ContractFormServlet`, numéro `CTR-AAAA-NNNN`, prime = prix de base par défaut)
-- [ ] Agent : modifier un contrat
+- [x] Agent : modifier un contrat (client et type seulement tant que EN_ATTENTE ; statut via les actions)
 - [x] Agent : rechercher un contrat (numéro ou client, statut, type)
-- [ ] Agent : consulter le détail d'un contrat
-- [x] Agent : suspendre un contrat (`ContractService.suspend`, bouton à brancher)
-- [ ] Agent : résilier un contrat (date + motif)
-- [ ] Agent : renouveler un contrat (nouveau contrat lié à `contrat_precedent_id`)
-- [ ] Client : consulter ses contrats, avec filtre par statut
-- [ ] Client : consulter le détail d'un contrat et ses garanties
-- [ ] Charger les garanties dans les requêtes de liste (`join fetch`), sinon `LazyInitializationException` dans la JSP
-- [ ] Décider : prime mensuelle ou annuelle (les prix de base ressemblent à des montants annuels)
+- [x] Agent / admin : consulter le détail d'un contrat (`/agent/contracts?id=`, historique de renouvellement et résiliation)
+- [x] Agent : activer / suspendre un contrat (boutons de la liste, `ContractActionServlet`)
+- [x] Agent : résilier un contrat (page de confirmation avec date + motif)
+- [x] Agent : renouveler un contrat (nouveau contrat EN_ATTENTE lié à `contrat_precedent_id`, une seule fois)
+- [x] Client : consulter ses contrats, avec filtre par statut (onglets)
+- [x] Client : consulter le détail d'un contrat et ses garanties
+- [x] Charger ce que les pages affichent (`join fetch` dans `ContractDao.findById` ; les listes n'affichent pas les garanties)
+- [x] Passer automatiquement en EXPIRE les contrats dont la date de fin est dépassée (`ContractExpirationListener`, toutes les heures)
+- [x] Décider : prime **mensuelle** (une échéance par mois à générer à l'étape 3)
+
+### Tests à faire dans Tomcat (contrats)
+
+Compte agent `agent@assurance.local`, puis admin et client. Redémarrer Tomcat avant.
+
+Liste et recherche (`/agent/contracts`)
+- [ ] Le contrat de démo s'affiche, avec le statut en libellé (ACTIF, EN ATTENTE…)
+- [ ] Recherche par numéro, par nom de client, par email ; filtre par statut ; filtre par type ; « Réinitialiser »
+- [ ] Le numéro de contrat ouvre la page de détail
+
+Création (`+ Nouveau contrat`)
+- [ ] Choisir un type pré-remplit la prime et coche ses garanties ; les autres garanties sont grisées
+- [ ] Changer la date de début décale la date de fin (+1 an − 1 jour)
+- [ ] Erreurs affichées : aucun client, aucun type, fin avant début, prime négative ou texte, aucune garantie
+- [ ] Création valide : message « Contrat CTR-2026-000X créé (en attente) », numéro qui s'incrémente
+
+Modification
+- [ ] Contrat en attente : client, type, dates, prime et garanties modifiables
+- [ ] Contrat actif ou suspendu : client et type en lecture seule, le reste modifiable, pas d'erreur 500
+- [ ] Prime laissée vide : l'ancienne prime est conservée
+- [ ] Contrat résilié ou expiré : pas de bouton « Modifier » ; l'enregistrement est refusé
+
+Actions
+- [ ] Activer un contrat en attente, puis suspendre, puis réactiver
+- [ ] Renouveler un contrat actif : nouveau contrat en attente du lendemain de la fin, ouvert en modification
+- [ ] Renouveler une 2e fois le même contrat : message d'erreur « déjà renouvelé »
+- [ ] Détail : liens « Renouvelle » / « Renouvelé par » entre les deux contrats
+- [ ] Résilier : page de confirmation, motif obligatoire, date hors période refusée, puis statut RÉSILIÉ avec date et motif dans le détail
+
+Expiration automatique
+- [ ] Dans MySQL, mettre une date de fin passée à un contrat actif, redémarrer, attendre 1 minute : le contrat passe EXPIRÉ
+
+Admin et client
+- [ ] Admin `/admin/contracts` : liste et détail visibles, aucun bouton d'action
+- [ ] Client `/client/contracts` : seulement ses contrats, onglets par statut, détail avec garanties
+- [ ] Client : `/client/contracts?id=` d'un contrat d'un autre client renvoie une 404
+- [ ] Lancer `mvn test` (tests unitaires des contrats : création, modification, actions)
 
 ## Étape 2 — Sinistres (2.5)
 

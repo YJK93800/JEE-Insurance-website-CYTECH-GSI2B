@@ -19,9 +19,15 @@ public class ContractDao extends BaseDao<Contract, Long> {
     public ContractDao() { super(Contract.class); }
 
 
+    /**
+     * Contrat avec ses garanties, les garanties proposées par son type et le contrat qu'il renouvelle :
+     * les pages de détail et de modification les affichent après la fin de la transaction
+     * (sinon LazyInitializationException -> erreur 500).
+     */
     @Override
     public Optional<Contract> findById(Long id) {
-        return query(s -> s.createQuery(SELECT + " left join fetch c.guarantees where c.id = :id", Contract.class)
+        return query(s -> s.createQuery(SELECT + " left join fetch c.guarantees left join fetch t.guarantees left join fetch c.previousContract"
+                        + " where c.id = :id", Contract.class)
                 .setParameter("id", id)
                 .uniqueResultOptional());
     }
@@ -44,6 +50,28 @@ public class ContractDao extends BaseDao<Contract, Long> {
                 "select max(c.number) from Contract c where c.number like :p", String.class)
                 .setParameter("p", prefix + "%")
                 .getSingleResult()));
+    }
+
+    /**
+     * Passe en EXPIRE les contrats actifs ou suspendus dont la date de fin est antérieure à {@code today}.
+     * Une seule requête UPDATE ; renvoie le nombre de contrats modifiés.
+     */
+    public int expireEndedBefore(LocalDate today) {
+        return query(s -> s.createMutationQuery("update Contract c set c.status = :expired"
+                        + " where c.status in (:active, :suspended) and c.endDate < :today")
+                .setParameter("expired", ContractStatus.EXPIRE)
+                .setParameter("active", ContractStatus.ACTIF)
+                .setParameter("suspended", ContractStatus.SUSPENDU)
+                .setParameter("today", today)
+                .executeUpdate());
+    }
+
+    /** Contrat issu du renouvellement de celui-ci, s'il existe (contrat_precedent_id). */
+    public Optional<Contract> findRenewalOf(Long previousId) {
+        return query(s -> s.createQuery(SELECT + " where c.previousContract.id = :id", Contract.class)
+                .setParameter("id", previousId)
+                .setMaxResults(1)
+                .uniqueResultOptional());
     }
 
     public boolean existsByNumber(String number) {

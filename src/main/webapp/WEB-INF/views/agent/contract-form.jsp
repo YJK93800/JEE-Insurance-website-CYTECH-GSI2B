@@ -1,23 +1,23 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- ContractFormServlet
-     GET  /agent/contracts/edit          -> création       GET /agent/contracts/edit?id=12 -> modification (à venir)
+     GET  /agent/contracts/edit          -> création       GET /agent/contracts/edit?id=12 -> modification
      POST /agent/contracts/edit (id vide pour une création)
-     Paramètres : id, clientId, typeAssuranceId, dateDebut, dateFin, prime, statut, garantieIds (plusieurs valeurs)
+     Paramètres : id, clientId, insuranceTypeId, startDate, endDate, premium, guaranteeIds (plusieurs valeurs)
      Attributs : contract        Contract (null en création)
+                 identityLocked  boolean : client et type non modifiables (contrat qui n'est plus EN_ATTENTE)
                  clients         List<User>
                  insuranceTypes  List<InsuranceType> (actifs, avec leurs garanties)
                  guarantees      List<Guarantee> (actives)
-                 statuses        ContractStatus[] (modification seulement)
                  defaultStartDate, defaultEndDate   LocalDate (création : aujourd'hui, +1 an)
-                 erreurs         Map<String,String>
-     Le numéro de contrat (CTR-AAAA-NNNN) et le statut initial (EN_ATTENTE) sont décidés par le serveur. --%>
+                 errors          Map<String,String>
+     Le numéro (CTR-AAAA-NNNN) est décidé par le serveur. Le statut ne se modifie pas ici :
+     EN_ATTENTE à la création, puis actions de la liste (activer, suspendre, résilier, renouveler). --%>
 <c:set var="isCreation" value="${empty contract}" />
 <c:set var="title" value="${isCreation ? 'Nouveau contrat' : 'Modifier le contrat'}" />
 <%-- Valeurs affichées : paramètres renvoyés après une erreur, sinon valeurs du contrat --%>
 <c:set var="selectedClient" value="${not empty param.clientId ? param.clientId : contract.client.id}" />
 <c:set var="selectedType" value="${not empty param.insuranceTypeId ? param.insuranceTypeId : contract.insuranceType.id}" />
-<c:set var="selectedStatus" value="${not empty param.status ? param.status : (isCreation ? 'EN_ATTENTE' : contract.status)}" />
 <!DOCTYPE html>
 <html lang="fr">
 <head><%@ include file="/WEB-INF/views/common/head.jspf" %></head>
@@ -29,7 +29,9 @@
       <header class="stack-sm">
         <a class="back" href="${ctx}/agent/contracts">← Contrats</a>
         <h1>${title}</h1>
-        <c:if test="${not isCreation}"><span class="muted"><c:out value="${contract.number}" /></span></c:if>
+        <c:if test="${not isCreation}">
+          <span class="muted"><c:out value="${contract.number}" /> · <ui:status value="${contract.status}" label="${contract.status.label}" /></span>
+        </c:if>
       </header>
       <%@ include file="/WEB-INF/views/common/flash.jspf" %>
 
@@ -37,6 +39,27 @@
         <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
         <input type="hidden" name="id" value="${contract.id}">
 
+        <c:if test="${identityLocked}">
+          <%-- Contrat déjà en cours : client et type affichés, envoyés tels quels (le service refuse tout changement) --%>
+          <div class="grid-2">
+            <label class="field">Client
+              <input type="text" value="${fn:escapeXml(contract.client.lastName)} ${fn:escapeXml(contract.client.firstName)} · ${fn:escapeXml(contract.client.email)}" disabled>
+              <input type="hidden" name="clientId" value="${contract.client.id}">
+            </label>
+            <label class="field">Type d'assurance
+              <input type="text" value="${fn:escapeXml(contract.insuranceType.name)}" disabled>
+              <input type="hidden" name="insuranceTypeId" value="${contract.insuranceType.id}">
+              <span class="field-help">Le client et le type ne se modifient que tant que le contrat est en attente.</span>
+            </label>
+          </div>
+          <%-- Garanties proposées par le type, pour le JavaScript qui met en avant les garanties disponibles --%>
+          <select hidden data-insurance-type>
+            <c:set var="gIds"><c:forEach items="${contract.insuranceType.guarantees}" var="g" varStatus="gs">${g.id}${gs.last ? '' : ','}</c:forEach></c:set>
+            <option selected data-guarantees="${gIds}"></option>
+          </select>
+        </c:if>
+
+        <c:if test="${not identityLocked}">
         <div class="grid-2">
           <label class="field ${not empty errors.clientId ? 'has-error' : ''}">Client *
             <select name="clientId" required>
@@ -58,23 +81,17 @@
             <c:if test="${not empty errors.insuranceTypeId}"><span class="field-error"><c:out value="${errors.insuranceTypeId}" /></span></c:if>
           </label>
         </div>
+        </c:if>
 
         <div class="grid-3">
           <ui:field name="startDate" label="Date de début *" type="date" required="true" value="${not empty param.startDate ? param.startDate : (isCreation ? defaultStartDate : contract.startDate)}" />
           <ui:field name="endDate" label="Date de fin *" type="date" required="true" value="${not empty param.endDate ? param.endDate : (isCreation ? defaultEndDate : contract.endDate)}" extra="data-after='startDate' data-auto-end" />
           <ui:field name="premium" label="Prime mensuelle (€) *" type="number" required="true" value="${not empty param.premium ? param.premium : contract.premium}"
-                    extra="min='0.01' step='0.01' data-premium" help="Pré-remplie avec le prix de base du type d'assurance (utilisé aussi si laissée vide)." />
+                    extra="min='0.01' step='0.01' data-premium" help="${isCreation ? 'Pré-remplie avec le prix de base du type (utilisé aussi si laissée vide).' : 'Laissée vide : la prime actuelle est conservée.'}" />
         </div>
 
-        <%-- En création, le contrat démarre toujours EN_ATTENTE : pas de choix du statut --%>
-        <c:if test="${not isCreation}">
-        <label class="field ${not empty errors.status ? 'has-error' : ''}">Statut
-          <select name="status">
-            <c:forEach items="${statuses}" var="st"><option value="${st}" ${fn:trim(selectedStatus) == st.name() ? 'selected' : ''}>${st.label}</option></c:forEach>
-          </select>
-          <c:if test="${not empty errors.status}"><span class="field-error"><c:out value="${errors.status}" /></span></c:if>
-        </label>
-        </c:if>
+        <%-- Erreur globale (ex. contrat résilié ou expiré, plus modifiable) --%>
+        <c:if test="${not empty errors.status}"><p class="field-error"><c:out value="${errors.status}" /></p></c:if>
 
         <fieldset>
           <legend>Garanties du contrat *</legend>

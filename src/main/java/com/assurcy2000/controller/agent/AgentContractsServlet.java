@@ -16,10 +16,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Liste + recherche des contrats.
- *   GET /agent/contracts?q=…&statut=ACTIF&type=3   agent (avec les actions)
- *   GET /admin/contracts?…                         admin, consultation seule (la JSP masque les actions)
- * Créer, modifier, suspendre, résilier, renouveler : étapes suivantes (liens déjà présents dans la JSP).
+ * Liste, recherche et détail des contrats.
+ *   GET /agent/contracts?q=…&status=ACTIF&type=3   liste (agent : avec les actions)
+ *   GET /agent/contracts?id=12                     détail d'un contrat
+ *   GET /admin/contracts[?id=12]                   admin : mêmes pages, consultation seule
+ * Créer / modifier : ContractFormServlet ; activer, suspendre, résilier, renouveler : ContractActionServlet.
  */
 @WebServlet({"/agent/contracts", "/admin/contracts"})
 public class AgentContractsServlet extends BaseServlet {
@@ -30,6 +31,15 @@ public class AgentContractsServlet extends BaseServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         SessionUser user = user(req);
+
+        // ?id=12 : détail d'un contrat (404 s'il n'existe pas)
+        if (!RequestParams.get(req, "id").isEmpty()) {
+            Long id = idParam(req, "id");
+            req.setAttribute("contract", contractService.get(user, id));
+            req.setAttribute("renewal", contractService.findRenewal(user, id).orElse(null));
+            render(req, resp, Views.AGENT_CONTRACT_DETAIL);
+            return;
+        }
 
         // Filtres de recherche : un filtre vide ou invalide est simplement ignoré
         ContractSearchRequest criteria = new ContractSearchRequest(

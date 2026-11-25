@@ -4,6 +4,7 @@ import com.assurcy2000.controller.BaseServlet;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.dto.request.CreateContractRequest;
 import com.assurcy2000.model.Contract;
+import com.assurcy2000.model.enums.ContractStatus;
 import com.assurcy2000.security.UserSession;
 import com.assurcy2000.service.ContractService;
 import com.assurcy2000.service.GuaranteeService;
@@ -29,10 +30,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Formulaire de contrat (agent/contract-form.jsp).
- *   GET  /agent/contracts/edit   -> formulaire de création
- *   POST /agent/contracts/edit   -> création (id vide)
- * La modification (?id=12) viendra à l'étape suivante.
+ * Formulaire de contrat (agent/contract-form.jsp), création et modification.
+ *   GET  /agent/contracts/edit          -> formulaire de création
+ *   GET  /agent/contracts/edit?id=12    -> formulaire de modification, pré-rempli
+ *   POST /agent/contracts/edit          -> création si id vide, modification sinon
+ * Le statut ne se change pas ici, mais par les actions de la liste (activer, suspendre…).
  */
 @WebServlet("/agent/contracts/edit")
 public class ContractFormServlet extends BaseServlet {
@@ -46,26 +48,31 @@ public class ContractFormServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (!RequestParams.get(req, "id").isBlank()) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "La modification d'un contrat n'est pas encore disponible.");
-            return;
-        }
-        showForm(req, resp, Map.of());
+        Long id = contractId(req);
+        Contract contract = id == null ? null : contractService.get(user(req), id); // 404 si introuvable
+        showForm(req, resp, Map.of(), contract);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         SessionUser user = user(req);
+        Long id = contractId(req);
+        Contract existing = id == null ? null : contractService.get(user, id); // 404 si introuvable
 
         // 1. Vérification des saisies par la servlet (consigne, section 4)
         Map<String, String> errors = new LinkedHashMap<>();
         CreateContractRequest form = readForm(req, errors);
 
-        // 2. Le service vérifie ce qui demande la base (client, type, garanties du type)
+        // 2. Le service vérifie ce qui demande la base (client, type, garanties du type, règles de modification)
         if (errors.isEmpty()) {
             try {
-                Contract created = contractService.create(user, form);
-                UserSession.flash(req, "Contrat " + created.getNumber() + " créé (en attente).", "success");
+                if (existing == null) {
+                    Contract created = contractService.create(user, form);
+                    UserSession.flash(req, "Contrat " + created.getNumber() + " créé (en attente).", "success");
+                } else {
+                    Contract updated = contractService.update(user, id, form);
+                    UserSession.flash(req, "Contrat " + updated.getNumber() + " modifié.", "success");
+                }
                 redirect(req, resp, "/agent/contracts");
                 return;
             } catch (ValidationException e) {
@@ -74,7 +81,12 @@ public class ContractFormServlet extends BaseServlet {
         }
 
         resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        showForm(req, resp, errors); // la JSP réaffiche la saisie via param.xxx
+        showForm(req, resp, errors, existing); // la JSP réaffiche la saisie via param.xxx
+    }
+
+    /** id du contrat à modifier, null en création. Un id présent mais invalide donne une 404. */
+    private Long contractId(HttpServletRequest req) {
+        return RequestParams.get(req, "id").isBlank() ? null : idParam(req, "id");
     }
 
     private CreateContractRequest readForm(HttpServletRequest req, Map<String, String> errors) {
@@ -107,10 +119,16 @@ public class ContractFormServlet extends BaseServlet {
         return new CreateContractRequest(clientId, typeId, start, end, premium, guaranteeIds);
     }
 
-    /** Affiche le formulaire avec les listes de choix et, en création, les dates par défaut (début aujourd'hui, fin +1 an). */
-    private void showForm(HttpServletRequest req, HttpServletResponse resp, Map<String, String> errors)
-            throws ServletException, IOException {
+    /**
+     * Affiche le formulaire avec les listes de choix.
+     * Création (contract null) : dates par défaut (début aujourd'hui, fin +1 an).
+     * Modification : le contrat pré-remplit les champs ; client et type sont verrouillés s'il n'est plus EN_ATTENTE.
+     */
+    private void showForm(HttpServletRequest req, HttpServletResponse resp, Map<String, String> errors,
+                          Contract contract) throws ServletException, IOException {
         SessionUser user = user(req);
+        req.setAttribute("contract", contract);
+        req.setAttribute("identityLocked", contract != null && contract.getStatus() != ContractStatus.EN_ATTENTE);
         req.setAttribute("clients", userService.listClients(user));
         req.setAttribute("insuranceTypes", insuranceTypeService.listActive(user));
         req.setAttribute("guarantees", guaranteeService.listActive(user));
