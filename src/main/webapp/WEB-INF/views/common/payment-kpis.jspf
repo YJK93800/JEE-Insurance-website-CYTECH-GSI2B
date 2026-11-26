@@ -1,0 +1,21 @@
+<%-- Résumé en haut des pages de paiements (client et agent).
+     Attribut : summary PaymentSummary (totalPaid, totalDue, lateCount, nextDue Payment ou null) --%>
+<section class="grid-3" aria-label="Résumé des paiements">
+  <div class="kpi"><span class="kpi-label">Total payé</span><span class="kpi-value"><ui:amount value="${summary.totalPaid}" /></span></div>
+  <div class="kpi"><span class="kpi-label">À régler</span><span class="kpi-value"><ui:amount value="${summary.totalDue}" /></span>
+    <span class="kpi-sub">
+      <c:choose>
+        <c:when test="${summary.lateCount > 1}">${summary.lateCount} échéances en retard</c:when>
+        <c:when test="${summary.lateCount == 1}">1 échéance en retard</c:when>
+        <c:otherwise>Aucun retard</c:otherwise>
+      </c:choose>
+    </span></div>
+  <div class="kpi"><span class="kpi-label">Prochaine échéance</span>
+    <c:choose>
+      <c:when test="${empty summary.nextDue}"><span class="kpi-value">—</span></c:when>
+      <c:otherwise>
+        <span class="kpi-value"><ui:date value="${summary.nextDue.dueDate}" /></span>
+        <span class="kpi-sub"><ui:amount value="${summary.nextDue.amount}" /> · <c:out value="${summary.nextDue.contract.number}" /></span>
+      </c:otherwise>
+    </c:choose></div>
+</section>

@@ -1,6 +1,7 @@
 package com.assurcy2000.listener;
 
 import com.assurcy2000.service.ContractService;
+import com.assurcy2000.service.PaymentService;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
@@ -20,6 +21,8 @@ import java.util.logging.Logger;
  *
  * Solution : une tâche de fond qui, régulièrement, passe en EXPIRE les contrats ACTIF ou SUSPENDU
  * dont la date de fin est dépassée (la règle elle-même est dans ContractService.expireEndedContracts).
+ * Même problème pour les paiements : la même tâche passe EN_RETARD les échéances dépassées et non payées
+ * des contrats en cours (PaymentService.markOverdue), d'abord les retards puis les expirations.
  *
  * Fonctionnement :
  *   - Un ServletContextListener est appelé par Tomcat au démarrage de l'application (contextInitialized)
@@ -51,6 +54,7 @@ public class ContractExpirationListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         ContractService contractService = new ContractService();
+        PaymentService paymentService = new PaymentService();
 
         // Un seul thread suffit : la tâche est courte et ne doit jamais tourner deux fois en même temps.
         scheduler = Executors.newSingleThreadScheduledExecutor(task -> {
@@ -62,6 +66,13 @@ public class ContractExpirationListener implements ServletContextListener {
         // scheduleAtFixedRate(tâche, délai initial, période, unité) : lance la tâche après le délai,
         // puis la relance à chaque période tant que le minuteur n'est pas arrêté.
         scheduler.scheduleAtFixedRate(() -> {
+            try {
+                // Avant l'expiration : les échéances dépassées d'un contrat qui expire aujourd'hui passent bien en retard
+                int late = paymentService.markOverdue();
+                if (late > 0) LOG.info(late + " échéance(s) passée(s) en EN_RETARD.");
+            } catch (RuntimeException e) {
+                LOG.log(Level.WARNING, "Échec du passage en retard des échéances", e);
+            }
             try {
                 // Ouvre sa propre transaction, comme n'importe quel appel de service
                 int expired = contractService.expireEndedContracts();
