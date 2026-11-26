@@ -138,11 +138,50 @@ Affichage
 
 ## Étape 3 — Paiements (2.6)
 
-- [ ] Consulter les paiements effectués
-- [ ] Consulter les paiements en attente et les échéances
-- [ ] Consulter l'historique des paiements
-- [ ] Agent : enregistrer un paiement (`PaymentService.markPaid` existe, aucune servlet ne l'appelle)
-- [ ] Générer les échéances à la création et au renouvellement d'un contrat (à brancher dans `ContractService.create` et `renew`, Étape 1)
+Prime **mensuelle** : une échéance par mois de la période (le même jour que la date de début, ramené au dernier jour des mois courts), montant = prime du contrat.
+
+- [x] Générer les échéances à la création et au renouvellement d'un contrat (`PaymentSchedule.generate`, appelé dans `ContractService.create` et `renew`, même transaction)
+- [x] Modification d'un contrat : l'échéancier suit les dates et la prime (`PaymentSchedule.resync` ; échéances payées ou annulées inchangées)
+- [x] Résiliation : les échéances non payées après la date de résiliation passent ANNULE (`PaymentSchedule.cancelAfter`)
+- [x] Échéances dépassées des contrats ACTIF / SUSPENDU passées EN_RETARD toutes les heures (`PaymentService.markOverdue`, dans `ContractExpirationListener`)
+- [x] Échéancier des contrats créés avant l'Étape 3 : migration `V5__echeances_contrats_existants.sql` (contrats en cours sans aucun paiement)
+- [x] Consulter les paiements effectués (onglet « Effectués », `?filter=paid`)
+- [x] Consulter les paiements en attente et les échéances (onglets « En attente » = dus à ce jour, retards compris, `?filter=pending` ; « Échéances » = à venir, `?filter=due`)
+- [x] Consulter l'historique des paiements (onglet par défaut : payés, annulés et déjà dus, du plus récent au plus ancien)
+- [x] Client : `/client/payments` (ses paiements, `&contractId=` pour un contrat, résumé : total payé, à régler, retards, prochaine échéance)
+- [x] Agent : `/agent/payments` (tous les paiements, recherche par n° de contrat, nom ou email du client, `&contractId=` depuis le détail d'un contrat)
+- [x] Agent : enregistrer un paiement (formulaire : échéance, date, mode ; bouton « Encaisser » sur chaque ligne non payée ; `PaymentService.markPaid` : ni payée ni annulée, date pas dans le futur)
+- [x] Admin : `/admin/payments` (consultation seule, lien « Tous les paiements » dans la sidebar)
+- [x] Tests unitaires : `PaymentScheduleTest`, `PaymentServiceTest`, échéancier vérifié dans `ContractCreationTest`, `ContractUpdateTest`, `ContractActionsTest`
+
+### Tests à faire dans Tomcat (paiements)
+
+Avant : `mvn test`, redémarrer Tomcat (Flyway applique V5 au démarrage). Compte `agent@assurance.local`, puis `client@` et `admin@`.
+
+Échéancier (agent)
+- [ ] Créer un contrat du 01/01 au 31/12 à 30 € : `/agent/payments?contractId=…` (bouton « Voir l'échéancier » du détail) affiche 12 échéances de 30 €
+- [ ] Contrat créé avec une date de début passée puis activé : au plus tard 1 h après (ou au redémarrage + 1 min), les échéances dépassées passent EN RETARD ; un contrat resté en attente n'a pas de retard
+- [ ] Modifier la prime d'un contrat : les échéances à venir prennent la nouvelle prime, les payées gardent l'ancienne
+- [ ] Raccourcir la période : les échéances non payées hors période disparaissent
+- [ ] Renouveler : le nouveau contrat a ses 12 échéances
+- [ ] Résilier : les échéances après la date de résiliation sont ANNULÉES, celles d'avant restent à payer
+- [ ] Un contrat créé avant l'Étape 3 a bien ses échéances après le redémarrage (migration V5)
+
+Encaissement (agent, `/agent/payments`)
+- [ ] Onglets Historique / Effectués / En attente / Échéances ; la recherche (n° de contrat, nom, email) est conservée en changeant d'onglet
+- [ ] « Encaisser » sur une ligne pré-sélectionne l'échéance dans le formulaire (y compris une échéance dans plusieurs mois)
+- [ ] Erreurs affichées : aucune échéance, aucun mode, date vide ou dans le futur ; les choix sont conservés
+- [ ] Paiement valide : message, onglet « Effectués », date, mode (libellé) et statut EFFECTUÉ
+- [ ] Une échéance déjà payée (deux onglets ouverts, double envoi) est refusée : « déjà payée »
+
+Client (`/client/payments`)
+- [ ] Seulement ses paiements ; résumé : total payé, à régler, nombre de retards, prochaine échéance
+- [ ] Depuis un contrat : « Paiements » n'affiche que ce contrat, les onglets gardent le contrat
+- [ ] `/client/payments?contractId=` d'un contrat d'un autre client renvoie une 404
+- [ ] Aucun bouton ni formulaire d'encaissement
+
+Admin (`/admin/payments`)
+- [ ] Tous les paiements, onglets et recherche, aucun formulaire ni bouton « Encaisser »
 
 ## Étape 4 — Garanties et types d'assurance (2.3, 2.4)
 
@@ -156,7 +195,7 @@ Affichage
 
 - [ ] Statistiques clients : total, nouveaux, répartition par type d'assurance
 - [ ] Statistiques contrats : actifs, expirés, résiliés, évolution
-- [ ] Statistiques financières : chiffre d'affaires, primes, indemnisations, évolution des revenus → dépend des Étapes 2 (indemnisations) et 3 (paiements)
+- [ ] Statistiques financières : chiffre d'affaires, primes, indemnisations, évolution des revenus → faisable maintenant (Étapes 2 et 3 faites)
 - [ ] Accessible à l'agent et à l'admin, pas au client
 - [ ] Admin uniquement : indicateurs de performance (taux d'acceptation, délai moyen de traitement, ratio indemnisations / primes) → dépend de l'Étape 2 (sinistres)
 
@@ -185,7 +224,7 @@ Pour chaque page branchée : même URL dans la servlet et dans les liens, mêmes
 - [x] `homePath()` de l'agent pointe vers `/agent/claims`, qui a une servlet
 - [x] `Views.STATS` pointe vers `admin/stats.jsp`, qui existe
 - [x] `Views.AGENT_CLAIM` pointe vers `agent/claims.jsp`, qui existe
-- [ ] `/client/dashboard` n'a pas de servlet : le client est envoyé sur `/client/contracts` en attendant → dépend des Étapes 2 (dernier sinistre) et 3 (prochain paiement)
+- [ ] `/client/dashboard` n'a pas de servlet : le client est envoyé sur `/client/contracts` en attendant → faisable maintenant (dernier sinistre : Étape 2 ; prochain paiement : `PaymentSummary.nextDue`, Étape 3)
 
 ## Avant le rendu
 
@@ -193,6 +232,7 @@ Pour chaque page branchée : même URL dans la servlet et dans les liens, mêmes
 - [x] Supprimer `FieldException.java`
 - [ ] Retirer `PreviewServlet` et l'exception `/preview` dans `AuthFilter`
 - [ ] Garder une seule ligne `hibernate.show_sql` dans `hibernate.cfg.xml` (toujours en double)
+- [ ] Données de démo (V3) : le contrat CT-2026-0001 a une prime de 450 € « mensuelle » mais 4 paiements trimestriels de 112,50 € ; à corriger dans `db/script.sql` / une nouvelle migration si la démo doit être cohérente
 - [ ] Partie conception : MCD ou diagramme de classes
 - [ ] Rendre le dépôt GitHub public à la date du dépôt final
 - [ ] Refaire l'application avec Spring Boot
