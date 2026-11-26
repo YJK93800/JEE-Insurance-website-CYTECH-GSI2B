@@ -11,7 +11,9 @@ import com.assurcy2000.model.Guarantee;
 import com.assurcy2000.model.InsuranceType;
 import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
+import com.assurcy2000.model.Payment;
 import com.assurcy2000.model.enums.ContractStatus;
+import com.assurcy2000.model.enums.PaymentStatus;
 import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.NotFoundException;
@@ -39,6 +41,7 @@ class ContractUpdateTest {
     };
 
     private ContractService service;
+    private final FakePaymentDao payments = new FakePaymentDao();
     private SessionUser agent, clientSession;
     private Contract contract;
     private User alice, bob;
@@ -79,7 +82,7 @@ class ContractUpdateTest {
             @Override public List<Guarantee> findByInsuranceType(Long typeId) { return guaranteesByType.get(typeId); }
         };
 
-        service = new ContractService(contractDao, userDao, typeDao, guaranteeDao, DIRECT);
+        service = new ContractService(contractDao, userDao, typeDao, guaranteeDao, new PaymentSchedule(payments), DIRECT);
         agent = SessionUser.from(agentUser);
         clientSession = SessionUser.from(alice);
     }
@@ -119,6 +122,36 @@ class ContractUpdateTest {
         assertEquals(new BigDecimal("240.00"), c.getPremium());
         assertEquals(Set.of(vol, incendie), c.getGuarantees());
         assertEquals(ContractStatus.ACTIF, c.getStatus());
+    }
+
+    @Test
+    void updateResyncsUnpaidDueDatesAndKeepsPaidOnes() {
+        contract.setStatus(ContractStatus.ACTIF);
+        new PaymentSchedule(payments).generate(contract);       // 12 échéances de janvier à décembre 2026, 220 €
+        payments.rows.get(0).setStatus(PaymentStatus.EFFECTUE); // janvier payé
+        payments.rows.get(1).setStatus(PaymentStatus.EN_RETARD); // février en retard
+
+        // nouvelle période février 2026 -> janvier 2027, nouvelle prime
+        service.update(agent, 100L, form(1L, 5L, new BigDecimal("240.00"), Set.of(10L)));
+
+        List<Payment> rows = payments.of(100L);
+        assertEquals(13, rows.size()); // janvier payé conservé + février 2026 à janvier 2027
+        Payment january = rows.get(0);
+        assertEquals(PaymentStatus.EFFECTUE, january.getStatus());
+        assertEquals(new BigDecimal("220.00"), january.getAmount()); // un paiement effectué ne change pas
+        assertEquals(new BigDecimal("220.00"), rows.get(1).getAmount()); // février déjà dû (en retard) : montant inchangé
+        assertEquals(new BigDecimal("240.00"), rows.get(2).getAmount()); // mars : nouvelle prime
+        assertEquals(LocalDate.of(2027, 1, 1), rows.get(12).getDueDate()); // nouvelle échéance créée
+    }
+
+    @Test
+    void shorterPeriodDeletesUnpaidDueDatesOutsideIt() {
+        contract.setStatus(ContractStatus.EN_ATTENTE);
+        new PaymentSchedule(payments).generate(contract);
+        service.update(agent, 100L, new CreateContractRequest(1L, 5L, LocalDate.of(2026, 1, 1),
+                LocalDate.of(2026, 6, 30), null, Set.of(10L)));
+        assertEquals(6, payments.of(100L).size());
+        assertEquals(LocalDate.of(2026, 6, 1), payments.of(100L).get(5).getDueDate());
     }
 
     @Test

@@ -50,6 +50,7 @@ class ContractCreationTest {
 
     private FakeContractDao contractDao;
     private ContractService service;
+    private final FakePaymentDao payments = new FakePaymentDao();
     private SessionUser agent, client;
     private Guarantee vol, incendie, voyage;
     private InsuranceType habitation;
@@ -77,7 +78,7 @@ class ContractCreationTest {
         };
 
         contractDao = new FakeContractDao();
-        service = new ContractService(contractDao, userDao, typeDao, guaranteeDao, DIRECT);
+        service = new ContractService(contractDao, userDao, typeDao, guaranteeDao, new PaymentSchedule(payments), DIRECT);
         agent = SessionUser.from(agentUser);
         client = SessionUser.from(clientUser);
     }
@@ -96,6 +97,19 @@ class ContractCreationTest {
         assertEquals(2, c.getGuarantees().size());
         assertEquals(Long.valueOf(2L), c.getAgent().getId());
         assertEquals(1, contractDao.saved.size());
+    }
+
+    @Test
+    void creationGeneratesOneDueDatePerMonthAtThePremium() {
+        Contract c = service.create(agent, request(new BigDecimal("250.00"), Set.of(10L)));
+
+        // du 01/12/2026 au 30/11/2027 : 12 échéances, le 1er de chaque mois
+        assertEquals(12, payments.rows.size());
+        assertEquals(LocalDate.of(2026, 12, 1), payments.rows.get(0).getDueDate());
+        assertEquals(LocalDate.of(2027, 11, 1), payments.rows.get(11).getDueDate());
+        assertTrue(payments.rows.stream().allMatch(p -> p.getContract() == c
+                && p.getAmount().equals(new BigDecimal("250.00"))
+                && p.getStatus() == com.assurcy2000.model.enums.PaymentStatus.EN_ATTENTE));
     }
 
     @Test

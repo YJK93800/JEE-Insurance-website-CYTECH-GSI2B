@@ -11,6 +11,7 @@ import com.assurcy2000.model.InsuranceType;
 import com.assurcy2000.model.Role;
 import com.assurcy2000.model.User;
 import com.assurcy2000.model.enums.ContractStatus;
+import com.assurcy2000.model.enums.PaymentStatus;
 import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.service.exceptions.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ class ContractActionsTest {
     };
 
     private ContractService service;
+    private final FakePaymentDao payments = new FakePaymentDao();
     private SessionUser agent;
     private Contract contract;
     private InsuranceType habitation;
@@ -74,7 +76,7 @@ class ContractActionsTest {
         GuaranteeDao guaranteeDao = new GuaranteeDao() {
             @Override public List<Guarantee> findByInsuranceType(Long typeId) { return List.of(vol, incendie); }
         };
-        service = new ContractService(contractDao, userDao, new InsuranceTypeDao(), guaranteeDao, DIRECT);
+        service = new ContractService(contractDao, userDao, new InsuranceTypeDao(), guaranteeDao, new PaymentSchedule(payments), DIRECT);
         agent = SessionUser.from(agentUser);
     }
 
@@ -115,6 +117,21 @@ class ContractActionsTest {
     }
 
     @Test
+    void terminationCancelsUnpaidDueDatesAfterTheTerminationDate() {
+        contract.setStatus(ContractStatus.ACTIF);
+        new PaymentSchedule(payments).generate(contract);              // 12 échéances, la 1re il y a 6 mois
+        payments.rows.get(0).setStatus(PaymentStatus.EFFECTUE);
+        LocalDate termination = contract.getStartDate().plusMonths(3).plusDays(10);
+
+        service.terminate(agent, 100L, termination, "Déménagement");
+
+        long cancelled = payments.rows.stream().filter(p -> p.getStatus() == PaymentStatus.ANNULE).count();
+        assertEquals(8, cancelled); // échéances des mois 5 à 12
+        assertEquals(PaymentStatus.EFFECTUE, payments.rows.get(0).getStatus());
+        assertEquals(PaymentStatus.EN_ATTENTE, payments.rows.get(3).getStatus()); // due avant la résiliation : reste à payer
+    }
+
+    @Test
     void terminationDateMustBeInsideThePeriod() {
         contract.setStatus(ContractStatus.ACTIF);
         ValidationException e = assertThrows(ValidationException.class,
@@ -145,6 +162,9 @@ class ContractActionsTest {
         assertEquals(Set.of(vol), r.getGuarantees()); // la garantie retirée du type n'est pas reprise
         assertEquals(ContractStatus.ACTIF, contract.getStatus()); // l'ancien contrat ne change pas
         assertEquals(1, saved.size());
+        assertEquals(12, payments.rows.size()); // échéancier du nouveau contrat
+        assertTrue(payments.rows.stream().allMatch(p -> p.getContract() == r && p.getAmount().equals(new BigDecimal("230.00"))));
+        assertEquals(r.getStartDate(), payments.rows.get(0).getDueDate());
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.assurcy2000.service;
 import com.assurcy2000.dao.ContractDao;
 import com.assurcy2000.dao.GuaranteeDao;
 import com.assurcy2000.dao.InsuranceTypeDao;
+import com.assurcy2000.dao.PaymentDao;
 import com.assurcy2000.dao.UserDao;
 import com.assurcy2000.dto.request.CreateContractRequest;
 import com.assurcy2000.model.Guarantee;
@@ -38,23 +39,27 @@ public class ContractService {
     private final UserDao userDao;
     private final InsuranceTypeDao insuranceTypeDao;
     private final GuaranteeDao guaranteeDao;
+    private final PaymentSchedule schedule;
     private final TransactionRunner tx;
 
     public ContractService() {
-        this(new ContractDao(), new UserDao(), new InsuranceTypeDao(), new GuaranteeDao(), new HibernateTransactionRunner());
+        this(new ContractDao(), new UserDao(), new InsuranceTypeDao(), new GuaranteeDao(),
+                new PaymentSchedule(new PaymentDao()), new HibernateTransactionRunner());
     }
 
-    /** Pour les tests qui n'utilisent que les contrats. */
+    /** Pour les tests qui n'utilisent que les contrats (lecture, suspension : pas d'échéancier). */
     public ContractService(ContractDao contractDao, TransactionRunner tx) {
-        this(contractDao, new UserDao(), new InsuranceTypeDao(), new GuaranteeDao(), tx);
+        this(contractDao, new UserDao(), new InsuranceTypeDao(), new GuaranteeDao(),
+                new PaymentSchedule(new PaymentDao()), tx);
     }
 
     public ContractService(ContractDao contractDao, UserDao userDao, InsuranceTypeDao insuranceTypeDao,
-                           GuaranteeDao guaranteeDao, TransactionRunner tx) {
+                           GuaranteeDao guaranteeDao, PaymentSchedule schedule, TransactionRunner tx) {
         this.contractDao = contractDao;
         this.userDao = userDao;
         this.insuranceTypeDao = insuranceTypeDao;
         this.guaranteeDao = guaranteeDao;
+        this.schedule = schedule;
         this.tx = tx;
     }
 
@@ -62,6 +67,7 @@ public class ContractService {
      * Crée un contrat EN_ATTENTE pour un client. Le format des champs a déjà été vérifié par la servlet ;
      * ici on vérifie ce qui demande la base : client, type actif, garanties proposées par ce type.
      * Prime vide = prix de base du type. L'agent connecté devient le gestionnaire du contrat.
+     * Les échéances mensuelles sont créées dans la même transaction (PaymentSchedule).
      */
     public Contract create(SessionUser actor, CreateContractRequest req) {
         Policy.require(actor, CONTRACT_WRITE);
@@ -75,7 +81,9 @@ public class ContractService {
             contract.setStatus(ContractStatus.EN_ATTENTE);
             contract.setAgent(userDao.getReference(actor.id()));
             contract.setGuarantees(guarantees);
-            return contractDao.save(contract);
+            Contract saved = contractDao.save(contract);
+            schedule.generate(saved);
+            return saved;
         });
     }
 
@@ -86,6 +94,7 @@ public class ContractService {
      * - Statut : jamais ici, uniquement par les actions (activer, suspendre, résilier, renouveler).
      * - Numéro : jamais.
      * Prime vide = prime actuelle conservée.
+     * L'échéancier suit les nouvelles dates et la nouvelle prime (échéances payées inchangées).
      */
     public Contract update(SessionUser actor, Long id, CreateContractRequest req) {
         Policy.require(actor, CONTRACT_WRITE);
@@ -114,7 +123,9 @@ public class ContractService {
             contract.setStartDate(req.startDate());
             contract.setEndDate(req.endDate());
             if (req.premium() != null) contract.setPremium(req.premium());
-            return contractDao.update(contract);
+            Contract updated = contractDao.update(contract);
+            schedule.resync(updated);
+            return updated;
         });
     }
 
@@ -216,6 +227,7 @@ public class ContractService {
     /**
      * Résilie un contrat (définitif). La date doit être dans la période du contrat
      * (contrainte chk_contrat_date_resil) et le motif est obligatoire.
+     * Les échéances non payées après la date de résiliation sont annulées.
      */
     public Contract terminate(SessionUser actor, Long id, LocalDate date, String reason) {
         Policy.require(actor, CONTRACT_WRITE);
@@ -231,6 +243,7 @@ public class ContractService {
             contract.setStatus(ContractStatus.RESILIE);
             contract.setTerminationDate(date);
             contract.setTerminationReason(reason);
+            schedule.cancelAfter(contract, date);
             return contractDao.update(contract);
         });
     }
@@ -244,7 +257,7 @@ public class ContractService {
     /**
      * Renouvelle un contrat actif ou expiré : nouveau contrat EN_ATTENTE pour la période suivante
      * (début = lendemain de la fin, durée 1 an), même client, type, prime et garanties encore proposées.
-     * Un contrat ne se renouvelle qu'une fois.
+     * Un contrat ne se renouvelle qu'une fois. Les échéances du nouveau contrat sont créées.
      */
     public Contract renew(SessionUser actor, Long id) {
         Policy.require(actor, CONTRACT_WRITE);
@@ -276,7 +289,9 @@ public class ContractService {
             renewal.setAgent(userDao.getReference(actor.id()));
             renewal.setPreviousContract(previous);
             renewal.setGuarantees(guarantees);
-            return contractDao.save(renewal);
+            Contract saved = contractDao.save(renewal);
+            schedule.generate(saved);
+            return saved;
         });
     }
 
