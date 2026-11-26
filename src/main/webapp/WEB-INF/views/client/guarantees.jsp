@@ -1,8 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/garanties — PAS ENCORE DE SERVLET (vue prête pour le modèle anglais)
-     Attributs attendus : contracts List<Contract> (contrats ACTIF et EN_ATTENTE du client, avec insuranceType et guarantees chargés)
-     NB : la vue affiche aussi g.plafond et g.franchise, qui n'existent pas encore dans Guarantee. --%>
+<%-- GET /client/guarantees — PAS ENCORE DE SERVLET
+     Attributs attendus : contracts List<Contract> (contrats ACTIF et EN_ATTENTE du client, avec insuranceType et guarantees chargés) --%>
 <c:set var="title" value="Mes garanties" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -31,8 +30,8 @@
                   <tr>
                     <td class="strong"><c:out value="${g.name}" /></td>
                     <td class="muted"><c:out value="${g.description}" /></td>
-                    <td class="right"><ui:amount value="${g.plafond}" /></td>
-                    <td class="right"><ui:amount value="${g.franchise}" /></td>
+                    <td class="right"><c:choose><c:when test="${not empty g.coverageLimit}"><ui:amount value="${g.coverageLimit}" /></c:when><c:otherwise><span class="muted">—</span></c:otherwise></c:choose></td>
+                    <td class="right"><c:choose><c:when test="${not empty g.deductible}"><ui:amount value="${g.deductible}" /></c:when><c:otherwise><span class="muted">Aucune</span></c:otherwise></c:choose></td>
                   </tr>
                 </c:forEach>
               </tbody>

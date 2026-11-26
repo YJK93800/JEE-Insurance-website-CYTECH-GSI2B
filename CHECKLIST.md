@@ -2,8 +2,6 @@
 
 Mise à jour le 26/11/2026. Cochez les cases dans vos commits au fur et à mesure.
 
-« → dépend de l'Étape N » : à faire une fois l'étape indiquée terminée.
-
 ## Étape 0 — Authentification et profil (section 2.1)
 
 Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent@`, `admin@assurance.local` / `Assurance2026!`).
@@ -214,11 +212,40 @@ Affichage
 
 ## Étape 4 — Garanties et types d'assurance (2.3, 2.4)
 
-- [ ] Agent : créer, modifier, supprimer une garantie
+- [x] Plafond et franchise des garanties : migration `V6__garantie_plafond_franchise.sql` (colonnes facultatives, valeurs de démo), champs `coverageLimit` / `deductible` dans `Guarantee`
+- [x] Agent : créer, modifier, supprimer une garantie (`/agent/guarantees`, `AgentGuaranteesServlet`, `GuaranteeService` : nom unique, franchise ≤ plafond, suppression refusée si un contrat l'utilise ; `GuaranteeServiceTest`)
 - [ ] Agent : associer une garantie à un contrat (déjà possible dans le formulaire de contrat de l'Étape 1)
-- [ ] Client : consulter ses garanties
+- [ ] Client : consulter ses garanties (`client/guarantees.jsp` prête, lien `/client/guarantees` dans la sidebar ; pas encore de servlet)
 - [ ] Admin : gérer les types d'assurance (nom, description, prix de base, garanties disponibles)
 - [ ] Ajouter un type sans toucher au code : les types viennent de la base, pas d'un `enum`
+
+### Tests à faire dans Tomcat (garanties)
+
+Avant : `mvn test` (dont `GuaranteeServiceTest`), puis redémarrer Tomcat. Flyway doit appliquer `V6__garantie_plafond_franchise` (`SELECT nom, plafond, franchise FROM garantie;` montre les valeurs de démo). Compte `agent@assurance.local`.
+
+Liste (`/agent/guarantees`)
+- [ ] Lien « Garanties » de la sidebar actif ; 6 garanties triées par nom, plafond et franchise au format français, « — » / « Aucune » quand c'est vide
+- [ ] Colonne « Contrats » : Responsabilité civile, Vol et Accident à 1 au moins (contrat de démo) ; leur bouton « Supprimer » est grisé
+
+Création
+- [ ] Créer « Bris de glace », plafond 2000, franchise 100 → message « Garantie « Bris de glace » créée. », elle apparaît dans la liste
+- [ ] Nom vide, nom déjà pris (« Vol »), franchise 500 avec plafond 100, montant en lettres → message sous le champ, code 400, saisies conservées
+- [ ] Plafond et franchise vides → acceptés
+- [ ] La nouvelle garantie est proposée dans le formulaire de contrat (`+ Nouveau contrat`)
+
+Modification
+- [ ] « Modifier » : ligne surlignée, formulaire pré-rempli, titre « Modifier la garantie », message « Utilisée par N contrat(s) » si c'est le cas
+- [ ] Renommer en gardant le même nom → accepté ; renommer en « Incendie » → « Une garantie porte déjà ce nom. »
+- [ ] Après une erreur, les valeurs tapées restent (pas celles de la base) ; « Annuler » revient en création
+- [ ] `?id=999` et `?id=abc` → 404
+
+Suppression
+- [ ] Supprimer « Bris de glace » : confirmation, puis « Garantie « Bris de glace » supprimée. »
+- [ ] Garantie utilisée envoyée quand même (bouton réactivé avec l'inspecteur) → message d'erreur, rien n'est supprimé
+- [ ] Sans jeton CSRF → 403
+
+Droits
+- [ ] Client et admin sur `/agent/guarantees` → 403
 
 ## Étape 5 — Statistiques (2.8)
 
