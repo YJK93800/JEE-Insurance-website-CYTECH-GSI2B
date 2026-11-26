@@ -251,16 +251,6 @@
     });
   }
 
-  /* ---------- Enregistrement d'un paiement : montant = prime du contrat ---------- */
-  var selContract = document.querySelector("select[data-contract-premium]");
-  if (selContract) {
-    selContract.addEventListener("change", function () {
-      var target = document.querySelector("input[data-premium-target]");
-      var opt = selContract.options[selContract.selectedIndex];
-      if (target && !target.value && opt.dataset.premium) target.value = opt.dataset.premium;
-    });
-  }
-
   /* ---------- Décision sur un sinistre : indemnisation obligatoire si INDEMNISE ---------- */
   var selStatus = document.querySelector("select[data-toggle-indemnity]");
   if (selStatus) {
