@@ -22,6 +22,7 @@ public final class Views {
     public static final String AGENT_CONTRACT_TERMINATE = BASE + "agent/contract-terminate.jsp";
     public static final String AGENT_CLAIMS = BASE + "agent/claims.jsp";
     public static final String AGENT_CLAIM = BASE + "agent/claims.jsp";
+    public static final String AGENT_PAYMENTS = BASE + "agent/payments.jsp";
 
     public static final String ADMIN_USERS = BASE + "admin/users.jsp";
     public static final String ADMIN_USER_EDIT = BASE + "admin/user-edit.jsp";

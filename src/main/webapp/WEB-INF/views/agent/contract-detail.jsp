@@ -48,7 +48,7 @@
 
       <section class="grid-3" aria-label="Informations du contrat">
         <div class="kpi"><span class="kpi-label">Période</span><span class="strong"><ui:date value="${contract.startDate}" /> → <ui:date value="${contract.endDate}" /></span></div>
-        <div class="kpi"><span class="kpi-label">Prime</span><span class="kpi-value"><ui:amount value="${contract.premium}" /></span></div>
+        <div class="kpi"><span class="kpi-label">Prime mensuelle</span><span class="kpi-value"><ui:amount value="${contract.premium}" /></span></div>
         <div class="kpi"><span class="kpi-label">Type d'assurance</span><span class="strong"><c:out value="${contract.insuranceType.name}" /></span>
           <span class="kpi-sub">Prix de base : <ui:amount value="${contract.insuranceType.basePrice}" /></span></div>
       </section>
@@ -84,6 +84,12 @@
             <c:if test="${not empty contract.agent}">
               <div class="between small"><span class="muted">Agent gestionnaire</span><span><c:out value="${contract.agent.firstName} ${contract.agent.lastName}" /></span></div>
             </c:if>
+          </section>
+
+          <section class="card" aria-labelledby="h-pay">
+            <h2 id="h-pay">Paiements</h2>
+            <p class="small muted">Prime mensuelle : une échéance par mois de la période.</p>
+            <a class="btn btn-block" href="${ctx}${isAgent ? '/agent/payments' : '/admin/payments'}?contractId=${contract.id}">Voir l'échéancier de ce contrat</a>
           </section>
 
           <section class="card" aria-labelledby="h-hist">

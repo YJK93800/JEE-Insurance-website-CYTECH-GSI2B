@@ -22,7 +22,7 @@
         <a href="${ctx}/agent/claims" class="${active == 'claims' ? 'active' : ''}">Sinistres
           <c:if test="${pendingClaimCount > 0}"><span class="count">${pendingClaimCount}</span></c:if></a>
         <a href="${ctx}/agent/garanties" class="${active == 'guarantees' ? 'active' : ''}">Garanties</a>
-        <a href="${ctx}/agent/paiements" class="${active == 'payments' ? 'active' : ''}">Paiements</a>
+        <a href="${ctx}/agent/payments"  class="${active == 'payments'  ? 'active' : ''}">Paiements</a>
         <a href="${ctx}/agent/stats"     class="${active == 'stats'     ? 'active' : ''}">Statistiques</a>
       </c:when>
       <c:when test="${u.role == 'ADMIN'}">
@@ -31,6 +31,7 @@
         <a href="${ctx}/admin/types"        class="${active == 'types'        ? 'active' : ''}">Types d'assurance</a>
         <a href="${ctx}/admin/contracts"     class="${active == 'contracts'     ? 'active' : ''}">Tous les contrats</a>
         <a href="${ctx}/admin/claims"    class="${active == 'claims'    ? 'active' : ''}">Tous les sinistres</a>
+        <a href="${ctx}/admin/payments"  class="${active == 'payments'  ? 'active' : ''}">Tous les paiements</a>
         <a href="${ctx}/admin/stats#indicateurs">Indicateurs de performance</a>
       </c:when>
       <c:otherwise>
