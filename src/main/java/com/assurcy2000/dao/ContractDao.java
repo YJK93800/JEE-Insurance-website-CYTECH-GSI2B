@@ -6,6 +6,7 @@ import com.assurcy2000.model.Guarantee;
 import com.assurcy2000.model.enums.ContractStatus;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -84,6 +85,18 @@ public class ContractDao extends BaseDao<Contract, Long> {
     public List<Contract> findByClient(Long clientId) {
         return query(s -> s.createQuery(SELECT + " where cl.id = :clientId order by c.startDate desc", Contract.class)
                 .setParameter("clientId", clientId)
+                .getResultList());
+    }
+
+    /**
+     * Contrats d'un client ayant l'un des statuts donnés, avec leurs garanties chargées
+     * (page « Mes garanties », affichée après la fin de la transaction).
+     */
+    public List<Contract> findByClientWithGuarantees(Long clientId, Collection<ContractStatus> statuses) {
+        return query(s -> s.createQuery(SELECT + " left join fetch c.guarantees"
+                        + " where cl.id = :clientId and c.status in (:statuses) order by c.startDate desc", Contract.class)
+                .setParameter("clientId", clientId)
+                .setParameterList("statuses", statuses)
                 .getResultList());
     }
 

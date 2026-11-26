@@ -63,6 +63,7 @@ public class Contract {
     private LocalDateTime updatedAt;
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @OrderBy("name") // garanties affichées par ordre alphabétique (détail, Mes garanties)
     @JoinTable(name = "contrat_garantie",
             joinColumns = @JoinColumn(name = "contrat_id"),
             inverseJoinColumns = @JoinColumn(name = "garantie_id"))

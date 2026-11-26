@@ -215,7 +215,7 @@ Affichage
 - [x] Plafond et franchise des garanties : migration `V6__garantie_plafond_franchise.sql` (colonnes facultatives, valeurs de démo), champs `coverageLimit` / `deductible` dans `Guarantee`
 - [x] Agent : créer, modifier, supprimer une garantie (`/agent/guarantees`, `AgentGuaranteesServlet`, `GuaranteeService` : nom unique, franchise ≤ plafond, suppression refusée si un contrat l'utilise ; `GuaranteeServiceTest`)
 - [ ] Agent : associer une garantie à un contrat (déjà possible dans le formulaire de contrat de l'Étape 1)
-- [ ] Client : consulter ses garanties (`client/guarantees.jsp` prête, lien `/client/guarantees` dans la sidebar ; pas encore de servlet)
+- [x] Client : consulter ses garanties (`/client/guarantees`, `ClientGuaranteesServlet`, `ContractService.listOwnWithGuarantees` : contrats actifs, suspendus et en attente, garanties par ordre alphabétique ; `ClientGuaranteesTest`)
 - [ ] Admin : gérer les types d'assurance (nom, description, prix de base, garanties disponibles)
 - [ ] Ajouter un type sans toucher au code : les types viennent de la base, pas d'un `enum`
 
@@ -246,6 +246,17 @@ Suppression
 
 Droits
 - [ ] Client et admin sur `/agent/guarantees` → 403
+
+Association au contrat (agent, formulaire de contrat)
+- [ ] Créer un contrat avec 2 garanties, puis en retirer une en modification → le détail du contrat affiche les bonnes garanties
+- [ ] La colonne « Contrats » de `/agent/guarantees` suit (+1 puis −1)
+
+Client (`client@assurance.local`, `/client/guarantees`)
+- [ ] Lien « Mes garanties » de la sidebar actif ; une carte par contrat actif, suspendu ou en attente, avec type, numéro (lien vers le détail) et statut
+- [ ] Garanties par ordre alphabétique, plafond et franchise affichés (« — » / « Aucune » si vides)
+- [ ] Contrats expirés ou résiliés absents ; aucun contrat d'un autre client
+- [ ] Un client sans contrat en cours voit « Aucune garantie : vous n'avez pas de contrat en cours. »
+- [ ] Agent et admin sur `/client/guarantees` → 403
 
 ## Étape 5 — Statistiques (2.8)
 

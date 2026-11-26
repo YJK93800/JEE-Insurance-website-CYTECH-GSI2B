@@ -14,6 +14,7 @@ public final class Views {
     public static final String CLIENT_CLAIM = BASE + "client/claim-detail.jsp";
     public static final String CLIENT_CLAIM_FORM = BASE + "client/claim-form.jsp";
     public static final String CLIENT_PAYMENTS = BASE + "client/payments.jsp";
+    public static final String CLIENT_GUARANTEES = BASE + "client/guarantees.jsp";
 
     public static final String AGENT_CLIENTS = BASE + "agent/clients.jsp";
     public static final String AGENT_CONTRACTS = BASE + "agent/contracts.jsp";

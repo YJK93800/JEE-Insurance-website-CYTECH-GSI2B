@@ -171,6 +171,16 @@ public class ContractService {
         return tx.inTransaction(() -> contractDao.findByClient(actor.id()));
     }
 
+    /** Statuts des contrats dont le client voit les garanties : en cours ou sur le point de démarrer. */
+    public static final List<ContractStatus> IN_FORCE =
+            List.of(ContractStatus.ACTIF, ContractStatus.SUSPENDU, ContractStatus.EN_ATTENTE);
+
+    /** Page « Mes garanties » : les contrats en cours du client connecté, avec leurs garanties. */
+    public List<Contract> listOwnWithGuarantees(SessionUser actor) {
+        Policy.require(actor, CONTRACT_READ_OWN);
+        return tx.inTransaction(() -> contractDao.findByClientWithGuarantees(actor.id(), IN_FORCE));
+    }
+
     /**
      * A client can only read his own contracts, and not find someone else's contracts through their ids
      */
