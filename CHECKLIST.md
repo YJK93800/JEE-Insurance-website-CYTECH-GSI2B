@@ -219,37 +219,40 @@ Affichage
 - [x] Admin : gérer les types d'assurance (nom, description, prix de base, garanties disponibles) : `/admin/types`, `AdminTypesServlet`, `InsuranceTypeService` (nom unique, au moins une garantie, activer / désactiver, suppression refusée si des contrats l'utilisent ; `InsuranceTypeServiceTest`)
 - [x] Ajouter un type sans toucher au code : les types viennent de la base, pas d'un `enum` (un type créé dans `/admin/types` est aussitôt proposé dans le formulaire de contrat)
 
-### Tests à faire dans Tomcat (garanties)
+### Tests à faire dans Tomcat (garanties et types d'assurance)
 
-Avant : `mvn test` (dont `GuaranteeServiceTest`), puis redémarrer Tomcat. Flyway doit appliquer `V6__garantie_plafond_franchise` (`SELECT nom, plafond, franchise FROM garantie;` montre les valeurs de démo). Compte `agent@assurance.local`.
+Avant : `mvn test` (vert, dont `GuaranteeServiceTest`, `ClientGuaranteesTest` et `InsuranceTypeServiceTest`), puis arrêter Tomcat, vider le dossier `work` (`.smarttomcat/AssurCY2000/`) et relancer. Flyway doit appliquer `V6__garantie_plafond_franchise` (visible dans la console ; `SELECT version, success FROM flyway_schema_history;` montre la ligne 6 à 1 ; `SELECT nom, plafond, franchise FROM garantie;` montre les valeurs de démo). Comptes `agent@`, `client@`, `admin@assurance.local` / `Assurance2026!`.
 
-Liste (`/agent/guarantees`)
+Garanties : liste (agent, `/agent/guarantees`)
 - [ ] Lien « Garanties » de la sidebar actif ; 6 garanties triées par nom, plafond et franchise au format français, « — » / « Aucune » quand c'est vide
 - [ ] Colonne « Contrats » : Responsabilité civile, Vol et Accident à 1 au moins (contrat de démo) ; leur bouton « Supprimer » est grisé
 
-Création
+Garanties : création
 - [ ] Créer « Bris de glace », plafond 2000, franchise 100 → message « Garantie « Bris de glace » créée. », elle apparaît dans la liste
 - [ ] Nom vide, nom déjà pris (« Vol »), franchise 500 avec plafond 100, montant en lettres → message sous le champ, code 400, saisies conservées
 - [ ] Plafond et franchise vides → acceptés
 - [ ] La nouvelle garantie est proposée dans le formulaire de contrat (`+ Nouveau contrat`)
 
-Modification
+Garanties : modification
 - [ ] « Modifier » : ligne surlignée, formulaire pré-rempli, titre « Modifier la garantie », message « Utilisée par N contrat(s) » si c'est le cas
 - [ ] Renommer en gardant le même nom → accepté ; renommer en « Incendie » → « Une garantie porte déjà ce nom. »
 - [ ] Après une erreur, les valeurs tapées restent (pas celles de la base) ; « Annuler » revient en création
+- [ ] Modifier le plafond de « Vol » → le nouveau montant apparaît aussi dans `/client/guarantees` et le détail du contrat de démo (garantie partagée)
 - [ ] `?id=999` et `?id=abc` → 404
 
-Suppression
+Garanties : suppression
 - [ ] Supprimer « Bris de glace » : confirmation, puis « Garantie « Bris de glace » supprimée. »
 - [ ] Garantie utilisée envoyée quand même (bouton réactivé avec l'inspecteur) → message d'erreur, rien n'est supprimé
 - [ ] Sans jeton CSRF → 403
 
-Droits
+Garanties : droits
 - [ ] Client et admin sur `/agent/guarantees` → 403
 
 Association au contrat (agent, formulaire de contrat)
 - [ ] Créer un contrat avec 2 garanties, puis en retirer une en modification → le détail du contrat affiche les bonnes garanties
 - [ ] La colonne « Contrats » de `/agent/guarantees` suit (+1 puis −1)
+- [ ] Les garanties du détail d'un contrat (agent et client) sont par ordre alphabétique
+- [ ] Une garantie qui n'est pas proposée par le type est grisée dans le formulaire ; envoyée quand même (inspecteur) → « Certaines garanties choisies ne sont pas proposées pour … »
 
 Client (`client@assurance.local`, `/client/guarantees`)
 - [ ] Lien « Mes garanties » de la sidebar actif ; une carte par contrat actif, suspendu ou en attente, avec type, numéro (lien vers le détail) et statut
@@ -265,9 +268,12 @@ Types d'assurance (admin `admin@assurance.local`, `/admin/types`)
 - [ ] Erreurs : nom vide, nom déjà pris, prix vide / négatif / en lettres, aucune garantie cochée → messages sous les champs, code 400, saisies et cases cochées conservées
 - [ ] Modifier : formulaire pré-rempli avec les cases du type cochées ; décocher une garantie et enregistrer → étiquettes à jour
 - [ ] Agent, `+ Nouveau contrat` : « Assurance animaux » est proposée, avec son prix et ses garanties (sans redémarrer)
+- [ ] Retirer une garantie d'un type utilisé (ex. « Vol » de Assurance automobile) → le contrat de démo la garde dans son détail ; elle n'est plus proposée dans le formulaire de contrat (puis remettre « Vol »)
 - [ ] Désactiver « Assurance animaux » → badge DÉSACTIVÉ, plus proposée dans le formulaire de contrat ; toujours dans le filtre par type de `/agent/contracts` ; « Activer » la remet
 - [ ] Supprimer « Assurance animaux » (aucun contrat) → « Type « Assurance animaux » supprimé. » ; ses garanties existent toujours dans `/agent/guarantees`
+- [ ] Désactiver « Assurance automobile » (utilisée) : le contrat de démo reste consultable et modifiable (dates, prime, garanties) ; le réactiver ensuite
 - [ ] `?id=999`, `?id=abc` → 404 ; agent et client sur `/admin/types` → 403 ; sans jeton CSRF → 403
+- [ ] Accents corrects partout (noms de types et de garanties, messages, étiquettes)
 
 ## Étape 5 — Statistiques (2.8)
 
