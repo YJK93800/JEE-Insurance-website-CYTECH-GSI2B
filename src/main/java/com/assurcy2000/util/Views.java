@@ -14,6 +14,7 @@ public final class Views {
     public static final String CLIENT_CLAIM = BASE + "client/claim-detail.jsp";
     public static final String CLIENT_CLAIM_FORM = BASE + "client/claim-form.jsp";
     public static final String CLIENT_PAYMENTS = BASE + "client/payments.jsp";
+    public static final String CLIENT_GUARANTEES = BASE + "client/guarantees.jsp";
 
     public static final String AGENT_CLIENTS = BASE + "agent/clients.jsp";
     public static final String AGENT_CONTRACTS = BASE + "agent/contracts.jsp";
@@ -23,9 +24,11 @@ public final class Views {
     public static final String AGENT_CLAIMS = BASE + "agent/claims.jsp";
     public static final String AGENT_CLAIM = BASE + "agent/claims.jsp";
     public static final String AGENT_PAYMENTS = BASE + "agent/payments.jsp";
+    public static final String AGENT_GUARANTEES = BASE + "agent/guarantees.jsp";
 
     public static final String ADMIN_USERS = BASE + "admin/users.jsp";
     public static final String ADMIN_USER_EDIT = BASE + "admin/user-edit.jsp";
+    public static final String ADMIN_TYPES = BASE + "admin/types.jsp";
     public static final String STATS = BASE + "admin/stats.jsp";
 
     private Views() { }

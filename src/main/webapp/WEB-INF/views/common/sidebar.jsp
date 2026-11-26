@@ -21,7 +21,7 @@
         <a href="${ctx}/agent/contracts"  class="${active == 'contracts'  ? 'active' : ''}">Contrats</a>
         <a href="${ctx}/agent/claims" class="${active == 'claims' ? 'active' : ''}">Sinistres
           <c:if test="${pendingClaimCount > 0}"><span class="count">${pendingClaimCount}</span></c:if></a>
-        <a href="${ctx}/agent/garanties" class="${active == 'guarantees' ? 'active' : ''}">Garanties</a>
+        <a href="${ctx}/agent/guarantees" class="${active == 'guarantees' ? 'active' : ''}">Garanties</a>
         <a href="${ctx}/agent/payments"  class="${active == 'payments'  ? 'active' : ''}">Paiements</a>
         <a href="${ctx}/agent/stats"     class="${active == 'stats'     ? 'active' : ''}">Statistiques</a>
       </c:when>
@@ -37,7 +37,7 @@
       <c:otherwise>
         <a href="${ctx}/client/dashboard"  class="${active == 'dashboard'  ? 'active' : ''}">Tableau de bord</a>
         <a href="${ctx}/client/contracts"   class="${active == 'contracts'   ? 'active' : ''}">Mes contrats</a>
-        <a href="${ctx}/client/garanties"  class="${active == 'guarantees'  ? 'active' : ''}">Mes garanties</a>
+        <a href="${ctx}/client/guarantees"  class="${active == 'guarantees'  ? 'active' : ''}">Mes garanties</a>
         <a href="${ctx}/client/payments"  class="${active == 'payments'  ? 'active' : ''}">Paiements</a>
         <a href="${ctx}/client/claims"  class="${active == 'claims'  ? 'active' : ''}">Sinistres</a>
         <a href="${ctx}/client/historique" class="${active == 'history' ? 'active' : ''}">Historique des demandes</a>

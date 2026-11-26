@@ -22,6 +22,8 @@ public final class Validation {
     public static final int MIN_AGE = 18;
     public static final int PASSWORD_MIN = 8;
     public static final int PASSWORD_MAX = 72;   // limite de BCrypt
+    public static final int GUARANTEE_NAME_MAX = 100; // garantie.nom VARCHAR(100)
+    public static final int DESCRIPTION_MAX = 500;    // description TEXT, limitée dans les formulaires
 
     /** Même expression que l'attribut pattern des champs téléphone des JSP (20 caractères max = VARCHAR(20)). */
     public static final String PHONE_PATTERN = "[+0-9][0-9 .]{5,19}";
@@ -37,6 +39,24 @@ public final class Validation {
 
     public static String lastName(String value, Map<String, String> errors) {
         return requiredText(value, "lastName", "Le nom", NAME_MAX, errors);
+    }
+
+    /** Nom d'une garantie, obligatoire (champ "name"). */
+    public static String guaranteeName(String value, Map<String, String> errors) {
+        return requiredText(value, "name", "Le nom", GUARANTEE_NAME_MAX, errors);
+    }
+
+    /** Nom d'un type d'assurance, obligatoire (champ "name", type_assurance.nom VARCHAR(100)). */
+    public static String insuranceTypeName(String value, Map<String, String> errors) {
+        return requiredText(value, "name", "Le nom", GUARANTEE_NAME_MAX, errors);
+    }
+
+    /** Description facultative (champ "description") : renvoie null si vide. */
+    public static String description(String value, Map<String, String> errors) {
+        String v = Strings.trimToEmpty(value);
+        if (v.isEmpty()) return null;
+        if (v.length() > DESCRIPTION_MAX) errors.put("description", "La description est trop longue (" + DESCRIPTION_MAX + " caractères max).");
+        return v;
     }
 
     /** Email obligatoire, renvoyé en minuscules. */
