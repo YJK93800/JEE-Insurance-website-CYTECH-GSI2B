@@ -156,32 +156,61 @@ Prime **mensuelle** : une échéance par mois de la période (le même jour que 
 
 ### Tests à faire dans Tomcat (paiements)
 
-Avant : `mvn test`, redémarrer Tomcat (Flyway applique V5 au démarrage). Compte `agent@assurance.local`, puis `client@` et `admin@`.
+Avant : `mvn test` (vert, dont `PaymentScheduleTest` et `PaymentServiceTest`), puis arrêter Tomcat, vider le dossier `work` (`.smarttomcat/AssurCY2000/`) et relancer. Au démarrage, Flyway doit appliquer `V5__echeances_contrats_existants` (visible dans la console, et `SELECT version, success FROM flyway_schema_history;` montre la ligne 5 à 1). Comptes `agent@`, `client@`, `admin@assurance.local` / `Assurance2026!`.
 
-Échéancier (agent)
-- [ ] Créer un contrat du 01/01 au 31/12 à 30 € : `/agent/payments?contractId=…` (bouton « Voir l'échéancier » du détail) affiche 12 échéances de 30 €
-- [ ] Contrat créé avec une date de début passée puis activé : au plus tard 1 h après (ou au redémarrage + 1 min), les échéances dépassées passent EN RETARD ; un contrat resté en attente n'a pas de retard
-- [ ] Modifier la prime d'un contrat : les échéances à venir prennent la nouvelle prime, les payées gardent l'ancienne
-- [ ] Raccourcir la période : les échéances non payées hors période disparaissent
-- [ ] Renouveler : le nouveau contrat a ses 12 échéances
-- [ ] Résilier : les échéances après la date de résiliation sont ANNULÉES, celles d'avant restent à payer
-- [ ] Un contrat créé avant l'Étape 3 a bien ses échéances après le redémarrage (migration V5)
+Migration V5 (contrats créés avant l'Étape 3)
+- [ ] Un contrat en attente, actif ou suspendu créé avant aujourd'hui a maintenant une échéance par mois (`/agent/payments?contractId=…`)
+- [ ] Le contrat de démo CT-2026-0001 garde ses 4 paiements d'origine (pas de doublon)
+- [ ] Les contrats résiliés ou expirés n'ont pas reçu d'échéances
 
-Encaissement (agent, `/agent/payments`)
-- [ ] Onglets Historique / Effectués / En attente / Échéances ; la recherche (n° de contrat, nom, email) est conservée en changeant d'onglet
-- [ ] « Encaisser » sur une ligne pré-sélectionne l'échéance dans le formulaire (y compris une échéance dans plusieurs mois)
-- [ ] Erreurs affichées : aucune échéance, aucun mode, date vide ou dans le futur ; les choix sont conservés
-- [ ] Paiement valide : message, onglet « Effectués », date, mode (libellé) et statut EFFECTUÉ
-- [ ] Une échéance déjà payée (deux onglets ouverts, double envoi) est refusée : « déjà payée »
+Échéancier (agent `agent@assurance.local`)
+- [ ] Créer un contrat pour `client@` du 01/01/2027 au 31/12/2027, prime 30 € → détail du contrat, « Voir l'échéancier de ce contrat » : 12 échéances de 30,00 €, du 01/01/2027 au 01/12/2027, toutes « En attente », dans l'onglet « Échéances »
+- [ ] Créer un contrat qui commence le 31 d'un mois → échéances le 31, ou le dernier jour des mois courts (28/02, 30/04…)
+- [ ] Créer un contrat qui a commencé il y a 3 mois, sans l'activer → ses échéances passées sont dans « En attente » mais pas « En retard »
+- [ ] L'activer, puis redémarrer Tomcat et attendre 1 min (la tâche tourne au démarrage + 1 min, puis toutes les heures) → les échéances passées sont « En retard », le résumé indique le nombre de retards
+- [ ] Modifier la prime (30 → 35 €) → les échéances à venir passent à 35 €, celles déjà payées ou en retard gardent 30 €
+- [ ] Raccourcir la période à 6 mois → seules 6 échéances restent (plus les éventuelles payées hors période)
+- [ ] Allonger la période → les nouveaux mois ont leur échéance
+- [ ] Renouveler un contrat → le nouveau contrat (statut en attente) a ses 12 échéances, l'ancien garde les siennes
+- [ ] Résilier avec une date de résiliation aujourd'hui → les échéances après aujourd'hui sont « Annulé », celles d'avant restent à payer
 
-Client (`/client/payments`)
-- [ ] Seulement ses paiements ; résumé : total payé, à régler, nombre de retards, prochaine échéance
-- [ ] Depuis un contrat : « Paiements » n'affiche que ce contrat, les onglets gardent le contrat
-- [ ] `/client/payments?contractId=` d'un contrat d'un autre client renvoie une 404
-- [ ] Aucun bouton ni formulaire d'encaissement
+Liste et recherche (agent, `/agent/payments`)
+- [ ] Lien « Paiements » de la sidebar actif sur la page
+- [ ] Onglet par défaut « Historique » : payés, annulés et déjà dus, du plus récent au plus ancien ; aucune échéance future
+- [ ] « Effectués » : uniquement les payés ; « En attente » : dus à ce jour non payés, le plus ancien d'abord ; « Échéances » : à venir, la plus proche d'abord
+- [ ] Recherche par numéro de contrat, par nom (« martin »), par prénom + nom, par email ; insensible à la casse ; la recherche reste quand on change d'onglet ; « Réinitialiser » l'enlève
+- [ ] Le numéro de contrat d'une ligne ouvre le détail du contrat ; « ← Retour au contrat » depuis l'échéancier d'un contrat
+- [ ] Résumé en haut : total payé, à régler, nombre de retards, prochaine échéance (date, montant, contrat)
 
-Admin (`/admin/payments`)
-- [ ] Tous les paiements, onglets et recherche, aucun formulaire ni bouton « Encaisser »
+Encaissement (agent)
+- [ ] Formulaire « Enregistrer un paiement » : la liste propose les échéances non payées jusqu'au mois prochain, les retards marqués « en retard » ; la date est pré-remplie à aujourd'hui
+- [ ] Bouton « Encaisser » sur une ligne → la page descend au formulaire, l'échéance est pré-sélectionnée et la ligne surlignée (marche aussi pour une échéance dans 6 mois)
+- [ ] Pas de bouton « Encaisser » sur une ligne payée ou annulée
+- [ ] Envoyer sans échéance, sans mode, avec une date vide → messages sous les champs, code 400, choix conservés
+- [ ] Date de demain (en retirant le `max` avec l'inspecteur) → « La date de paiement ne peut pas être dans le futur. »
+- [ ] Paiement valide (virement, aujourd'hui) → message « Paiement de l'échéance du … enregistré pour CTR-… », onglet « Effectués » : statut « Effectué », date, mode « Virement » ; le total payé augmente
+- [ ] Payer une échéance en retard → elle passe « Effectué », le nombre de retards baisse
+- [ ] Même échéance encaissée deux fois (deux onglets ouverts, ou F5 sur le POST) → « Cette échéance est déjà payée. »
+- [ ] Échéance annulée (contrat résilié) envoyée via l'inspecteur → « Cette échéance est annulée (contrat résilié). »
+- [ ] Sans jeton CSRF (supprimé avec l'inspecteur) → refus (403)
+
+Client (`client@assurance.local`)
+- [ ] Sidebar « Paiements » → `/client/payments` : uniquement ses paiements, mêmes onglets et résumé, aucune colonne Client, aucun formulaire ni bouton « Encaisser »
+- [ ] `/client/contracts` : bouton « Paiements » d'un contrat, et « Voir les paiements de ce contrat » sur le détail → seulement ce contrat, le titre affiche son numéro, les onglets gardent le contrat
+- [ ] Un paiement encaissé par l'agent apparaît dans « Effectués » avec la date et le mode
+- [ ] `/client/payments?contractId=` d'un contrat d'un autre client → 404 ; `?contractId=abc` → 404
+- [ ] `/agent/payments` en tant que client → 403 ; un POST forgé vers `/agent/payments` → 403
+- [ ] `?filter=nimportequoi` → onglet Historique, pas d'erreur
+
+Admin (`admin@assurance.local`)
+- [ ] Sidebar « Tous les paiements » → `/admin/payments` : tous les paiements, onglets, recherche, résumé
+- [ ] Aucun formulaire, aucune colonne « Action » ; un POST forgé vers `/agent/payments` → refusé (403)
+- [ ] Détail d'un contrat côté admin → « Voir l'échéancier de ce contrat » ouvre `/admin/payments?contractId=…`
+
+Affichage
+- [ ] Statuts en libellé avec la bonne couleur : En attente, Effectué, En retard, Annulé (gris)
+- [ ] Montants au format français (30,00 €), dates en jj/mm/aaaa, accents corrects
+- [ ] Page lisible sur un écran étroit (tableau qui défile, formulaire sous la liste)
 
 ## Étape 4 — Garanties et types d'assurance (2.3, 2.4)
 
