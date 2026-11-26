@@ -2,7 +2,9 @@ package com.assurcy2000.dao;
 
 import com.assurcy2000.model.Guarantee;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class GuaranteeDao extends BaseDao<Guarantee, Long> {
@@ -13,6 +15,12 @@ public class GuaranteeDao extends BaseDao<Guarantee, Long> {
         return query(s -> s.createQuery("from Guarantee g where g.name = :name", Guarantee.class)
                 .setParameter("name", name)
                 .uniqueResultOptional());
+    }
+
+    /** Tout le catalogue, actives et désactivées, par nom (page de gestion de l'agent). */
+    public List<Guarantee> findAllOrderByName() {
+        return query(s -> s.createQuery("from Guarantee g order by g.name", Guarantee.class)
+                .getResultList());
     }
 
     public List<Guarantee> findAllActive() {
@@ -42,5 +50,16 @@ public class GuaranteeDao extends BaseDao<Guarantee, Long> {
                 "select count(c) from Contract c join c.guarantees g where g.id = :id", Long.class)
                 .setParameter("id", guaranteeId)
                 .getSingleResult() > 0);
+    }
+
+    /** Nombre de contrats par garantie, en une requête : id de la garantie -> nombre (absente = 0). */
+    public Map<Long, Long> countContractsByGuarantee() {
+        return query(s -> {
+            Map<Long, Long> result = new HashMap<>();
+            s.createQuery("select g.id, count(c) from Contract c join c.guarantees g group by g.id", Object[].class)
+                    .getResultList()
+                    .forEach(row -> result.put((Long) row[0], (Long) row[1]));
+            return result;
+        });
     }
 }
