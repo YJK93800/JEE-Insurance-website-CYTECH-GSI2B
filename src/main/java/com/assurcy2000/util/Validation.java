@@ -46,6 +46,11 @@ public final class Validation {
         return requiredText(value, "name", "Le nom", GUARANTEE_NAME_MAX, errors);
     }
 
+    /** Nom d'un type d'assurance, obligatoire (champ "name", type_assurance.nom VARCHAR(100)). */
+    public static String insuranceTypeName(String value, Map<String, String> errors) {
+        return requiredText(value, "name", "Le nom", GUARANTEE_NAME_MAX, errors);
+    }
+
     /** Description facultative (champ "description") : renvoie null si vide. */
     public static String description(String value, Map<String, String> errors) {
         String v = Strings.trimToEmpty(value);

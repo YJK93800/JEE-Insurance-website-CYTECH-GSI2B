@@ -28,6 +28,7 @@ public final class Views {
 
     public static final String ADMIN_USERS = BASE + "admin/users.jsp";
     public static final String ADMIN_USER_EDIT = BASE + "admin/user-edit.jsp";
+    public static final String ADMIN_TYPES = BASE + "admin/types.jsp";
     public static final String STATS = BASE + "admin/stats.jsp";
 
     private Views() { }

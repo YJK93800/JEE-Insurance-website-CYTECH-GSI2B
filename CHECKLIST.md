@@ -216,8 +216,8 @@ Affichage
 - [x] Agent : créer, modifier, supprimer une garantie (`/agent/guarantees`, `AgentGuaranteesServlet`, `GuaranteeService` : nom unique, franchise ≤ plafond, suppression refusée si un contrat l'utilise ; `GuaranteeServiceTest`)
 - [ ] Agent : associer une garantie à un contrat (déjà possible dans le formulaire de contrat de l'Étape 1)
 - [x] Client : consulter ses garanties (`/client/guarantees`, `ClientGuaranteesServlet`, `ContractService.listOwnWithGuarantees` : contrats actifs, suspendus et en attente, garanties par ordre alphabétique ; `ClientGuaranteesTest`)
-- [ ] Admin : gérer les types d'assurance (nom, description, prix de base, garanties disponibles)
-- [ ] Ajouter un type sans toucher au code : les types viennent de la base, pas d'un `enum`
+- [x] Admin : gérer les types d'assurance (nom, description, prix de base, garanties disponibles) : `/admin/types`, `AdminTypesServlet`, `InsuranceTypeService` (nom unique, au moins une garantie, activer / désactiver, suppression refusée si des contrats l'utilisent ; `InsuranceTypeServiceTest`)
+- [x] Ajouter un type sans toucher au code : les types viennent de la base, pas d'un `enum` (un type créé dans `/admin/types` est aussitôt proposé dans le formulaire de contrat)
 
 ### Tests à faire dans Tomcat (garanties)
 
@@ -257,6 +257,17 @@ Client (`client@assurance.local`, `/client/guarantees`)
 - [ ] Contrats expirés ou résiliés absents ; aucun contrat d'un autre client
 - [ ] Un client sans contrat en cours voit « Aucune garantie : vous n'avez pas de contrat en cours. »
 - [ ] Agent et admin sur `/client/guarantees` → 403
+
+Types d'assurance (admin `admin@assurance.local`, `/admin/types`)
+- [ ] Lien « Types d'assurance » de la sidebar actif ; 5 types par nom, badge ACTIF, prix « /mois », nombre de contrats, garanties en étiquettes par ordre alphabétique
+- [ ] « Supprimer » absent sur un type utilisé par des contrats (Assurance automobile avec le contrat de démo)
+- [ ] Créer « Assurance animaux », 15 €, garanties Responsabilité civile + Accident → « Type « Assurance animaux » créé. »
+- [ ] Erreurs : nom vide, nom déjà pris, prix vide / négatif / en lettres, aucune garantie cochée → messages sous les champs, code 400, saisies et cases cochées conservées
+- [ ] Modifier : formulaire pré-rempli avec les cases du type cochées ; décocher une garantie et enregistrer → étiquettes à jour
+- [ ] Agent, `+ Nouveau contrat` : « Assurance animaux » est proposée, avec son prix et ses garanties (sans redémarrer)
+- [ ] Désactiver « Assurance animaux » → badge DÉSACTIVÉ, plus proposée dans le formulaire de contrat ; toujours dans le filtre par type de `/agent/contracts` ; « Activer » la remet
+- [ ] Supprimer « Assurance animaux » (aucun contrat) → « Type « Assurance animaux » supprimé. » ; ses garanties existent toujours dans `/agent/guarantees`
+- [ ] `?id=999`, `?id=abc` → 404 ; agent et client sur `/admin/types` → 403 ; sans jeton CSRF → 403
 
 ## Étape 5 — Statistiques (2.8)
 

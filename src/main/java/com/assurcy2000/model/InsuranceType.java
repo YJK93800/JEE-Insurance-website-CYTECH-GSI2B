@@ -27,6 +27,7 @@ public class InsuranceType {
     private boolean active = true;
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @OrderBy("name")
     @JoinTable(name = "type_assurance_garantie",
             joinColumns = @JoinColumn(name = "type_assurance_id"),
             inverseJoinColumns = @JoinColumn(name = "garantie_id"))
