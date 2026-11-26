@@ -2,8 +2,6 @@
 
 Mise à jour le 26/11/2026. Cochez les cases dans vos commits au fur et à mesure.
 
-« → dépend de l'Étape N » : à faire une fois l'étape indiquée terminée.
-
 ## Étape 0 — Authentification et profil (section 2.1)
 
 Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent@`, `admin@assurance.local` / `Assurance2026!`).
