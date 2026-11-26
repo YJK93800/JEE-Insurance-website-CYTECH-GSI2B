@@ -14,7 +14,7 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 - [x] Changer son mot de passe (vérification de l'ancien dans `UserService`)
 - [x] Nom et prénom verrouillés sur `/profil` ; email et date de naissance modifiables
 - [ ] Tester l'inscription : champ vide, moins de 18 ans, email déjà pris, puis inscription valide
-- [ ] Tester la connexion avec les 3 comptes de démo
+- [X] Tester la connexion avec les 3 comptes de démo
 - [ ] Tester `/profil` : modifier téléphone et adresse, puis changer le mot de passe (mauvais puis bon mot de passe actuel)
 - [ ] Lancer `mvn test` en local
 
