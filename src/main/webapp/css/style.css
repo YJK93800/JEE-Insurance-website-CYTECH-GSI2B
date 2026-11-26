@@ -129,7 +129,7 @@ a.item-title:hover { color: var(--teal); text-decoration: underline; }
 .badge-refuse, .badge-resilie, .badge-echoue, .badge-en_retard { background: var(--danger-bg); color: #A12828; }
 .badge-indemnise { background: #DDF1F1; color: #0B5C5C; }
 .badge-suspendu { background: #ECE7FA; color: #4E3A99; }
-.badge-expire { background: #EDF0F3; color: #5B6675; }
+.badge-expire, .badge-annule { background: #EDF0F3; color: #5B6675; }
 .badge-ai { font-size: 11px; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 6px; background: var(--info-bg); color: var(--info); }
 .chip { font-size: 12px; padding: 4px 9px; border-radius: 6px; background: #F0F2F5; color: var(--text-2); }
 
