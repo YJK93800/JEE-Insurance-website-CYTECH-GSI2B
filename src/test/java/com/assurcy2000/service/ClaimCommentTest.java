@@ -1,5 +1,6 @@
 package com.assurcy2000.service;
 
+import com.assurcy2000.dao.ClaimAttachmentDao;
 import com.assurcy2000.dao.ClaimCommentDao;
 import com.assurcy2000.dao.ClaimDao;
 import com.assurcy2000.dao.ClaimHistoryDao;
@@ -17,6 +18,7 @@ import com.assurcy2000.model.enums.ClaimType;
 import com.assurcy2000.persistence.TransactionRunner;
 import com.assurcy2000.service.exceptions.ForbiddenException;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.util.AttachmentStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -66,7 +68,8 @@ class ClaimCommentTest {
         UserDao userDao = new UserDao() {
             @Override public User getReference(Long id) { return Map.of(2L, agentUser, 3L, adminUser).get(id); }
         };
-        service = new ClaimService(claimDao, new ClaimHistoryDao(), commentDao, new ContractDao(), userDao, DIRECT);
+        service = new ClaimService(claimDao, new ClaimHistoryDao(), commentDao, new ClaimAttachmentDao(), new ContractDao(),
+                userDao, new AttachmentStorage(java.nio.file.Path.of("target", "test-uploads")), DIRECT);
         client = SessionUser.from(alice);
         agent = SessionUser.from(agentUser);
         admin = SessionUser.from(adminUser);

@@ -1,5 +1,6 @@
 package com.assurcy2000.controller;
 
+import com.assurcy2000.model.ClaimAttachment;
 import com.assurcy2000.model.enums.ClaimStatus;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.ForbiddenException;
@@ -14,6 +15,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 public abstract class BaseServlet extends HttpServlet {
@@ -47,6 +52,24 @@ public abstract class BaseServlet extends HttpServlet {
         Long id = RequestParams.optionalLong(req, name);
         if (id == null) throw new NotFoundException("Ressource introuvable.");
         return id;
+    }
+
+    /**
+     * Envoie une pièce justificative au navigateur (affichée dans l'onglet si possible).
+     * Les droits ont déjà été vérifiés par ClaimService.attachment.
+     * nosniff + sandbox : le navigateur ne devine pas un autre type et n'exécute aucun script du fichier.
+     */
+    protected void sendAttachment(HttpServletResponse resp, ClaimAttachment attachment, Path file) throws IOException {
+        if (!Files.isRegularFile(file)) throw new NotFoundException("Fichier introuvable.");
+        String name = attachment.getFileName();
+        String ascii = name.replaceAll("[^A-Za-z0-9._-]", "_");
+        String utf8 = URLEncoder.encode(name, StandardCharsets.UTF_8).replace("+", "%20");
+        resp.setContentType(attachment.getMimeType());
+        resp.setContentLengthLong(Files.size(file));
+        resp.setHeader("X-Content-Type-Options", "nosniff");
+        resp.setHeader("Content-Security-Policy", "sandbox");
+        resp.setHeader("Content-Disposition", "inline; filename=\"" + ascii + "\"; filename*=UTF-8''" + utf8);
+        Files.copy(file, resp.getOutputStream());
     }
 
     protected ClaimStatus claimStatusParam(HttpServletRequest req, String name) {

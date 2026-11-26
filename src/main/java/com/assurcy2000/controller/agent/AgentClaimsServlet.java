@@ -2,6 +2,7 @@ package com.assurcy2000.controller.agent;
 
 import com.assurcy2000.controller.BaseServlet;
 import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.model.ClaimAttachment;
 import com.assurcy2000.service.ClaimService;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.util.FormView;
@@ -23,7 +24,10 @@ public class AgentClaimsServlet extends BaseServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         SessionUser user = user(req);
-        if (req.getParameter("id") != null) {
+        if (req.getParameter("attachment") != null) {
+            ClaimAttachment attachment = claimService.attachment(user, idParam(req, "attachment"));
+            sendAttachment(resp, attachment, claimService.fileOf(attachment));
+        } else if (req.getParameter("id") != null) {
             showDetail(req, resp, user, idParam(req, "id"));
         } else {
             req.setAttribute("claims", claimService.listFor(user));
@@ -59,6 +63,7 @@ public class AgentClaimsServlet extends BaseServlet {
         req.setAttribute("claim", claimService.get(user, id));
         req.setAttribute("history", claimService.history(user, id));
         req.setAttribute("comments", claimService.comments(user, id));
+        req.setAttribute("attachments", claimService.attachments(user, id));
         render(req, resp, Views.AGENT_CLAIM);
     }
 }

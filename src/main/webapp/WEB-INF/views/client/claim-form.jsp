@@ -2,11 +2,13 @@
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
 <%-- ClientClaimsServlet — GET  /client/claims?new=1[&contractId=12] -> cette vue
                            POST /client/claims                       -> ClaimService.declare
-     Paramètres envoyés : contractId, type (ClaimType), claimDate (aaaa-mm-jj), estimatedAmount, description
+     Paramètres envoyés : contractId, type (ClaimType), claimDate (aaaa-mm-jj), estimatedAmount, description,
+                          attachments (0 à 5 fichiers PDF/JPG/PNG de 5 Mo max, multipart/form-data)
      Attributs : contracts  List<Contract>  (contrats ACTIF du client, insuranceType chargé)
                  claimTypes ClaimType[]
                  errors     Map<String,String> en cas d'échec (clés = noms des paramètres ci-dessus)
-     Après une erreur, la page est réaffichée par forward : les valeurs saisies sont relues dans param.* --%>
+     Après une erreur, la page est réaffichée par forward : les valeurs saisies sont relues dans param.*
+     (sauf les fichiers, qu'un navigateur ne permet pas de pré-remplir : le client doit les rechoisir). --%>
 <c:set var="title" value="Déclarer un sinistre" />
 <c:set var="selectedContract" value="${param.contractId}" />
 <!DOCTYPE html>
@@ -34,7 +36,7 @@
         </c:when>
         <c:otherwise>
       <div class="row">
-        <form class="card form col-main" method="post" action="${ctx}/client/claims" novalidate data-validate id="claim-form">
+        <form class="card form col-main" method="post" action="${ctx}/client/claims" enctype="multipart/form-data" novalidate data-validate id="claim-form">
           <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
 
           <fieldset class="${not empty errors.contractId ? 'has-error' : ''}">
@@ -94,6 +96,25 @@
             <span class="field-help" id="desc-counter">0 / 2000 caractères (10 minimum)</span>
           </label>
 
+          <div class="field ${not empty errors.attachments ? 'has-error' : ''}">
+            <span>Pièces justificatives <span class="muted">(facultatif)</span></span>
+            <label class="dropzone" data-dropzone>
+              <strong>Glissez vos fichiers ici</strong>
+              <span class="small">ou cliquez pour les choisir</span>
+              <span class="xsmall muted">PDF, JPG ou PNG · 5 Mo maximum par fichier · 5 fichiers maximum</span>
+              <input type="file" name="attachments" multiple
+                     accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                     data-max-size="5242880" data-max-files="5"
+                     <c:if test="${not empty errors.attachments}">aria-invalid="true" aria-describedby="e-attachments"</c:if>>
+            </label>
+            <ul class="file-list" data-file-list aria-live="polite"></ul>
+            <c:choose>
+              <c:when test="${not empty errors.attachments}"><span class="field-error" id="e-attachments"><c:out value="${errors.attachments}" /></span></c:when>
+              <c:when test="${not empty errors}"><span class="field-help">Pour des raisons de sécurité, le navigateur a vidé la liste : choisissez à nouveau vos fichiers.</span></c:when>
+              <c:otherwise><span class="field-help">Vous pourrez aussi en ajouter plus tard depuis le suivi du sinistre.</span></c:otherwise>
+            </c:choose>
+          </div>
+
           <div class="form-actions">
             <a class="btn" href="${ctx}/client/claims">Annuler</a>
             <button type="submit" class="btn btn-primary">Envoyer la déclaration</button>
@@ -113,6 +134,7 @@
             <div class="between small"><span class="muted">Contrat</span><span class="strong" data-recap="contract">—</span></div>
             <div class="between small"><span class="muted">Type</span><span class="strong" data-type-label>—</span></div>
             <div class="between small"><span class="muted">Date</span><span class="strong" data-recap="date">—</span></div>
+            <div class="between small"><span class="muted">Pièces jointes</span><span class="strong" data-recap="files">0</span></div>
             <div class="between small"><span class="muted">Statut à l'envoi</span><ui:status value="DECLARE" /></div>
           </section>
         </aside>

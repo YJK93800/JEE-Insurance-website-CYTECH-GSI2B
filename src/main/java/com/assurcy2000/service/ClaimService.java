@@ -1,12 +1,15 @@
 package com.assurcy2000.service;
 
+import com.assurcy2000.dao.ClaimAttachmentDao;
 import com.assurcy2000.dao.ClaimCommentDao;
 import com.assurcy2000.dao.ClaimDao;
 import com.assurcy2000.dao.ClaimHistoryDao;
 import com.assurcy2000.dao.ContractDao;
 import com.assurcy2000.dao.UserDao;
 import com.assurcy2000.dto.request.DeclareClaimRequest;
+import com.assurcy2000.dto.request.UploadedFile;
 import com.assurcy2000.model.Claim;
+import com.assurcy2000.model.ClaimAttachment;
 import com.assurcy2000.model.ClaimComment;
 import com.assurcy2000.model.ClaimHistory;
 import com.assurcy2000.model.Contract;
@@ -19,13 +22,16 @@ import com.assurcy2000.security.Policy;
 import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
+import com.assurcy2000.util.AttachmentStorage;
 import com.assurcy2000.util.Strings;
 import com.assurcy2000.util.Validation;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,22 +54,27 @@ public class ClaimService {
     private final ClaimDao claimDao;
     private final ClaimHistoryDao historyDao;
     private final ClaimCommentDao commentDao;
+    private final ClaimAttachmentDao attachmentDao;
     private final ContractDao contractDao;
     private final UserDao userDao;
+    private final AttachmentStorage storage;
     private final TransactionRunner tx;
 
     public ClaimService() {
-        this(new ClaimDao(), new ClaimHistoryDao(), new ClaimCommentDao(), new ContractDao(), new UserDao(),
-                new HibernateTransactionRunner());
+        this(new ClaimDao(), new ClaimHistoryDao(), new ClaimCommentDao(), new ClaimAttachmentDao(),
+                new ContractDao(), new UserDao(), new AttachmentStorage(), new HibernateTransactionRunner());
     }
 
     public ClaimService(ClaimDao claimDao, ClaimHistoryDao historyDao, ClaimCommentDao commentDao,
-                        ContractDao contractDao, UserDao userDao, TransactionRunner tx) {
+                        ClaimAttachmentDao attachmentDao, ContractDao contractDao, UserDao userDao,
+                        AttachmentStorage storage, TransactionRunner tx) {
         this.claimDao = claimDao;
         this.historyDao = historyDao;
         this.commentDao = commentDao;
+        this.attachmentDao = attachmentDao;
         this.contractDao = contractDao;
         this.userDao = userDao;
+        this.storage = storage;
         this.tx = tx;
     }
 
@@ -114,13 +125,137 @@ public class ClaimService {
         });
     }
 
-    /** Vérification du contrat + génération du numéro + insertion : une seule transaction. */
-    public Claim declare(SessionUser actor, DeclareClaimRequest req) {
-        Policy.require(actor, CLAIM_CREATE_OWN);
-        return tx.inTransaction(() -> doDeclare(actor, req));
+    // ---------------------------------------------------------------- pièces justificatives
+
+    /** Pièces justificatives d'un sinistre (mêmes droits de lecture que get). */
+    public List<ClaimAttachment> attachments(SessionUser actor, Long claimId) {
+        return tx.inTransaction(() -> {
+            get(actor, claimId);
+            return attachmentDao.findByClaim(claimId);
+        });
     }
 
-    private Claim doDeclare(SessionUser actor, DeclareClaimRequest req) {
+    /** Une pièce justificative, si l'utilisateur peut lire son sinistre ; sinon « introuvable ». */
+    public ClaimAttachment attachment(SessionUser actor, Long attachmentId) {
+        return tx.inTransaction(() -> {
+            ClaimAttachment attachment = attachmentDao.findById(attachmentId)
+                    .orElseThrow(() -> new NotFoundException("Pièce justificative introuvable."));
+            get(actor, attachment.getClaim().getId());
+            return attachment;
+        });
+    }
+
+    /** Emplacement du fichier d'une pièce justificative sur le disque. */
+    public Path fileOf(ClaimAttachment attachment) {
+        return storage.resolve(attachment.getPath());
+    }
+
+    /**
+     * Le client ajoute des pièces à l'un de ses sinistres, tant que le dossier n'est pas tranché
+     * (DECLARE ou EN_ANALYSE), dans la limite de MAX_FILES pièces par sinistre.
+     */
+    public List<ClaimAttachment> addAttachments(SessionUser actor, Long claimId, List<UploadedFile> files) {
+        Policy.require(actor, CLAIM_CREATE_OWN);
+        if (files.isEmpty()) {
+            throw new ValidationException(Map.of("attachments", "Choisissez au moins un fichier."));
+        }
+        List<String> stored = new ArrayList<>();
+        try {
+            return tx.inTransaction(() -> {
+                Claim claim = get(actor, claimId);
+                if (claim.getStatus() != ClaimStatus.DECLARE && claim.getStatus() != ClaimStatus.EN_ANALYSE) {
+                    throw new ValidationException(Map.of("attachments",
+                            "Le dossier est traité : il n'est plus possible d'ajouter des pièces."));
+                }
+                Map<String, String> errors = new LinkedHashMap<>();
+                List<AttachmentStorage.Kind> kinds = checkFiles(files, attachmentDao.countByClaim(claimId), errors);
+                if (!errors.isEmpty()) throw new ValidationException(errors);
+                return saveAttachments(claim, files, kinds, stored);
+            });
+        } catch (RuntimeException e) {
+            stored.forEach(storage::deleteQuietly);   // transaction annulée : pas de fichier orphelin
+            throw e;
+        }
+    }
+
+    /**
+     * Vérifie le nombre, la taille et le type réel des fichiers ; ajoute l'erreur éventuelle sous la clé
+     * "attachments" et renvoie le type de chaque fichier (dans le même ordre).
+     */
+    private List<AttachmentStorage.Kind> checkFiles(List<UploadedFile> files, long alreadyAttached,
+                                                    Map<String, String> errors) {
+        List<AttachmentStorage.Kind> kinds = new ArrayList<>();
+        if (alreadyAttached + files.size() > AttachmentStorage.MAX_FILES) {
+            errors.put("attachments", AttachmentStorage.MAX_FILES + " pièces justificatives maximum par sinistre"
+                    + (alreadyAttached > 0 ? " (" + alreadyAttached + " déjà jointe(s))." : "."));
+            return kinds;
+        }
+        for (UploadedFile file : files) {
+            String name = cleanFileName(file.name());
+            if (file.size() <= 0) {
+                errors.put("attachments", "« " + name + " » est vide.");
+                break;
+            }
+            if (file.size() > AttachmentStorage.MAX_SIZE) {
+                errors.put("attachments", "« " + name + " » dépasse 5 Mo.");
+                break;
+            }
+            var kind = AttachmentStorage.detect(file);
+            if (kind.isEmpty()) {
+                errors.put("attachments", "« " + name + " » n'est pas un PDF, un JPG ou un PNG.");
+                break;
+            }
+            kinds.add(kind.get());
+        }
+        return kinds;
+    }
+
+    /** Copie les fichiers sur le disque puis les enregistre en base ; stored reçoit les chemins écrits. */
+    private List<ClaimAttachment> saveAttachments(Claim claim, List<UploadedFile> files,
+                                                  List<AttachmentStorage.Kind> kinds, List<String> stored) {
+        List<ClaimAttachment> saved = new ArrayList<>();
+        for (int i = 0; i < files.size(); i++) {
+            UploadedFile file = files.get(i);
+            AttachmentStorage.Kind kind = kinds.get(i);
+            String path = storage.store(claim.getId(), kind, file);
+            stored.add(path);
+            saved.add(attachmentDao.save(new ClaimAttachment(
+                    cleanFileName(file.name()), path, kind.mimeType(), file.size(), claim)));
+        }
+        return saved;
+    }
+
+    /** Nom affiché : sans chemin (certains navigateurs l'envoient), sans caractères de contrôle, 255 max. */
+    static String cleanFileName(String raw) {
+        String name = raw == null ? "" : raw;
+        name = name.substring(Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1);
+        name = name.replaceAll("\\p{Cntrl}", "").trim();
+        if (name.isEmpty()) name = "fichier";
+        return name.length() > 255 ? name.substring(name.length() - 255) : name;
+    }
+
+    // ---------------------------------------------------------------- déclaration
+
+    public Claim declare(SessionUser actor, DeclareClaimRequest req) {
+        return declare(actor, req, List.of());
+    }
+
+    /**
+     * Vérification du contrat et des fichiers + numéro + insertion du sinistre, de l'historique
+     * et des pièces : une seule transaction. Si elle échoue, les fichiers déjà copiés sont supprimés.
+     */
+    public Claim declare(SessionUser actor, DeclareClaimRequest req, List<UploadedFile> files) {
+        Policy.require(actor, CLAIM_CREATE_OWN);
+        List<String> stored = new ArrayList<>();
+        try {
+            return tx.inTransaction(() -> doDeclare(actor, req, files, stored));
+        } catch (RuntimeException e) {
+            stored.forEach(storage::deleteQuietly);
+            throw e;
+        }
+    }
+
+    private Claim doDeclare(SessionUser actor, DeclareClaimRequest req, List<UploadedFile> files, List<String> stored) {
         Map<String, String> errors = new LinkedHashMap<>();
 
         Contract contract = null;
@@ -161,10 +296,13 @@ public class ClaimService {
         BigDecimal amount = Validation.amount(req.estimatedAmount(), "estimatedAmount", "Le montant estimé",
                 MAX_AMOUNT, true, errors);
 
+        List<AttachmentStorage.Kind> kinds = checkFiles(files, 0, errors);
+
         if (!errors.isEmpty()) throw new ValidationException(errors);
 
         Claim claim = claimDao.save(new Claim(nextNumber(), date, description, type, amount, contract));
         record(claim, null, ClaimStatus.DECLARE, actor);
+        saveAttachments(claim, files, kinds, stored);
         return claim;
     }
 

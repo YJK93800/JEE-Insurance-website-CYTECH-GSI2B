@@ -1,0 +1,26 @@
+<%-- Liste des pièces justificatives d'un sinistre.
+     La page définit avant l'inclusion :
+       attachments    List<ClaimAttachment> (fileName, mimeType, sizeBytes, addedAt)
+       attachmentUrl  début du lien de téléchargement, l'id est ajouté à la fin
+                      (ex. ${ctx}/client/claims?attachment=) --%>
+<c:choose>
+  <c:when test="${empty attachments}"><p class="small muted">Aucune pièce justificative.</p></c:when>
+  <c:otherwise>
+    <ul class="file-list" aria-label="Pièces justificatives">
+      <c:forEach var="att" items="${attachments}">
+        <li>
+          <span>
+            <a href="${attachmentUrl}${att.id}" target="_blank" rel="noopener"><strong><c:out value="${att.fileName}" /></strong></a>
+            · <c:choose>
+                <c:when test="${att.sizeBytes ge 1048576}"><fmt:formatNumber value="${att.sizeBytes / 1048576}" maxFractionDigits="1" /> Mo</c:when>
+                <c:otherwise><fmt:formatNumber value="${att.sizeBytes / 1024}" maxFractionDigits="0" /> Ko</c:otherwise>
+              </c:choose>
+          </span>
+          <span class="xsmall muted">
+            ${att.mimeType == 'application/pdf' ? 'PDF' : (att.mimeType == 'image/png' ? 'PNG' : 'JPG')} · ajoutée le <ui:date value="${att.addedAt}" />
+          </span>
+        </li>
+      </c:forEach>
+    </ul>
+  </c:otherwise>
+</c:choose>

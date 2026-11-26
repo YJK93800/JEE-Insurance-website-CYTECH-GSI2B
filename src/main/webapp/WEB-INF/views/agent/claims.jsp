@@ -6,6 +6,7 @@
      POST /agent/claims  id, action=status, status=EN_ANALYSE|ACCEPTE|REFUSE  -> ClaimService.changeStatus
      POST /agent/claims  id, action=indemnify, amount                         -> ClaimService.indemnify
      POST /agent/claims  id, action=comment, content                          -> ClaimService.addComment
+     Détail : attribut attachments List<ClaimAttachment> (téléchargement : GET ${base}?attachment=ID)
      Détail : attribut comments List<ClaimComment> (content, createdAt, author{firstName, lastName}), notes internes
      En cas d'erreur, le détail est réaffiché avec errors Map<String,String> (clés : status, amount, content, action).
      Aussi utilisée par l'admin (/admin/claims) en consultation seule : les formulaires ne sont pas affichés.
@@ -52,6 +53,12 @@
               <div class="stack-sm"><span class="muted">Agent en charge</span><span class="strong">
                 <c:choose><c:when test="${not empty claim.agent}"><c:out value="${claim.agent.firstName} ${claim.agent.lastName}" /></c:when><c:otherwise>—</c:otherwise></c:choose></span></div>
             </div>
+          </section>
+
+          <section class="card" id="attachments" aria-labelledby="h-att">
+            <h2 id="h-att">Pièces justificatives</h2>
+            <c:set var="attachmentUrl" value="${ctx}${base}?attachment=" />
+            <%@ include file="/WEB-INF/views/common/claim-attachments.jspf" %>
           </section>
 
           <c:if test="${isAgent}">

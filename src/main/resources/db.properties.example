@@ -4,3 +4,7 @@
 db.url=jdbc:mysql://localhost:3307/assurance?useSSL=false&serverTimezone=Europe/Paris&allowPublicKeyRetrieval=true
 db.user=assurance
 db.password=changeme
+
+# Dossier des pièces justificatives des sinistres, HORS du projet (sinon perdues au redéploiement).
+# Facultatif : par défaut ~/assurcy2000-uploads. Peut aussi être donné par la variable UPLOADS_DIR.
+# uploads.dir=/home/moi/assurcy2000-uploads

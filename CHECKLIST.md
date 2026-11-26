@@ -1,6 +1,6 @@
 # Projet JEE AssurCY2000 — Checklist
 
-Mise à jour le 25/11/2026. Cochez les cases dans vos commits au fur et à mesure.
+Mise à jour le 26/11/2026. Cochez les cases dans vos commits au fur et à mesure.
 
 « → dépend de l'Étape N » : à faire une fois l'étape indiquée terminée.
 
@@ -24,7 +24,7 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 - [x] Admin : gérer les utilisateurs et les rôles (`/admin/users` : activer, désactiver, changer le rôle)
 - [x] Permettre à un agent ou un admin de corriger le nom d'un utilisateur (`UserService.updateName` : fiche client de `/agent/clients`, `/admin/users/edit`)
 - [x] Admin : consulter l'ensemble des contrats (`/admin/contracts`)
-- [ ] Admin : consulter l'ensemble des sinistres (`/admin/claims`, déjà branché sur `AgentClaimsServlet`) → à tester avec l'Étape 2 (sinistres)
+- [ ] Admin : consulter l'ensemble des sinistres (`/admin/claims`, déjà branché sur `AgentClaimsServlet`) → voir « Tests à faire dans Tomcat (sinistres) », partie Admin
 - [ ] Client : consulter l'historique de ses demandes (`client/history.jsp`, pas encore de servlet : `/client/historique` donne une 404) : faisable maintenant, contrats et sinistres du client sont déjà lisibles
 
 ## Étape 1 — Contrats (2.2)
@@ -83,14 +83,58 @@ Admin et client
 
 ## Étape 2 — Sinistres (2.5)
 
-- [ ] Client : déclarer un sinistre depuis son espace
-- [ ] Client : joindre des pièces justificatives (upload)
-- [ ] Client : suivre l'état d'un sinistre
-- [ ] Agent : consulter les déclarations
-- [ ] Agent : changer le statut (DECLARE → EN_ANALYSE → ACCEPTE / REFUSE → INDEMNISE)
+- [x] Client : déclarer un sinistre depuis son espace (`ClientClaimsServlet`, numéro `SIN-AAAA-NNNNNN`, contrat ACTIF obligatoire)
+- [x] Client : joindre des pièces justificatives (upload) : à la déclaration ou depuis le suivi tant que DECLARE / EN_ANALYSE ; PDF, JPG, PNG reconnus à leur contenu ; 5 Mo et 5 fichiers max ; stockées hors du WAR (`uploads.dir`, défaut `~/assurcy2000-uploads`) ; téléchargement contrôlé (`?attachment=ID`) ; `ClaimAttachmentTest`, `AttachmentStorageTest`
+- [x] Client : suivre l'état d'un sinistre (frise « Avancement » + carte « Historique »)
+- [x] Agent : consulter les déclarations (`/agent/claims`, liste et détail)
+- [x] Agent : changer le statut (DECLARE → EN_ANALYSE → ACCEPTE / REFUSE → INDEMNISE, transitions contrôlées dans `ClaimService`)
 - [x] Agent : ajouter des commentaires (notes internes : lisibles par l'agent et l'admin, pas par le client ; `ClaimCommentTest`)
-- [ ] Agent : enregistrer le montant d'indemnisation
+- [x] Agent : enregistrer le montant d'indemnisation (`ClaimService.indemnify`, seulement depuis ACCEPTE)
 - [x] Enregistrer chaque changement de statut dans `historique_sinistre` (`ClaimService.record`, affiché sur le détail client et agent, testé dans `ClaimHistoryTest`)
+- [x] Accents corrects dans les fragments `.jspf` (`<jsp-config>` UTF-8 dans `web.xml`)
+
+### Tests à faire dans Tomcat (sinistres)
+
+Avant : `mvn test`, puis arrêter Tomcat, vider le dossier `work` (`.smarttomcat/AssurCY2000/`) et relancer. Compte client `client@assurance.local`, puis `agent@` et `admin@`.
+
+Déclaration (client, `/client/claims?new=1`)
+- [ ] Seuls les contrats ACTIFS du client sont proposés
+- [ ] Erreurs affichées sous chaque champ : aucun contrat, date vide ou dans le futur, date avant le début du contrat, aucun type, description de moins de 10 caractères, montant négatif ou en lettres
+- [ ] Après une erreur, les champs remplis sont conservés et un message demande de rechoisir les fichiers
+- [ ] Déclaration valide sans fichier : message « Sinistre SIN-2026-… déclaré. », ouverture du suivi, statut DÉCLARÉ
+- [ ] Le numéro s'incrémente à chaque déclaration
+
+Pièces justificatives (client)
+- [ ] Déclarer avec 2 fichiers (un PDF et une photo) : ils apparaissent dans « Pièces justificatives » et le récapitulatif affiche « 2 »
+- [ ] Glisser-déposer dans la zone, puis « Retirer » un fichier avant l'envoi
+- [ ] Un fichier `.txt` renommé en `.pdf` est refusé (« n'est pas un PDF, un JPG ou un PNG »), rien n'est enregistré
+- [ ] Un fichier de plus de 5 Mo ou un 6e fichier est bloqué par le navigateur avant l'envoi
+- [ ] Depuis le suivi : ajouter des pièces jusqu'à 5 au total, puis le formulaire disparaît (« maximum de 5 pièces »)
+- [ ] Cliquer sur une pièce l'ouvre dans un nouvel onglet, avec le bon nom de fichier (essayer un nom avec accents et espaces)
+- [ ] Une fois le sinistre ACCEPTÉ, REFUSÉ ou INDEMNISÉ : plus de formulaire d'ajout
+- [ ] Les fichiers sont bien dans `~/assurcy2000-uploads/claims/<id>/` et toujours là après un redéploiement
+
+Suivi (client, `/client/claims`)
+- [ ] La liste ne montre que ses propres sinistres
+- [ ] Le détail affiche la frise « Avancement », la carte « Historique » (Déclaration · date · heure · nom) et les pièces
+- [ ] Aucun commentaire de l'agent n'est visible côté client
+- [ ] `/client/claims?id=` d'un sinistre d'un autre client renvoie une 404
+- [ ] `/client/claims?attachment=` d'une pièce d'un autre client renvoie une 404
+
+Traitement (agent, `/agent/claims`)
+- [ ] La liste affiche toutes les déclarations ; le détail affiche contrat, client, description, pièces, historique
+- [ ] DÉCLARÉ → EN ANALYSE → ACCEPTÉ : chaque étape ajoute une ligne dans « Historique » avec le nom de l'agent
+- [ ] Un autre sinistre : EN ANALYSE → REFUSÉ ; plus aucune action possible ensuite
+- [ ] Indemniser un sinistre ACCEPTÉ : montant vide, négatif ou en lettres refusé ; montant valide → INDEMNISÉ, montant et date affichés côté agent et côté client
+- [ ] Commentaires : publier deux commentaires (dont un sur plusieurs lignes), en envoyer un vide → erreur, le texte tapé est conservé
+- [ ] Commenter un sinistre déjà REFUSÉ ou INDEMNISÉ fonctionne
+
+Admin (`/admin/claims`)
+- [ ] Liste et détail de tous les sinistres, pièces ouvrables, commentaires visibles
+- [ ] Aucun bouton de changement de statut, d'indemnisation ni formulaire de commentaire
+
+Affichage
+- [ ] Accents corrects partout (frise, historique, commentaires, messages), y compris dans un nom de fichier joint
 
 ## Étape 3 — Paiements (2.6)
 

@@ -3,6 +3,7 @@ package com.assurcy2000.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.util.Properties;
 
 public final class DbConfig {
@@ -39,4 +40,16 @@ public final class DbConfig {
     public static String url()      { return get("db.url", "DB_URL"); }
     public static String user()     { return get("db.user", "DB_USER"); }
     public static String password() { return get("db.password", "DB_PASSWORD"); }
+
+    /**
+     * Dossier des pièces justificatives (hors du WAR) : variable UPLOADS_DIR, sinon uploads.dir
+     * dans db.properties, sinon ~/assurcy2000-uploads. Facultatif, contrairement aux réglages de la base.
+     */
+    public static Path uploadsDir() {
+        String env = System.getenv("UPLOADS_DIR");
+        if (env != null && !env.isBlank()) return Path.of(env.trim());
+        String value = PROPS.getProperty("uploads.dir");
+        if (value != null && !value.isBlank()) return Path.of(value.trim());
+        return Path.of(System.getProperty("user.home"), "assurcy2000-uploads");
+    }
 }
