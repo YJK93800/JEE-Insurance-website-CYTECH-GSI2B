@@ -1,9 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/historique — PAS ENCORE DE SERVLET (vue prête pour le modèle anglais)
-     Attributs attendus : requests List<…> triées de la plus récente à la plus ancienne, un DTO à créer avec :
-                          date (LocalDate), type (ex. "Déclaration de sinistre", "Souscription"),
-                          reference (n° de sinistre ou de contrat), link (URL relative, peut être null), status --%>
+<%-- GET /client/historique (servlet : ClientHistoryServlet)
+     Attributs : conversation List<ChatLine>  (fromClient, content, sentAt) : les 100 derniers messages avec l'assistant, du plus ancien au plus récent
+                 requests     List<HistoryEntry> (date, type, reference, link, status) : sinistres et contrats, du plus récent au plus ancien --%>
 <c:set var="title" value="Historique des demandes" />
 <!DOCTYPE html>
 <html lang="fr">
@@ -14,7 +13,26 @@
   <main class="main">
     <div class="container">
       <header class="page-head"><div class="stack-sm"><span class="eyebrow">Espace client</span><h1>Historique des demandes</h1></div></header>
+      <section class="card">
+        <h2>Conversations avec l'assistant</h2>
+        <c:choose>
+          <c:when test="${empty conversation}">
+            <p class="empty">Aucune conversation pour le moment. <a href="${ctx}/client/assistant">Poser une question à l'assistant</a></p>
+          </c:when>
+          <c:otherwise>
+            <div class="chat-body">
+              <c:forEach items="${conversation}" var="m">
+                <div class="msg ${m.fromClient ? 'user' : 'bot'}"><c:out value="${m.content}" /></div>
+                <div style="font-size:12px;color:var(--muted);align-self:${m.fromClient ? 'flex-end' : 'flex-start'}">
+                  <ui:date value="${m.sentAt}" /> à ${m.sentAt.hour}h${m.sentAt.minute lt 10 ? '0' : ''}${m.sentAt.minute}
+                </div>
+              </c:forEach>
+            </div>
+          </c:otherwise>
+        </c:choose>
+      </section>
       <section class="card flush">
+        <h2 style="padding:20px 24px 0">Mes demandes</h2>
         <c:choose>
           <c:when test="${empty requests}"><p class="empty">Aucune demande pour le moment.</p></c:when>
           <c:otherwise>

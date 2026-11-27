@@ -32,6 +32,7 @@ public final class Views {
     public static final String STATS = BASE + "admin/stats.jsp";
 
     public static final String CLIENT_ASSISTANT = BASE + "client/assistant.jsp";
+    public static final String CLIENT_HISTORY = BASE + "client/history.jsp";
 
     private Views() { }
 }
