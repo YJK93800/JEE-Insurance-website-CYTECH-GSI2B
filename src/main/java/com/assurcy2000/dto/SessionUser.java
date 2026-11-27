@@ -25,7 +25,8 @@ public record SessionUser(Long id, String firstName, String lastName, String ema
         return switch (role) {
             case Role.ADMIN -> "/admin/stats";
             case Role.AGENT -> "/agent/claims";
-            default -> "/client/contracts"; // pas encore de servlet pour /client/dashboard
+            default -> "/client/dashboard";
+
         };
     }
 }

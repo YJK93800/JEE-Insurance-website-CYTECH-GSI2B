@@ -28,7 +28,7 @@
 4. Ouvrir http://localhost:8080/projet-jee
 
 5. Ajouter de son côté dans src/ressources/db.properties : gemini.api.key = TACLE; puis dans Run > Edit > TomCat >
-Startup/Connection > Environment Variables : gemini_api_key
+Startup/Connection > Environment Variables : gemini_api_keyx    
 
 ### Outils
 

@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/dashboard — PAS ENCORE DE SERVLET (vue prête pour le modèle anglais)
+<%-- GET /client/dashboard — ClientDashboardServlet
      Attributs attendus :
        contracts            List<Contract>  (les 3 plus récents, avec insuranceType et guarantees chargés)
        contractCount        int             activeContractCount int   pendingContractCount int
@@ -33,7 +33,7 @@
 
       <c:if test="${not empty nextPayment}">
         <div class="alert alert-warn" role="status">
-          <span><strong>Échéance le <ui:date value="${nextPayment.paymentDate}" /></strong>
+          <span><strong>Échéance le <ui:date value="${nextPayment.dueDate}" /></strong>
             · <c:out value="${nextPayment.contract.insuranceType.name}" /> <c:out value="${nextPayment.contract.number}" />
             · <ui:amount value="${nextPayment.amount}" /></span>
           <a href="${ctx}/client/payments?filter=due">Voir l'échéancier</a>
@@ -103,17 +103,6 @@
               <a class="strong small" href="${ctx}/client/claims?id=${lastClaim.id}">Voir le détail et les échanges</a>
             </section>
           </c:if>
-
-          <section class="card dark" aria-labelledby="h-ia">
-            <h2 id="h-ia">Une question ?</h2>
-            <p class="small muted">L'assistant connaît vos contrats, garanties et sinistres.</p>
-            <div class="stack">
-              <c:forEach items="${['Où en est mon dernier sinistre ?', 'Quels sont mes contrats actifs ?', 'Comment déclarer un sinistre ?']}" var="question">
-                <c:url var="linkQuery" value="/client/assistant"><c:param name="q" value="${question}" /></c:url>
-                <a class="quick-q" href="${linkQuery}">${question}</a>
-              </c:forEach>
-            </div>
-          </section>
         </div>
       </div>
 
