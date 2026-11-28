@@ -32,7 +32,7 @@
         <a href="${ctx}/admin/contracts"     class="${active == 'contracts'     ? 'active' : ''}">Tous les contrats</a>
         <a href="${ctx}/admin/claims"    class="${active == 'claims'    ? 'active' : ''}">Tous les sinistres</a>
         <a href="${ctx}/admin/payments"  class="${active == 'payments'  ? 'active' : ''}">Tous les paiements</a>
-        <a href="${ctx}/admin/stats#indicateurs">Indicateurs de performance</a>
+        <a href="${ctx}/admin/stats#indicators">Indicateurs de performance</a>
       </c:when>
       <c:otherwise>
         <a href="${ctx}/client/dashboard"  class="${active == 'dashboard'  ? 'active' : ''}">Tableau de bord</a>
