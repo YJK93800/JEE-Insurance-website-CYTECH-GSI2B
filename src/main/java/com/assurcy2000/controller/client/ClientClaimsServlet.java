@@ -14,6 +14,7 @@ import com.assurcy2000.service.ContractService;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.util.FormView;
 import com.assurcy2000.util.RequestParams;
+import com.assurcy2000.util.Validation;
 import com.assurcy2000.util.Views;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -25,6 +26,8 @@ import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 /**
  * GET  /client/claims                → mes sinistres
@@ -34,8 +37,11 @@ import java.util.List;
  * POST /client/claims                → déclarer un sinistre (multipart, champ fichiers "attachments")
  * POST /client/claims  action=attachments, id → ajouter des pièces à un de mes sinistres
  *
+ * Les saisies sont vérifiées ici (Validation) avant l'appel au service ; ClaimService vérifie ensuite
+ * ce qui demande la base (contrat du client et actif, date dans la période, nombre de pièces déjà jointes).
+ *
  * Limites multipart volontairement larges (30 Mo) : la vraie règle (5 Mo par fichier, 5 fichiers)
- * est vérifiée par ClaimService pour afficher un message clair. Au-delà de 30 Mo, Tomcat abandonne la
+ * est vérifiée par Validation.attachments pour afficher un message clair. Au-delà de 30 Mo, Tomcat abandonne la
  * lecture de la requête et le jeton CSRF n'est pas lu : 403. app.js bloque ce cas avant l'envoi.
  */
 @WebServlet("/client/claims")
@@ -76,30 +82,59 @@ public class ClientClaimsServlet extends BaseServlet {
                 RequestParams.get(req, "type"),
                 RequestParams.get(req, "description"),
                 RequestParams.get(req, "estimatedAmount"));
-        try {
-            Claim claim = claimService.declare(user, form, files(req));
-            UserSession.flash(req, "Sinistre " + claim.getNumber() + " déclaré.", "success");
-            redirect(req, resp, "/client/claims?id=" + claim.getId());
-        } catch (ValidationException e) {
-            req.setAttribute(FormView.ERRORS, e.getErrors());
-            req.setAttribute("form", form);
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            showForm(req, resp, user);
+        List<UploadedFile> files = files(req);
+
+        // 1. Vérification des saisies par la servlet
+        Map<String, String> errors = new LinkedHashMap<>();
+        Validation.requiredId(form.contractId(), "contractId", "Choisissez un contrat.", errors);
+        Validation.claimDate(form.claimDate(), errors);
+        Validation.claimType(form.type(), errors);
+        Validation.claimDescription(form.description(), errors);
+        Validation.amount(form.estimatedAmount(), "estimatedAmount", "Le montant estimé",
+                Validation.CLAIM_AMOUNT_MAX, true, errors);
+        Validation.attachments(files, 0, errors);
+
+        // 2. Le service vérifie le contrat (au client, actif) et que le sinistre est pendant le contrat
+        if (errors.isEmpty()) {
+            try {
+                Claim claim = claimService.declare(user, form, files);
+                UserSession.flash(req, "Sinistre " + claim.getNumber() + " déclaré.", "success");
+                redirect(req, resp, "/client/claims?id=" + claim.getId());
+                return;
+            } catch (ValidationException e) {
+                errors.putAll(e.getErrors());
+            }
         }
+        req.setAttribute(FormView.ERRORS, errors);
+        req.setAttribute("form", form);
+        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        showForm(req, resp, user);
     }
 
     private void addAttachments(HttpServletRequest req, HttpServletResponse resp, SessionUser user)
             throws ServletException, IOException {
         Long id = idParam(req, "id");
-        try {
-            int added = claimService.addAttachments(user, id, files(req)).size();
-            UserSession.flash(req, added + (added > 1 ? " pièces ajoutées." : " pièce ajoutée."), "success");
-            redirect(req, resp, "/client/claims?id=" + id + "#attachments");
-        } catch (ValidationException e) {
-            req.setAttribute(FormView.ERRORS, e.getErrors());
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            showDetail(req, resp, user, id);
+        List<UploadedFile> files = files(req);
+
+        // 1. Vérification des fichiers par la servlet (nombre, taille, type réel)
+        Map<String, String> errors = new LinkedHashMap<>();
+        if (files.isEmpty()) errors.put("attachments", "Choisissez au moins un fichier.");
+        else Validation.attachments(files, 0, errors);
+
+        // 2. Le service vérifie le statut du dossier et le total avec les pièces déjà jointes
+        if (errors.isEmpty()) {
+            try {
+                int added = claimService.addAttachments(user, id, files).size();
+                UserSession.flash(req, added + (added > 1 ? " pièces ajoutées." : " pièce ajoutée."), "success");
+                redirect(req, resp, "/client/claims?id=" + id + "#attachments");
+                return;
+            } catch (ValidationException e) {
+                errors.putAll(e.getErrors());
+            }
         }
+        req.setAttribute(FormView.ERRORS, errors);
+        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        showDetail(req, resp, user, id);
     }
 
     /** Fichiers du champ "attachments" ; un champ laissé vide envoie une partie sans nom, ignorée ici. */

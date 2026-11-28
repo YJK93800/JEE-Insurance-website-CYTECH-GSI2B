@@ -23,14 +23,12 @@ import com.assurcy2000.dto.SessionUser;
 import com.assurcy2000.service.exceptions.NotFoundException;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.util.AttachmentStorage;
-import com.assurcy2000.util.Strings;
 import com.assurcy2000.util.Validation;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.Year;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,8 +46,6 @@ public class ClaimService {
             ClaimStatus.ACCEPTE, Set.of(),
             ClaimStatus.REFUSE, Set.of(),
             ClaimStatus.INDEMNISE, Set.of());
-
-    private static final BigDecimal MAX_AMOUNT = new BigDecimal("10000000");
 
     private final ClaimDao claimDao;
     private final ClaimHistoryDao historyDao;
@@ -112,13 +108,9 @@ public class ClaimService {
     /** Ajoute un commentaire de l'agent connecté, quel que soit le statut du sinistre. */
     public ClaimComment addComment(SessionUser actor, Long id, String text) {
         Policy.require(actor, CLAIM_UPDATE);
-        String content = Strings.trimToEmpty(text);
-        if (content.length() < 2) {
-            throw new ValidationException(Map.of("content", "Écrivez un commentaire."));
-        }
-        if (content.length() > 2000) {
-            throw new ValidationException(Map.of("content", "Commentaire trop long (2000 caractères max)."));
-        }
+        Map<String, String> errors = new LinkedHashMap<>();
+        String content = Validation.comment(text, errors); // déjà vérifié par la servlet : filet de sécurité
+        if (!errors.isEmpty()) throw new ValidationException(errors);
         return tx.inTransaction(() -> {
             Claim claim = get(actor, id);
             return commentDao.save(new ClaimComment(content, claim, userDao.getReference(actor.id())));
@@ -179,35 +171,13 @@ public class ClaimService {
     }
 
     /**
-     * Vérifie le nombre, la taille et le type réel des fichiers ; ajoute l'erreur éventuelle sous la clé
-     * "attachments" et renvoie le type de chaque fichier (dans le même ordre).
+     * Vérifie le nombre (avec les pièces déjà jointes), la taille et le type réel des fichiers ;
+     * ajoute l'erreur éventuelle sous la clé "attachments" et renvoie le type de chaque fichier.
+     * Mêmes règles que la servlet (Validation.attachments) : ici avec le nombre de pièces déjà en base.
      */
     private List<AttachmentStorage.Kind> checkFiles(List<UploadedFile> files, long alreadyAttached,
                                                     Map<String, String> errors) {
-        List<AttachmentStorage.Kind> kinds = new ArrayList<>();
-        if (alreadyAttached + files.size() > AttachmentStorage.MAX_FILES) {
-            errors.put("attachments", AttachmentStorage.MAX_FILES + " pièces justificatives maximum par sinistre"
-                    + (alreadyAttached > 0 ? " (" + alreadyAttached + " déjà jointe(s))." : "."));
-            return kinds;
-        }
-        for (UploadedFile file : files) {
-            String name = cleanFileName(file.name());
-            if (file.size() <= 0) {
-                errors.put("attachments", "« " + name + " » est vide.");
-                break;
-            }
-            if (file.size() > AttachmentStorage.MAX_SIZE) {
-                errors.put("attachments", "« " + name + " » dépasse 5 Mo.");
-                break;
-            }
-            var kind = AttachmentStorage.detect(file);
-            if (kind.isEmpty()) {
-                errors.put("attachments", "« " + name + " » n'est pas un PDF, un JPG ou un PNG.");
-                break;
-            }
-            kinds.add(kind.get());
-        }
-        return kinds;
+        return Validation.attachments(files, alreadyAttached, errors);
     }
 
     /** Copie les fichiers sur le disque puis les enregistre en base ; stored reçoit les chemins écrits. */
@@ -225,13 +195,9 @@ public class ClaimService {
         return saved;
     }
 
-    /** Nom affiché : sans chemin (certains navigateurs l'envoient), sans caractères de contrôle, 255 max. */
+    /** Nom affiché : sans chemin, sans caractères de contrôle, 255 max (voir Validation.fileName). */
     static String cleanFileName(String raw) {
-        String name = raw == null ? "" : raw;
-        name = name.substring(Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')) + 1);
-        name = name.replaceAll("\\p{Cntrl}", "").trim();
-        if (name.isEmpty()) name = "fichier";
-        return name.length() > 255 ? name.substring(name.length() - 255) : name;
+        return Validation.fileName(raw);
     }
 
     // ---------------------------------------------------------------- déclaration
@@ -258,9 +224,17 @@ public class ClaimService {
     private Claim doDeclare(SessionUser actor, DeclareClaimRequest req, List<UploadedFile> files, List<String> stored) {
         Map<String, String> errors = new LinkedHashMap<>();
 
+        // Format des champs : mêmes règles que la servlet (filet de sécurité)
+        Long contractId = Validation.requiredId(req.contractId(), "contractId", "Choisissez un contrat.", errors);
+        LocalDate date = Validation.claimDate(req.claimDate(), errors);
+        ClaimType type = Validation.claimType(req.type(), errors);
+        String description = Validation.claimDescription(req.description(), errors);
+        BigDecimal amount = Validation.amount(req.estimatedAmount(), "estimatedAmount", "Le montant estimé",
+                Validation.CLAIM_AMOUNT_MAX, true, errors);
+
+        // Règles qui demandent la base : contrat du client, actif, et sinistre pendant le contrat
         Contract contract = null;
-        try {
-            Long contractId = Long.valueOf(Strings.trimToEmpty(req.contractId()));
+        if (contractId != null) {
             contract = contractDao.findById(contractId).orElse(null);
             if (contract == null || !contract.getClient().getId().equals(actor.id())) {
                 errors.put("contractId", "Contrat introuvable.");
@@ -268,33 +242,10 @@ public class ClaimService {
             } else if (contract.getStatus() != ContractStatus.ACTIF) {
                 errors.put("contractId", "Ce contrat n'est pas actif.");
             }
-        } catch (NumberFormatException e) {
-            errors.put("contractId", "Choisissez un contrat.");
         }
-
-        LocalDate date = null;
-        try {
-            date = LocalDate.parse(Strings.trimToEmpty(req.claimDate()));
-            if (date.isAfter(LocalDate.now())) errors.put("claimDate", "La date du sinistre ne peut pas être dans le futur.");
-            else if (contract != null && date.isBefore(contract.getStartDate()))
-                errors.put("claimDate", "Le sinistre est antérieur au début du contrat.");
-        } catch (DateTimeParseException e) {
-            errors.put("claimDate", "La date n'est pas valide.");
+        if (contract != null && date != null && !errors.containsKey("claimDate") && date.isBefore(contract.getStartDate())) {
+            errors.put("claimDate", "Le sinistre est antérieur au début du contrat.");
         }
-
-        ClaimType type = null;
-        try {
-            type = ClaimType.valueOf(Strings.trimToEmpty(req.type()));
-        } catch (IllegalArgumentException e) {
-            errors.put("type", "Type de sinistre invalide.");
-        }
-
-        String description = Strings.trimToEmpty(req.description());
-        if (description.length() < 10) errors.put("description", "Décrivez le sinistre (10 caractères minimum).");
-        else if (description.length() > 2000) errors.put("description", "Description trop longue (2000 caractères max).");
-
-        BigDecimal amount = Validation.amount(req.estimatedAmount(), "estimatedAmount", "Le montant estimé",
-                MAX_AMOUNT, true, errors);
 
         List<AttachmentStorage.Kind> kinds = checkFiles(files, 0, errors);
 
@@ -326,7 +277,7 @@ public class ClaimService {
     public Claim indemnify(SessionUser actor, Long id, String amountText) {
         Policy.require(actor, CLAIM_UPDATE);
         Map<String, String> errors = new LinkedHashMap<>();
-        BigDecimal amount = Validation.amount(amountText, "amount", "Le montant", MAX_AMOUNT, true, errors);
+        BigDecimal amount = Validation.amount(amountText, "amount", "Le montant", Validation.CLAIM_AMOUNT_MAX, true, errors);
         if (!errors.isEmpty()) throw new ValidationException(errors);
         return tx.inTransaction(() -> {
             Claim claim = get(actor, id);
