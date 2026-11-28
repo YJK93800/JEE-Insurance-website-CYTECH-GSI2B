@@ -8,3 +8,9 @@ db.password=changeme
 # Dossier des pièces justificatives des sinistres, HORS du projet (sinon perdues au redéploiement).
 # Facultatif : par défaut ~/assurcy2000-uploads. Peut aussi être donné par la variable UPLOADS_DIR.
 # uploads.dir=/home/moi/assurcy2000-uploads
+
+# Assistant IA (Gemini). Clé à créer sur https://aistudio.google.com/apikey.
+# Facultatif ici si la variable d'environnement GEMINI_API_KEY est définie (elle est prioritaire).
+# Sans clé, l'assistant répond « L'assistant n'est pas encore disponible. »
+# gemini.api.key=VOTRE_CLE
+# gemini.model=gemini-3.1-flash-lite

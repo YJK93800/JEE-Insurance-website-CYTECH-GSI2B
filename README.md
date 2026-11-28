@@ -27,8 +27,17 @@
 
 4. Ouvrir http://localhost:8080/projet-jee
 
-5. Ajouter de son côté dans src/ressources/db.properties : gemini.api.key = TACLE; puis dans Run > Edit > TomCat >
-Startup/Connection > Environment Variables : gemini_api_keyx    
+5. **Configurer l'assistant IA** (facultatif, une seule fois) : créer une clé Gemini sur
+   https://aistudio.google.com/apikey, puis au choix :
+   - dans `src/main/resources/db.properties`, ajouter la ligne
+     ```properties
+     gemini.api.key=VOTRE_CLE
+     ```
+   - ou, dans IntelliJ : *Run > Edit Configurations… > Tomcat > Startup/Connection > Environment variables*,
+     ajouter `GEMINI_API_KEY=VOTRE_CLE` (la variable d'environnement est prioritaire sur `db.properties`).
+
+   Redémarrer Tomcat ensuite. Sans clé, le reste du site fonctionne et l'assistant affiche
+   « L'assistant n'est pas encore disponible. ». Ne jamais commiter la clé (`db.properties` est ignoré par Git).
 
 ### Outils
 
