@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/common/taglibs.jspf" %>
-<%-- GET /client/historique (servlet : ClientHistoryServlet)
+<%-- GET /client/history (servlet : ClientHistoryServlet)
      Attributs : conversation List<ChatLine>  (fromClient, content, sentAt) : les 100 derniers messages avec l'assistant, du plus ancien au plus récent
                  requests     List<HistoryEntry> (date, type, reference, link, status) : sinistres et contrats, du plus récent au plus ancien --%>
 <c:set var="title" value="Historique des demandes" />

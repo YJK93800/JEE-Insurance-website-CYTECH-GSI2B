@@ -40,7 +40,7 @@
         <a href="${ctx}/client/guarantees"  class="${active == 'guarantees'  ? 'active' : ''}">Mes garanties</a>
         <a href="${ctx}/client/payments"  class="${active == 'payments'  ? 'active' : ''}">Paiements</a>
         <a href="${ctx}/client/claims"  class="${active == 'claims'  ? 'active' : ''}">Sinistres</a>
-        <a href="${ctx}/client/historique" class="${active == 'history' ? 'active' : ''}">Historique des demandes</a>
+        <a href="${ctx}/client/history" class="${active == 'history' ? 'active' : ''}">Historique des demandes</a>
         <a href="${ctx}/client/assistant"  class="${active == 'assistant'  ? 'active' : ''}">Assistant IA</a>
       </c:otherwise>
     </c:choose>
