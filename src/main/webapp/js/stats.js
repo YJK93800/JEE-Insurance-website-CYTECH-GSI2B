@@ -46,8 +46,8 @@
   if (cCon) {
     new Chart(cCon, {
       type: "line",
-      data: { labels: d.months, datasets: [{ label: "Contrats", data: d.contracts, borderColor: TEAL, backgroundColor: "rgba(15,110,110,0.08)", fill: true, tension: 0.3, pointRadius: 3 }] },
-      options: { scales: axes(), plugins: { legend: { display: false } } }
+      data: { labels: d.months, datasets: [{ label: "Contrats qui commencent", data: d.contracts, borderColor: TEAL, backgroundColor: "rgba(15,110,110,0.08)", fill: true, tension: 0.3, pointRadius: 3 }] },
+      options: { scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: GRID }, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
     });
   }
 
