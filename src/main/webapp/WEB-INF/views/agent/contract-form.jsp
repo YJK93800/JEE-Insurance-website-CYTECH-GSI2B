@@ -55,7 +55,7 @@
           <%-- Garanties proposées par le type, pour le JavaScript qui met en avant les garanties disponibles --%>
           <select hidden data-insurance-type>
             <c:set var="gIds"><c:forEach items="${contract.insuranceType.guarantees}" var="g" varStatus="gs">${g.id}${gs.last ? '' : ','}</c:forEach></c:set>
-            <option selected data-guarantees="${gIds}"></option>
+            <option selected data-guarantees="${gIds}"><c:out value="${contract.insuranceType.name}" /></option>
           </select>
         </c:if>
 
@@ -93,19 +93,30 @@
         <%-- Erreur globale (ex. contrat résilié ou expiré, plus modifiable) --%>
         <c:if test="${not empty errors.status}"><p class="field-error"><c:out value="${errors.status}" /></p></c:if>
 
-        <fieldset>
+        <%-- Sans JavaScript : toutes les garanties actives (le service refuse celles hors du type).
+             Avec JavaScript (app.js, data-guarantee-picker) : une liste défilante en deux groupes à titre collant,
+             celles du type choisi (cochables) puis les autres (affichées pour information, non cochables),
+             avec un compteur et une recherche. Les cases gardent le même nom (guaranteeIds). --%>
+        <fieldset data-guarantee-picker>
           <legend>Garanties du contrat *</legend>
-          <span class="field-help">Les garanties disponibles pour le type choisi sont mises en avant.</span>
-          <div class="grid-3">
+          <span class="field-help">Seules les garanties proposées par le type d'assurance choisi peuvent être ajoutées.</span>
+          <div class="gp-list" data-gp-all>
             <c:forEach items="${guarantees}" var="g">
               <c:set var="checked" value="false" />
               <c:forEach items="${paramValues.guaranteeIds}" var="pid"><c:if test="${pid == fn:trim(g.id)}"><c:set var="checked" value="true" /></c:if></c:forEach>
               <c:if test="${empty paramValues.guaranteeIds}">
                 <c:forEach items="${contract.guarantees}" var="cg"><c:if test="${cg.id == g.id}"><c:set var="checked" value="true" /></c:if></c:forEach>
               </c:if>
-              <label class="choice" data-guarantee="${g.id}">
+              <label class="gp-row" data-guarantee="${g.id}">
                 <input type="checkbox" name="guaranteeIds" value="${g.id}" ${checked ? 'checked' : ''}>
-                <span class="stack-sm"><span class="strong"><c:out value="${g.name}" /></span><span class="xsmall muted"><c:out value="${g.description}" /></span></span>
+                <span class="gp-text">
+                  <span class="gp-name"><c:out value="${g.name}" /></span>
+                  <c:if test="${not empty g.description}"><span class="gp-desc" title="${fn:escapeXml(g.description)}"><c:out value="${g.description}" /></span></c:if>
+                </span>
+                <span class="gp-amounts">
+                  <span><c:choose><c:when test="${not empty g.coverageLimit}">plafond <ui:amount value="${g.coverageLimit}" /></c:when><c:otherwise>sans plafond</c:otherwise></c:choose></span>
+                  <span><c:choose><c:when test="${not empty g.deductible}">franchise <ui:amount value="${g.deductible}" /></c:when><c:otherwise>sans franchise</c:otherwise></c:choose></span>
+                </span>
               </label>
             </c:forEach>
           </div>

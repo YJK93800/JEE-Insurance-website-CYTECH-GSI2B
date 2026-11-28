@@ -260,19 +260,119 @@
     }
   }
 
-  /* ---------- Formulaire de contrat : prix de base et garanties du type ---------- */
+  /* ---------- Formulaire de contrat : choix des garanties ----------
+     La JSP affiche toutes les garanties actives dans [data-gp-all].
+     Ici on les range dans la même liste défilante, sous deux titres collants :
+     celles du type choisi, puis les autres. Les autres sont désactivées, car ContractService
+     refuse une garantie hors du type (une case désactivée n'est pas envoyée). */
+  var GP_SEARCH_FROM = 8;   // nombre de garanties à partir duquel la recherche apparaît
+
+  function setupGuaranteePicker(picker) {
+    var list = picker.querySelector("[data-gp-all]");
+    var rows = Array.prototype.slice.call(list.querySelectorAll(".gp-row"));
+    var plain = function (s) { return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); };
+    var box = function (r) { return r.querySelector("input"); };
+    rows.forEach(function (r) { r.dataset.search = plain(r.querySelector(".gp-name").textContent); });
+
+    var el = function (tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+    var toolbar = el("div", "gp-toolbar");
+    var search = el("input");
+    search.type = "search";
+    search.placeholder = "Rechercher une garantie";
+    search.setAttribute("aria-label", "Rechercher une garantie");
+    var count = el("span", "gp-count");
+    count.setAttribute("aria-live", "polite");
+    toolbar.append(search, count);
+    var headType = el("div", "gp-head");
+    var headOther = el("div", "gp-head");
+    var message = el("p", "gp-empty");
+    list.before(toolbar);
+    list.after(message);
+
+    var updateCount = function () {
+      var n = rows.filter(function (r) { return box(r).checked; }).length;
+      count.textContent = n + (n > 1 ? " sélectionnées" : " sélectionnée");
+      count.classList.toggle("is-zero", n === 0);
+    };
+    var refresh = function () {
+      var q = plain(search.value.trim());
+      var noType = picker.dataset.typeName === undefined;
+      var seen = { in: 0, out: 0 };
+      rows.forEach(function (r) {
+        var show = !noType && (!q || r.dataset.search.indexOf(q) !== -1);
+        r.hidden = !show;
+        if (show) seen[r.dataset.group]++;
+      });
+      headType.hidden = seen.in === 0 && (q || picker.dataset.typeCount !== "0");
+      headOther.hidden = seen.out === 0;
+      search.hidden = noType || rows.length < GP_SEARCH_FROM;
+      count.hidden = noType;
+      list.hidden = noType || (seen.in + seen.out === 0);
+      message.textContent = noType ? "Choisissez d'abord un type d'assurance pour voir ses garanties."
+                                   : "Aucune garantie ne correspond à cette recherche.";
+      message.hidden = !list.hidden;
+      updateCount();
+    };
+    rows.forEach(function (r) { box(r).addEventListener("change", refresh); });
+    search.addEventListener("input", refresh);
+    search.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
+
+    return {
+      /**
+       * available : ids des garanties du type ; typeName : null si aucun type choisi.
+       * keepStale : au chargement, une garantie cochée qui n'est plus proposée par le type reste
+       * cochable (avec un avertissement) pour que l'agent la décoche ; après un changement de type, elle est décochée.
+       */
+      place: function (available, typeName, keepStale) {
+        if (typeName === null) delete picker.dataset.typeName; else picker.dataset.typeName = typeName;
+        var inType = [], others = [];
+        rows.forEach(function (r) {
+          var ok = typeName !== null && available.indexOf(r.dataset.guarantee) !== -1;
+          var stale = !ok && keepStale && typeName !== null && box(r).checked;
+          if (!ok && !stale) box(r).checked = false;
+          box(r).disabled = !ok && !stale;
+          r.dataset.group = ok ? "in" : "out";
+          r.classList.toggle("is-out", !ok && !stale);
+          r.classList.toggle("is-stale", stale);
+          var badge = r.querySelector(".gp-stale");
+          if (stale && !badge) r.querySelector(".gp-text").appendChild(el("span", "gp-stale", "Plus proposée par ce type : à décocher"));
+          if (!stale && badge) badge.remove();
+          r.title = !ok && !stale ? "Non proposée pour ce type d'assurance" : "";
+          (ok ? inType : others).push(r);
+        });
+        picker.dataset.typeCount = String(inType.length);
+        headType.textContent = inType.length
+          ? "Proposées pour " + typeName + " (" + inType.length + ")"
+          : "Aucune garantie proposée pour " + typeName;
+        headOther.textContent = "Autres garanties (" + others.length + ") · non proposées pour ce type";
+        list.append(headType);
+        inType.forEach(function (r) { list.append(r); });
+        list.append(headOther);
+        others.forEach(function (r) { list.append(r); });
+        list.scrollTop = 0;
+        search.value = "";
+        refresh();
+      }
+    };
+  }
+
   var selType = document.querySelector("select[data-insurance-type]");
-  if (selType) {
+  var gpEl = document.querySelector("[data-guarantee-picker]");
+  if (selType && gpEl) {
+    var picker = setupGuaranteePicker(gpEl);
     var premium = document.querySelector("input[data-premium]");
     var updateGuarantees = function (prefill) {
       var opt = selType.options[selType.selectedIndex];
-      var available = opt && opt.dataset.guarantees ? opt.dataset.guarantees.split(",") : [];
-      var noneChecked = !document.querySelector('input[name="guaranteeIds"]:checked');
-      document.querySelectorAll("[data-guarantee]").forEach(function (lab) {
-        var ok = available.indexOf(lab.dataset.guarantee) !== -1;
-        lab.style.opacity = available.length && !ok ? "0.55" : "1";
-        if (prefill && noneChecked && ok) lab.querySelector("input").checked = true;
-      });
+      var hasType = !!(opt && opt.hasAttribute("data-guarantees"));
+      var available = hasType && opt.dataset.guarantees ? opt.dataset.guarantees.split(",") : [];
+      picker.place(available, hasType ? opt.textContent.trim() : null, !prefill);
+      // Nouveau type : on coche ses garanties si rien n'est coché
+      if (prefill && !gpEl.querySelector('input[name="guaranteeIds"]:checked')) {
+        available.forEach(function (id) {
+          var b = gpEl.querySelector('[data-guarantee="' + id + '"] input');
+          if (b) { b.checked = true; b.dispatchEvent(new Event("change")); }
+        });
+      }
       if (prefill && premium && !premium.value && opt && opt.dataset.price) premium.value = opt.dataset.price;
     };
     selType.addEventListener("change", function () { updateGuarantees(true); });
