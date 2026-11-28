@@ -2,6 +2,7 @@ package com.assurcy2000.controller.admin;
 
 import com.assurcy2000.controller.BaseServlet;
 import com.assurcy2000.dto.SessionUser;
+import com.assurcy2000.model.Role;
 import com.assurcy2000.service.UserService;
 import com.assurcy2000.service.exceptions.ValidationException;
 import com.assurcy2000.util.FormView;
@@ -14,9 +15,12 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 @WebServlet("/admin/users")
 public class AdminUsersServlet extends BaseServlet {
+
+    private static final Set<String> ROLES = Set.of(Role.CLIENT, Role.AGENT, Role.ADMIN);
 
     private final UserService userService = new UserService();
 
@@ -31,8 +35,20 @@ public class AdminUsersServlet extends BaseServlet {
         try {
             Long id = idParam(req, "id");
             switch (RequestParams.get(req, "action")) {
-                case "active" -> userService.setActive(admin, id, Boolean.parseBoolean(RequestParams.get(req, "value")));
-                case "role" -> userService.changeRole(admin, id, RequestParams.get(req, "role"));
+                case "active" -> {
+                    // Vérification de la saisie par la servlet : uniquement true ou false
+                    String value = RequestParams.get(req, "value");
+                    if (!value.equals("true") && !value.equals("false")) {
+                        throw new ValidationException(Map.of("value", "Valeur invalide."));
+                    }
+                    userService.setActive(admin, id, Boolean.parseBoolean(value));
+                }
+                case "role" -> {
+                    // Vérification de la saisie par la servlet : un des trois rôles
+                    String role = RequestParams.get(req, "role");
+                    if (!ROLES.contains(role)) throw new ValidationException(Map.of("role", "Rôle inconnu."));
+                    userService.changeRole(admin, id, role);
+                }
                 default -> throw new ValidationException(Map.of("action", "Action inconnue."));
             }
             redirect(req, resp, "/admin/users");
