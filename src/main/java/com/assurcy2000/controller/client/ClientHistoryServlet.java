@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 
-@WebServlet("/client/historique")
+@WebServlet("/client/history")
 public class ClientHistoryServlet extends BaseServlet {
 
     private final HistoryService historyService = new HistoryService();
