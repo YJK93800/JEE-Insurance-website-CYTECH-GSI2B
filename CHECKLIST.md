@@ -22,8 +22,8 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 - [x] Admin : gérer les utilisateurs et les rôles (`/admin/users` : activer, désactiver, changer le rôle)
 - [x] Permettre à un agent ou un admin de corriger le nom d'un utilisateur (`UserService.updateName` : fiche client de `/agent/clients`, `/admin/users/edit`)
 - [x] Admin : consulter l'ensemble des contrats (`/admin/contracts`)
-- [ ] Admin : consulter l'ensemble des sinistres (`/admin/claims`, déjà branché sur `AgentClaimsServlet`) → voir « Tests à faire dans Tomcat (sinistres) », partie Admin
-- [x] Client : consulter l'historique de ses demandes (`/client/historique`, `ClientHistoryServlet`, `HistoryService` : contrats et sinistres créés + conversation avec l'assistant ; `HistoryServiceTest`)
+- [x] Admin : consulter l'ensemble des sinistres (`/admin/claims` sur `AgentClaimsServlet` : liste avec recherche et onglets par statut, détail, pièces, historique, commentaires en lecture ; actions réservées à l'agent dans la JSP et dans `ClaimService` par `CLAIM_UPDATE` ; `PolicyTest.adminReadsAllClaimsButDoesNotProcessThem`) → reste à tester, voir « Tests à faire dans Tomcat (sinistres) », partie Admin
+- [x] Client : consulter l'historique de ses demandes (`/client/history`, `ClientHistoryServlet`, `HistoryService` : contrats et sinistres créés + conversation avec l'assistant ; `HistoryServiceTest`)
 
 ## Étape 1 — Contrats (2.2)
 
@@ -127,9 +127,20 @@ Traitement (agent, `/agent/claims`)
 - [ ] Commentaires : publier deux commentaires (dont un sur plusieurs lignes), en envoyer un vide → erreur, le texte tapé est conservé
 - [ ] Commenter un sinistre déjà REFUSÉ ou INDEMNISÉ fonctionne
 
-Admin (`/admin/claims`)
-- [ ] Liste et détail de tous les sinistres, pièces ouvrables, commentaires visibles
+Admin (`admin@assurance.local`, `/admin/claims`)
+- [ ] Lien « Tous les sinistres » de la sidebar actif ; titre « Tous les sinistres », mention « Administration »
+- [ ] Liste de tous les sinistres (de tous les clients) ; recherche par numéro, client ou contrat ; onglets par statut avec compteurs
+- [ ] Le numéro ouvre le détail en restant sous `/admin/claims?id=` (lien « ← Tous les sinistres » qui revient à la liste admin)
+- [ ] Détail : contrat, client, description, historique, pièces ouvrables (`/admin/claims?attachment=`), commentaires des agents visibles
 - [ ] Aucun bouton de changement de statut, d'indemnisation ni formulaire de commentaire
+- [ ] Un POST forgé (changer le statut depuis l'inspecteur ou avec curl) → 403, rien ne change
+- [ ] `?id=999` et `?attachment=999` → 404 ; agent sur `/admin/claims` → 403 ; client → 403
+
+Vérification des saisies par les servlets (après la correction du 28/11)
+- [ ] Déclaration avec tous les champs faux à la fois → toutes les erreurs affichées ensemble, code 400, rien d'enregistré
+- [ ] Date du sinistre vide → « La date du sinistre est obligatoire. » ; date avant le début du contrat → toujours refusée (vérifiée par le service)
+- [ ] Ajout de pièces depuis le suivi sans fichier → « Choisissez au moins un fichier. »
+- [ ] Agent : indemnisation à 0 ou au-dessus de 10 000 000 € → message sous le champ ; statut forgé (`status=PIRATE` avec l'inspecteur) → « Choisissez le nouveau statut. »
 
 Affichage
 - [ ] Accents corrects partout (frise, historique, commentaires, messages), y compris dans un nom de fichier joint
@@ -214,7 +225,7 @@ Affichage
 
 - [x] Plafond et franchise des garanties : migration `V6__garantie_plafond_franchise.sql` (colonnes facultatives, valeurs de démo), champs `coverageLimit` / `deductible` dans `Guarantee`
 - [x] Agent : créer, modifier, supprimer une garantie (`/agent/guarantees`, `AgentGuaranteesServlet`, `GuaranteeService` : nom unique, franchise ≤ plafond, suppression refusée si un contrat l'utilise ; `GuaranteeServiceTest`)
-- [ ] Agent : associer une garantie à un contrat (déjà possible dans le formulaire de contrat de l'Étape 1)
+- [x] Agent : associer une garantie à un contrat (formulaire de contrat de l'Étape 1 : garanties à cocher parmi celles du type, `ContractService.guaranteesOfType`) → reste à tester, voir « Association au contrat » ci-dessous
 - [x] Client : consulter ses garanties (`/client/guarantees`, `ClientGuaranteesServlet`, `ContractService.listOwnWithGuarantees` : contrats actifs, suspendus et en attente, garanties par ordre alphabétique ; `ClientGuaranteesTest`)
 - [x] Admin : gérer les types d'assurance (nom, description, prix de base, garanties disponibles) : `/admin/types`, `AdminTypesServlet`, `InsuranceTypeService` (nom unique, au moins une garantie, activer / désactiver, suppression refusée si des contrats l'utilisent ; `InsuranceTypeServiceTest`)
 - [x] Ajouter un type sans toucher au code : les types viennent de la base, pas d'un `enum` (un type créé dans `/admin/types` est aussitôt proposé dans le formulaire de contrat)
@@ -281,7 +292,7 @@ Types d'assurance (admin `admin@assurance.local`, `/admin/types`)
 - [x] Statistiques contrats : répartition par statut, contrats qui commencent chaque mois (graphique)
 - [x] Statistiques financières : primes des contrats actifs, paiements encaissés, indemnisations versées, encaissements et indemnisations par mois (graphique)
 - [x] Accessible à l'agent et à l'admin, pas au client (`/agent/stats`, `/admin/stats`, permission `STATS_READ`)
-- [ ] Admin uniquement : indicateurs de performance (taux d'acceptation, délai moyen de traitement, ratio indemnisations / encaissements) → **calculés, mais la section s'affiche aussi pour l'agent** : l'entourer de `<c:if test="${isAdmin}">` dans `admin/stats.jsp` ; le lien « Indicateurs de performance » de la sidebar admin pointe vers `#indicateurs` alors que le titre a `id="indicators"`
+- [x] Admin uniquement : indicateurs de performance (taux d'acceptation, délai moyen de traitement, ratio indemnisations / encaissements) : section entourée de `<c:if test="${isAdmin}">` dans `admin/stats.jsp` ; lien de la sidebar admin corrigé (`/admin/stats#indicators`)
 
 ### Tests à faire dans Tomcat (statistiques)
 
@@ -300,7 +311,7 @@ En dernier : il réutilise les services des étapes précédentes pour fournir a
 - [x] Page de discussion client, messages enregistrés dans `message_ia` (`/client/assistant`, `AssistantServlet` en JSON + `assistant.js`, `AssistantService` : 500 caractères max, 1 message / 2 s, 10 derniers messages envoyés au modèle, CSRF par en-tête)
 - [x] Répondre à : mes contrats actifs, garanties de mon assurance auto, comment déclarer un sinistre, documents à fournir, différence entre deux garanties, où en est mon dernier sinistre (le modèle reçoit les contrats avec garanties, plafonds et franchises, les 10 derniers sinistres, les paiements, et les règles du site) → reste à tester, voir ci-dessous
 - [ ] **À corriger avant le rendu** : le prompt système de `AssistantService` contient une porte dérobée (« SAUF si le client commence son message par -BYPASS ») qui permet à n'importe quel client de lever les règles de l'assistant ; supprimer cette phrase
-- [ ] README, point 5 : instructions de la clé à reformuler (`src/main/resources/db.properties`, `gemini.api.key=VOTRE_CLE`, variable `GEMINI_API_KEY`)
+- [x] README, point 5 : instructions de la clé reformulées (`gemini.api.key` dans `db.properties` ou variable `GEMINI_API_KEY`, prioritaire) ; ligne d'exemple ajoutée dans `db.properties.example`
 
 ### Tests à faire dans Tomcat (assistant IA)
 
@@ -316,14 +327,15 @@ Avant : clé Gemini configurée (`GEMINI_API_KEY` dans la configuration Tomcat d
 - [ ] Message commençant par « -BYPASS » → l'assistant garde ses règles (après correction)
 - [ ] Message vide, plus de 500 caractères, deux messages en moins de 2 s → message d'erreur, rien d'enregistré
 - [ ] Sans clé : « L'assistant n'est pas encore disponible. », pas d'erreur 500
-- [ ] Les échanges apparaissent dans `message_ia` et dans `/client/historique` ; après rechargement, l'assistant se souvient des derniers messages
+- [ ] Les échanges apparaissent dans `message_ia` et dans `/client/history` ; après rechargement, l'assistant se souvient des derniers messages
 - [ ] Agent et admin sur `/client/assistant` → 403 ; POST sans en-tête `X-CSRF-Token` → 403
 
 ### Tests à faire dans Tomcat (tableau de bord et historique client)
 
 - [ ] Après connexion, le client arrive sur `/client/dashboard` : nombre de contrats (actifs, en attente), primes, sinistres en cours, dernier sinistre, prochain paiement, derniers paiements
 - [ ] Client sans contrat : la page s'affiche avec des zéros / « aucun », pas d'erreur 500
-- [ ] `/client/historique` : contrats et sinistres du client, et sa conversation avec l'assistant, du plus récent au plus ancien ; rien d'un autre client
+- [ ] `/client/history` : contrats et sinistres du client du plus récent au plus ancien, et sa conversation avec l'assistant ; rien d'un autre client
+- [ ] L'ancienne adresse `/client/historique` renvoie une 404 (normal après le renommage)
 - [ ] Agent et admin sur ces pages → 403
 
 ## Architecture et contraintes (sections 3 et 4)
@@ -332,7 +344,7 @@ Avant : clé Gemini configurée (`GEMINI_API_KEY` dans la configuration Tomcat d
 - [x] Persistance avec Hibernate et JDBC (`StatsJdbcDao`)
 - [x] Cohérence des données : transactions ouvertes par les services (`TransactionRunner`)
 - [x] Authentification et accès par rôle (`AuthFilter`, `RoleFilter`, `Policy`)
-- [ ] Toutes les saisies vérifiées par les servlets avant l'enregistrement (fait pour inscription, profil, création de contrat ; à faire pour chaque nouveau formulaire)
+- [x] Toutes les saisies vérifiées par les servlets avant l'enregistrement : inscription, profil, contrats (création, modification, résiliation), paiements, garanties, types, utilisateurs, et sinistres (déclaration et pièces dans `ClientClaimsServlet` ; statut, indemnisation et commentaire dans `AgentClaimsServlet`). Règles de format dans `Validation` (testées dans `ValidationTest`), réutilisées par les services comme filet de sécurité ; les services ne vérifient en plus que ce qui demande la base. À respecter pour tout nouveau formulaire
 - [ ] CRUD complet par servlets pour chaque entité gérée (contrats, garanties, types, sinistres, paiements, utilisateurs)
 
 ## Corrections connues
@@ -344,7 +356,7 @@ Pour chaque page branchée : même URL dans la servlet et dans les liens, mêmes
 - [x] `Views.STATS` pointe vers `admin/stats.jsp`, qui existe
 - [x] `Views.AGENT_CLAIM` pointe vers `agent/claims.jsp`, qui existe
 - [x] `/client/dashboard` a sa servlet (`ClientDashboardServlet`, `ClientDashboardService` : contrats, primes, sinistres en cours, dernier sinistre, prochain paiement ; `ClientDashboardServiceTest`) et redevient la page d'accueil du client
-- [ ] `/client/historique` est la seule URL encore en français (la convention est l'anglais : `/client/history`) ; à renommer dans la servlet et la sidebar si vous voulez rester cohérents
+- [x] `/client/historique` renommée en `/client/history` (servlet, sidebar, commentaire de `history.jsp`) : toutes les URLs sont en anglais
 
 ## Avant le rendu
 
