@@ -72,19 +72,22 @@
         <div class="kpi"><span class="kpi-label">Indemnisations versées</span><span class="kpi-value"><ui:amount value="${stats.indemnitiesPaid}" /></span></div>
       </section>
 
-      <h2 id="indicators">Indicateurs de performance</h2>
-      <section class="grid-3" aria-label="Indicateurs de performance">
-        <div class="kpi"><span class="kpi-label">Ratio indemnisations / encaissements</span>
-          <span class="kpi-value"><c:choose><c:when test="${stats.paymentsReceived > 0}"><fmt:formatNumber value="${stats.indemnitiesPaid / stats.paymentsReceived}" type="percent" /></c:when><c:otherwise>—</c:otherwise></c:choose></span>
-          <span class="kpi-sub">Objectif &lt; 60 %</span></div>
-        <div class="kpi"><span class="kpi-label">Sinistres déclarés</span><span class="kpi-value"><fmt:formatNumber value="${claimCount}" /></span></div>
-        <div class="kpi"><span class="kpi-label">Taux d'acceptation des sinistres</span>
-          <span class="kpi-value"><c:choose><c:when test="${acceptedCount + refusedCount > 0}"><fmt:formatNumber value="${acceptedCount / (acceptedCount + refusedCount)}" type="percent" /></c:when><c:otherwise>—</c:otherwise></c:choose></span>
-          <span class="kpi-sub">sur les sinistres acceptés ou refusés</span></div>
-        <div class="kpi"><span class="kpi-label">Délai moyen de traitement</span>
-          <span class="kpi-value"><c:choose><c:when test="${not empty stats.averageProcessingDays}"><fmt:formatNumber value="${stats.averageProcessingDays}" maxFractionDigits="1" /> j</c:when><c:otherwise>—</c:otherwise></c:choose></span>
-          <span class="kpi-sub">de la déclaration à l'indemnisation</span></div>
-      </section>
+      <%-- Indicateurs de performance : réservés à l'admin (énoncé 2.1) --%>
+      <c:if test="${isAdmin}">
+        <h2 id="indicators">Indicateurs de performance</h2>
+        <section class="grid-3" aria-label="Indicateurs de performance">
+          <div class="kpi"><span class="kpi-label">Ratio indemnisations / encaissements</span>
+            <span class="kpi-value"><c:choose><c:when test="${stats.paymentsReceived > 0}"><fmt:formatNumber value="${stats.indemnitiesPaid / stats.paymentsReceived}" type="percent" /></c:when><c:otherwise>—</c:otherwise></c:choose></span>
+            <span class="kpi-sub">Objectif &lt; 60 %</span></div>
+          <div class="kpi"><span class="kpi-label">Sinistres déclarés</span><span class="kpi-value"><fmt:formatNumber value="${claimCount}" /></span></div>
+          <div class="kpi"><span class="kpi-label">Taux d'acceptation des sinistres</span>
+            <span class="kpi-value"><c:choose><c:when test="${acceptedCount + refusedCount > 0}"><fmt:formatNumber value="${acceptedCount / (acceptedCount + refusedCount)}" type="percent" /></c:when><c:otherwise>—</c:otherwise></c:choose></span>
+            <span class="kpi-sub">sur les sinistres acceptés ou refusés</span></div>
+          <div class="kpi"><span class="kpi-label">Délai moyen de traitement</span>
+            <span class="kpi-value"><c:choose><c:when test="${not empty stats.averageProcessingDays}"><fmt:formatNumber value="${stats.averageProcessingDays}" maxFractionDigits="1" /> j</c:when><c:otherwise>—</c:otherwise></c:choose></span>
+            <span class="kpi-sub">de la déclaration à l'indemnisation</span></div>
+        </section>
+      </c:if>
 
       <div class="row stretch">
         <section class="card col-main" aria-labelledby="h-rev">
