@@ -365,7 +365,7 @@ Pour chaque page branchée : même URL dans la servlet et dans les liens, mêmes
 - [ ] Retirer `PreviewServlet` et l'exception `/preview` dans `AuthFilter` → l'exception est retirée (la page demande maintenant d'être connecté), mais `src/main/java/com/dev/PreviewServlet.java` est toujours là, mappé sur `/preview` : supprimer le fichier
 - [x] Garder une seule ligne `hibernate.show_sql` dans `hibernate.cfg.xml`
 - [ ] Retirer la phrase « -BYPASS » du prompt de l'assistant (voir Étape 6)
-- [ ] Données de démo (V3) : le contrat CT-2026-0001 a une prime de 450 € « mensuelle » mais 4 paiements trimestriels de 112,50 € ; à corriger dans `db/script.sql` / une nouvelle migration si la démo doit être cohérente
+- [ ] Données de démo (V3) : le contrat CT-2026-0001 a une prime de 450 € « mensuelle » mais 4 paiements trimestriels de 112,50 € ; à corriger via une nouvelle migration (`V7__…`) si la démo doit être cohérente
 - [ ] Partie conception : MCD ou diagramme de classes
 - [ ] Rendre le dépôt GitHub public à la date du dépôt final
 - [ ] Refaire l'application avec Spring Boot
