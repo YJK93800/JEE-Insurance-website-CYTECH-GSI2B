@@ -152,6 +152,7 @@ a.item-title:hover { color: var(--teal); text-decoration: underline; }
 .btn-block { width: 100%; }
 .btn-link { font: inherit; background: none; border: 0; padding: 6px; color: var(--teal); cursor: pointer; font-weight: 600; }
 .btn-link.danger { color: var(--danger); }
+.btn-link:disabled, .btn-link.is-disabled { color: var(--muted); opacity: 0.55; cursor: not-allowed; }
 
 /* ---------- Formulaires ---------- */
 .form { display: flex; flex-direction: column; gap: 20px; }

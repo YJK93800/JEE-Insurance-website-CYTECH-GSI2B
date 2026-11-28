@@ -36,12 +36,21 @@
                     <td class="right">${g.contractCount}</td>
                     <td><div class="actions">
                       <a class="btn btn-sm" href="${ctx}/agent/guarantees?id=${g.id}">Modifier</a>
-                      <form method="post" action="${ctx}/agent/guarantees" data-confirm="Supprimer la garantie « ${fn:escapeXml(g.name)} » ?">
-                        <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
-                        <input type="hidden" name="action" value="delete">
-                        <input type="hidden" name="id" value="${g.id}">
-                        <button class="btn-link danger" type="submit" ${g.deletable ? '' : 'disabled title="Utilisée par des contrats"'}>Supprimer</button>
-                      </form>
+                      <c:choose>
+                        <c:when test="${g.deletable}">
+                          <form method="post" action="${ctx}/agent/guarantees" data-confirm="Supprimer la garantie « ${fn:escapeXml(g.name)} » ?">
+                            <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="id" value="${g.id}">
+                            <button class="btn-link danger" type="submit">Supprimer</button>
+                          </form>
+                        </c:when>
+                        <c:otherwise>
+                          <%-- Un <span> plutôt qu'un bouton disabled : l'infobulle s'affiche sur tous les navigateurs --%>
+                          <span class="btn-link is-disabled" role="button" aria-disabled="true"
+                                title="Indisponible : utilisée par ${g.contractCount} contrat(s)">Supprimer</span>
+                        </c:otherwise>
+                      </c:choose>
                     </div></td>
                   </tr>
                 </c:forEach>
