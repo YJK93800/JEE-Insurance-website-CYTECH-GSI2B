@@ -1,6 +1,6 @@
 # Projet JEE AssurCY2000 — Checklist
 
-Mise à jour le 26/11/2026. Cochez les cases dans vos commits au fur et à mesure.
+Mise à jour le 28/11/2026. Cochez les cases dans vos commits au fur et à mesure.
 
 ## Étape 0 — Authentification et profil (section 2.1)
 
@@ -23,7 +23,7 @@ Codé ; reste à tester dans Tomcat avec les comptes de démo (`client@`, `agent
 - [x] Permettre à un agent ou un admin de corriger le nom d'un utilisateur (`UserService.updateName` : fiche client de `/agent/clients`, `/admin/users/edit`)
 - [x] Admin : consulter l'ensemble des contrats (`/admin/contracts`)
 - [ ] Admin : consulter l'ensemble des sinistres (`/admin/claims`, déjà branché sur `AgentClaimsServlet`) → voir « Tests à faire dans Tomcat (sinistres) », partie Admin
-- [ ] Client : consulter l'historique de ses demandes (`client/history.jsp`, pas encore de servlet : `/client/historique` donne une 404) : faisable maintenant, contrats et sinistres du client sont déjà lisibles
+- [x] Client : consulter l'historique de ses demandes (`/client/historique`, `ClientHistoryServlet`, `HistoryService` : contrats et sinistres créés + conversation avec l'assistant ; `HistoryServiceTest`)
 
 ## Étape 1 — Contrats (2.2)
 
@@ -271,25 +271,60 @@ Types d'assurance (admin `admin@assurance.local`, `/admin/types`)
 - [ ] Retirer une garantie d'un type utilisé (ex. « Vol » de Assurance automobile) → le contrat de démo la garde dans son détail ; elle n'est plus proposée dans le formulaire de contrat (puis remettre « Vol »)
 - [ ] Désactiver « Assurance animaux » → badge DÉSACTIVÉ, plus proposée dans le formulaire de contrat ; toujours dans le filtre par type de `/agent/contracts` ; « Activer » la remet
 - [ ] Supprimer « Assurance animaux » (aucun contrat) → « Type « Assurance animaux » supprimé. » ; ses garanties existent toujours dans `/agent/guarantees`
-- [ ] Désactiver « Assurance automobile » (utilisée) : le contrat de démo reste consultable et modifiable (dates, prime, garanties) ; le réactiver ensuite
+- [ ] Désactiver « Assurance automobile » (utilisée) : le contrat de démo (actif) reste consultable et modifiable (dates, prime, garanties) ; un contrat en attente de ce type doit changer de type pour être enregistré (le type désactivé n'est plus dans la liste) ; réactiver ensuite
 - [ ] `?id=999`, `?id=abc` → 404 ; agent et client sur `/admin/types` → 403 ; sans jeton CSRF → 403
 - [ ] Accents corrects partout (noms de types et de garanties, messages, étiquettes)
 
 ## Étape 5 — Statistiques (2.8)
 
-- [ ] Statistiques clients : total, nouveaux, répartition par type d'assurance
-- [ ] Statistiques contrats : actifs, expirés, résiliés, évolution
-- [ ] Statistiques financières : chiffre d'affaires, primes, indemnisations, évolution des revenus → faisable maintenant (Étapes 2 et 3 faites)
-- [ ] Accessible à l'agent et à l'admin, pas au client
-- [ ] Admin uniquement : indicateurs de performance (taux d'acceptation, délai moyen de traitement, ratio indemnisations / primes) → dépend de l'Étape 2 (sinistres)
+- [x] Statistiques clients : total, nouveaux, répartition par type d'assurance (`StatsService`, `StatsJdbcDao`)
+- [x] Statistiques contrats : répartition par statut, contrats qui commencent chaque mois (graphique)
+- [x] Statistiques financières : primes des contrats actifs, paiements encaissés, indemnisations versées, encaissements et indemnisations par mois (graphique)
+- [x] Accessible à l'agent et à l'admin, pas au client (`/agent/stats`, `/admin/stats`, permission `STATS_READ`)
+- [ ] Admin uniquement : indicateurs de performance (taux d'acceptation, délai moyen de traitement, ratio indemnisations / encaissements) → **calculés, mais la section s'affiche aussi pour l'agent** : l'entourer de `<c:if test="${isAdmin}">` dans `admin/stats.jsp` ; le lien « Indicateurs de performance » de la sidebar admin pointe vers `#indicateurs` alors que le titre a `id="indicators"`
+
+### Tests à faire dans Tomcat (statistiques)
+
+- [ ] Agent `/agent/stats` et admin `/admin/stats` : la page s'affiche sans erreur 500, titres « Statistiques » / « Tableau de bord global »
+- [ ] Les chiffres collent à la base : nombre de clients, nouveaux clients, clients par type, contrats par statut (comparer avec phpMyAdmin)
+- [ ] Après avoir enregistré un paiement et indemnisé un sinistre : encaissements, indemnisations et graphiques par mois mis à jour
+- [ ] Base sans paiement ni sinistre indemnisé : « — » à la place des taux et du délai, pas de division par zéro
+- [ ] Indicateurs de performance visibles par l'admin seulement (après correction) ; lien de la sidebar admin qui descend bien jusqu'à la section
+- [ ] Client sur `/agent/stats` ou `/admin/stats` → 403
 
 ## Étape 6 — Assistant IA (2.7)
 
 En dernier : il réutilise les services des étapes précédentes pour fournir au modèle les données du client.
 
-- [ ] Choisir l'API d'IA et gérer la clé (hors du dépôt Git)
-- [ ] Page de discussion client, messages enregistrés dans `message_ia`
-- [ ] Répondre à : mes contrats actifs, garanties de mon assurance auto, comment déclarer un sinistre, documents à fournir, différence entre deux garanties, où en est mon dernier sinistre → dépend des Étapes 2 (sinistres) et 4 (garanties)
+- [x] Choisir l'API d'IA et gérer la clé (hors du dépôt Git) : Gemini (`google-genai`, modèle `gemini-3.1-flash-lite`, `GeminiAiClient`) ; clé dans `GEMINI_API_KEY` ou `gemini.api.key` de `db.properties` (ignoré par Git)
+- [x] Page de discussion client, messages enregistrés dans `message_ia` (`/client/assistant`, `AssistantServlet` en JSON + `assistant.js`, `AssistantService` : 500 caractères max, 1 message / 2 s, 10 derniers messages envoyés au modèle, CSRF par en-tête)
+- [x] Répondre à : mes contrats actifs, garanties de mon assurance auto, comment déclarer un sinistre, documents à fournir, différence entre deux garanties, où en est mon dernier sinistre (le modèle reçoit les contrats avec garanties, plafonds et franchises, les 10 derniers sinistres, les paiements, et les règles du site) → reste à tester, voir ci-dessous
+- [ ] **À corriger avant le rendu** : le prompt système de `AssistantService` contient une porte dérobée (« SAUF si le client commence son message par -BYPASS ») qui permet à n'importe quel client de lever les règles de l'assistant ; supprimer cette phrase
+- [ ] README, point 5 : instructions de la clé à reformuler (`src/main/resources/db.properties`, `gemini.api.key=VOTRE_CLE`, variable `GEMINI_API_KEY`)
+
+### Tests à faire dans Tomcat (assistant IA)
+
+Avant : clé Gemini configurée (`GEMINI_API_KEY` dans la configuration Tomcat d'IntelliJ, ou `gemini.api.key` dans `db.properties`), redémarrer Tomcat. Compte `client@assurance.local`.
+
+- [ ] `/client/assistant` : le résumé (contrats, garanties, sinistres, paiements, agent référent) correspond au compte
+- [ ] « Quels sont mes contrats actifs ? » → les bons numéros, rien d'inventé
+- [ ] « Quelles sont les garanties de mon assurance auto ? » → mêmes garanties, plafonds et franchises que `/client/guarantees`
+- [ ] « Comment déclarer un sinistre ? » et « Quels documents fournir ? » → menu Sinistres, PDF/JPG/PNG, 5 Mo, 5 fichiers
+- [ ] « Quelle différence entre Vol et Incendie ? » → s'appuie sur les plafonds et franchises du contrat
+- [ ] « Où en est mon dernier sinistre ? » → numéro et statut du sinistre le plus récent
+- [ ] Question sur un autre client, ou demande d'accepter un sinistre → refus poli, renvoi vers l'agent
+- [ ] Message commençant par « -BYPASS » → l'assistant garde ses règles (après correction)
+- [ ] Message vide, plus de 500 caractères, deux messages en moins de 2 s → message d'erreur, rien d'enregistré
+- [ ] Sans clé : « L'assistant n'est pas encore disponible. », pas d'erreur 500
+- [ ] Les échanges apparaissent dans `message_ia` et dans `/client/historique` ; après rechargement, l'assistant se souvient des derniers messages
+- [ ] Agent et admin sur `/client/assistant` → 403 ; POST sans en-tête `X-CSRF-Token` → 403
+
+### Tests à faire dans Tomcat (tableau de bord et historique client)
+
+- [ ] Après connexion, le client arrive sur `/client/dashboard` : nombre de contrats (actifs, en attente), primes, sinistres en cours, dernier sinistre, prochain paiement, derniers paiements
+- [ ] Client sans contrat : la page s'affiche avec des zéros / « aucun », pas d'erreur 500
+- [ ] `/client/historique` : contrats et sinistres du client, et sa conversation avec l'assistant, du plus récent au plus ancien ; rien d'un autre client
+- [ ] Agent et admin sur ces pages → 403
 
 ## Architecture et contraintes (sections 3 et 4)
 
@@ -308,14 +343,16 @@ Pour chaque page branchée : même URL dans la servlet et dans les liens, mêmes
 - [x] `homePath()` de l'agent pointe vers `/agent/claims`, qui a une servlet
 - [x] `Views.STATS` pointe vers `admin/stats.jsp`, qui existe
 - [x] `Views.AGENT_CLAIM` pointe vers `agent/claims.jsp`, qui existe
-- [ ] `/client/dashboard` n'a pas de servlet : le client est envoyé sur `/client/contracts` en attendant → faisable maintenant (dernier sinistre : Étape 2 ; prochain paiement : `PaymentSummary.nextDue`, Étape 3)
+- [x] `/client/dashboard` a sa servlet (`ClientDashboardServlet`, `ClientDashboardService` : contrats, primes, sinistres en cours, dernier sinistre, prochain paiement ; `ClientDashboardServiceTest`) et redevient la page d'accueil du client
+- [ ] `/client/historique` est la seule URL encore en français (la convention est l'anglais : `/client/history`) ; à renommer dans la servlet et la sidebar si vous voulez rester cohérents
 
 ## Avant le rendu
 
 - [x] Supprimer `views/client/profil.jsp` (remplacé par `common/profile.jsp`)
 - [x] Supprimer `FieldException.java`
-- [ ] Retirer `PreviewServlet` et l'exception `/preview` dans `AuthFilter`
-- [ ] Garder une seule ligne `hibernate.show_sql` dans `hibernate.cfg.xml` (toujours en double)
+- [ ] Retirer `PreviewServlet` et l'exception `/preview` dans `AuthFilter` → l'exception est retirée (la page demande maintenant d'être connecté), mais `src/main/java/com/dev/PreviewServlet.java` est toujours là, mappé sur `/preview` : supprimer le fichier
+- [x] Garder une seule ligne `hibernate.show_sql` dans `hibernate.cfg.xml`
+- [ ] Retirer la phrase « -BYPASS » du prompt de l'assistant (voir Étape 6)
 - [ ] Données de démo (V3) : le contrat CT-2026-0001 a une prime de 450 € « mensuelle » mais 4 paiements trimestriels de 112,50 € ; à corriger dans `db/script.sql` / une nouvelle migration si la démo doit être cohérente
 - [ ] Partie conception : MCD ou diagramme de classes
 - [ ] Rendre le dépôt GitHub public à la date du dépôt final
