@@ -15,11 +15,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 
 public class GeminiAiClient implements AiClient {
 
     private static final String DEFAULT_MODEL = "gemini-3.1-flash-lite";
+    /** Durée max d'un appel à Gemini ; au-delà, la servlet renvoie une erreur propre. */
+    private static final long TIMEOUT_SECONDS = 25;
     private static final Properties CONFIG = loadConfig();
 
     @Override
@@ -40,14 +46,23 @@ public class GeminiAiClient implements AiClient {
                             .build())
                     .build();
 
-            Interaction interaction =
-                    client.interactions.create(CreateInteractionRequestBody.of(params)).interaction().get();
+            Interaction interaction = CompletableFuture
+                    .supplyAsync(() -> {
+                        try {
+                            return client.interactions.create(CreateInteractionRequestBody.of(params)).interaction().get();
+                        } catch (Exception e) {
+                            throw new CompletionException(e);
+                        }
+                    })
+                    .get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
             String text = extractText(interaction);
             if (text.isBlank()) {
                 throw new IOException("Réponse sans texte (steps="
                         + interaction.steps().map(List::size).orElse(0) + ").");
             }
             return text;
+        } catch (TimeoutException e) {
+            throw new IOException("Gemini n'a pas répondu en " + TIMEOUT_SECONDS + " s.", e);
         } catch (Exception e) {
             throw new IOException("Appel à Gemini échoué : " + e.getMessage(), e);
         }

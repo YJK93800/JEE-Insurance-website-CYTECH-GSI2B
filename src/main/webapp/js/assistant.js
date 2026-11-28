@@ -33,8 +33,13 @@
     textarea.value = "";
     var pending = addMessage("L'assistant rédige sa réponse…", "bot typing");
 
+    // Filet de sécurité : le serveur coupe à 25 s, le navigateur abandonne à 35 s.
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 35000);
+
     fetch(form.getAttribute("action"), {
       method: "POST",
+      signal: controller.signal,
       headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": window.CSRF_TOKEN || "" },
       credentials: "same-origin",
       body: JSON.stringify({ message: question })
@@ -50,9 +55,14 @@
       })
       .catch(function (err) {
         pending.remove();
-        addMessage(err.message && err.message.indexOf("Failed") !== 0 ? err.message : "L'assistant est indisponible pour le moment. Réessayez plus tard.", "bot error");
+        var msg;
+        if (err.name === "AbortError") msg = "La réponse prend trop de temps. Réessayez dans un instant.";
+        else if (err instanceof TypeError) msg = "Impossible de joindre le serveur. Vérifiez votre connexion.";
+        else msg = err.message || "L'assistant est indisponible pour le moment. Réessayez plus tard.";
+        addMessage(msg, "bot error");
       })
       .finally(function () {
+        clearTimeout(timer);
         busy = false;
         button.disabled = false;
         textarea.focus();
