@@ -261,6 +261,20 @@ legend { font-family: var(--font-title); font-weight: 700; font-size: 16px; padd
 .error-code { font-family: var(--font-title); font-size: 64px; font-weight: 800; color: var(--teal); line-height: 1; }
 
 /* ---------- Responsive ---------- */
+/* Boîte de confirmation (app.js : form[data-confirm]) */
+.btn-danger-solid { background: var(--danger); border-color: var(--danger); color: #FFF; }
+.btn-danger-solid:hover { background: #8F1C13; border-color: #8F1C13; color: #FFF; }
+.confirm-dialog { border: 1px solid var(--line); border-radius: var(--radius); padding: 0; width: min(420px, calc(100% - 32px)); background: var(--surface); color: var(--text); }
+.confirm-dialog::backdrop { background: rgba(20, 32, 46, 0.45); }
+.confirm-dialog[open] { animation: confirm-in 0.15s ease-out; }
+.confirm-box { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.confirm-title { font-size: 17px; overflow-wrap: anywhere; }
+.confirm-detail { margin: 0; display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px; background: var(--warn-bg); color: var(--warn); font-size: 13px; line-height: 1.5; }
+.confirm-detail[hidden] { display: none; }
+.confirm-detail svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+@keyframes confirm-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
 @media (max-width: 900px) {
   .sidebar { max-width: none; flex-basis: 100%; padding: 18px; gap: 16px; }
   .nav { flex-direction: row; flex-wrap: wrap; }

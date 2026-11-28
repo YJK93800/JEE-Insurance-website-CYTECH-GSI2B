@@ -106,10 +106,55 @@
     });
   });
 
-  /* ---------- Confirmation avant une action destructive ---------- */
+  /* ---------- Confirmation avant une action destructive ----------
+     <form data-confirm="Titre ?"              question affichée (obligatoire)
+           data-confirm-detail="..."           encadré d'avertissement (facultatif)
+           data-confirm-ok="Désactiver"        libellé du bouton (défaut : Supprimer)
+           data-confirm-tone="neutral">        bouton principal au lieu de rouge (facultatif)
+     Une seule boîte <dialog>, créée à la demande et réutilisée. */
+  var confirmDialog = null;
+
+  function buildConfirmDialog() {
+    var d = document.createElement("dialog");
+    d.className = "confirm-dialog";
+    d.setAttribute("aria-labelledby", "confirm-title");
+    d.innerHTML =
+      '<form method="dialog" class="confirm-box">' +
+      '  <h2 id="confirm-title" class="confirm-title"></h2>' +
+      '  <p class="confirm-detail"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span></span></p>' +
+      '  <div class="confirm-actions">' +
+      '    <button class="btn btn-sm" value="cancel" autofocus>Annuler</button>' +
+      '    <button class="btn btn-sm confirm-ok" value="ok"></button>' +
+      '  </div>' +
+      '</form>';
+    // Clic sur le fond sombre = annuler
+    d.addEventListener("click", function (e) { if (e.target === d) d.close("cancel"); });
+    document.body.appendChild(d);
+    return d;
+  }
+
+  function askConfirm(form) {
+    if (typeof HTMLDialogElement !== "function") {           // très vieux navigateur
+      if (window.confirm(form.dataset.confirm)) form.submit();
+      return;
+    }
+    var d = confirmDialog || (confirmDialog = buildConfirmDialog());
+    var detail = form.dataset.confirmDetail;
+    var ok = d.querySelector(".confirm-ok");
+    d.querySelector(".confirm-title").textContent = form.dataset.confirm;   // textContent : pas d'injection HTML
+    d.querySelector(".confirm-detail span").textContent = detail || "";
+    d.querySelector(".confirm-detail").hidden = !detail;
+    ok.textContent = form.dataset.confirmOk || "Supprimer";
+    ok.className = "btn btn-sm confirm-ok " + (form.dataset.confirmTone === "neutral" ? "btn-primary" : "btn-danger-solid");
+    d.returnValue = "";
+    d.onclose = function () { if (d.returnValue === "ok") form.submit(); };  // submit() ne relance pas l'événement
+    d.showModal();
+  }
+
   document.querySelectorAll("form[data-confirm]").forEach(function (form) {
     form.addEventListener("submit", function (e) {
-      if (!window.confirm(form.dataset.confirm)) e.preventDefault();
+      e.preventDefault();
+      askConfirm(form);
     });
   });
 

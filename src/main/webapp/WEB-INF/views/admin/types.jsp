@@ -42,7 +42,7 @@
               <div class="inline">
                 <a class="btn btn-sm" href="${ctx}/admin/types?id=${it.id}">Modifier</a>
                 <form method="post" action="${ctx}/admin/types"
-                      <c:if test="${it.active}">data-confirm="Désactiver « ${fn:escapeXml(it.name)} » ? Il ne sera plus proposé pour un nouveau contrat."</c:if>>
+                      <c:if test="${it.active}">data-confirm="Désactiver « ${fn:escapeXml(it.name)} » ?" data-confirm-detail="Il ne sera plus proposé pour un nouveau contrat. Vous pourrez le réactiver à tout moment." data-confirm-ok="Désactiver" data-confirm-tone="neutral"</c:if>>
                   <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
                   <input type="hidden" name="action" value="active">
                   <input type="hidden" name="id" value="${it.id}">
@@ -50,7 +50,8 @@
                   <button class="btn btn-sm" type="submit">${it.active ? 'Désactiver' : 'Activer'}</button>
                 </form>
                 <c:if test="${it.deletable}">
-                  <form method="post" action="${ctx}/admin/types" data-confirm="Supprimer le type « ${fn:escapeXml(it.name)} » ?">
+                  <form method="post" action="${ctx}/admin/types" data-confirm="Supprimer le type « ${fn:escapeXml(it.name)} » ?"
+                        data-confirm-detail="Ses garanties restent dans le catalogue, elles sont seulement détachées de ce type. Cette action est irréversible.">
                     <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id" value="${it.id}">

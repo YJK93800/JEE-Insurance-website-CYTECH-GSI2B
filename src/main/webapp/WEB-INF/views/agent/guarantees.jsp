@@ -38,7 +38,8 @@
                       <a class="btn btn-sm" href="${ctx}/agent/guarantees?id=${g.id}">Modifier</a>
                       <c:choose>
                         <c:when test="${g.deletable}">
-                          <form method="post" action="${ctx}/agent/guarantees" data-confirm="Supprimer la garantie « ${fn:escapeXml(g.name)} » ?">
+                          <form method="post" action="${ctx}/agent/guarantees" data-confirm="Supprimer « ${fn:escapeXml(g.name)} » ?"
+                                data-confirm-detail="Elle sera aussi retirée des types d'assurance qui la proposent. Cette action est irréversible.">
                             <%@ include file="/WEB-INF/views/common/csrf.jspf" %>
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="${g.id}">
