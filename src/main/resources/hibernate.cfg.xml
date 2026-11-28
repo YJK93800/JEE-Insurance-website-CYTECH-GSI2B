@@ -23,8 +23,6 @@
              validate : vérifie seulement que les tables correspondent (rendu final) -->
         <property name="hibernate.hbm2ddl.auto">validate</property>
 
-        <!-- Affiche le SQL dans la console Tomcat (pratique pour déboguer) -->
-        <property name="hibernate.show_sql">true</property>
         <property name="hibernate.format_sql">true</property>
 
         <!-- ===== Entités ===== -->

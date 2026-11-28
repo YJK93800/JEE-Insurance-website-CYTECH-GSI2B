@@ -30,8 +30,6 @@ public final class UserSession {
     public static SessionUser currentUser(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
         if (session == null) return null;
-        // instanceof plutôt qu'un cast : PreviewServlet (dev) met une Map dans "currentUser",
-        // un cast direct ferait planter tous les filtres (erreur 500) sur les requêtes suivantes.
         return session.getAttribute(USER) instanceof SessionUser user ? user : null;
     }
 

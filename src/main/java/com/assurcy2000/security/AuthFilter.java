@@ -40,7 +40,6 @@ public class AuthFilter implements Filter {
         return path.equals("/login")
                 || path.equals("/register")
                 || path.startsWith("/css/")
-                || path.startsWith("/js/")
-                || path.equals("/preview"); // à retirer avant le rendu
+                || path.startsWith("/js/");
     }
 }
