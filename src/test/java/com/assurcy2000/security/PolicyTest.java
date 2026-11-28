@@ -41,6 +41,15 @@ class PolicyTest {
     }
 
     @Test
+    void adminReadsAllClaimsButDoesNotProcessThem() {
+        SessionUser admin = as(Role.ADMIN);
+        assertTrue(Policy.can(admin, CLAIM_READ_ALL));     // /admin/claims : liste, détail, pièces, commentaires
+        assertFalse(Policy.can(admin, CLAIM_UPDATE));      // pas de changement de statut, d'indemnisation ni de commentaire
+        assertFalse(Policy.can(admin, CLAIM_CREATE_OWN));  // ne déclare pas de sinistre
+        assertTrue(Policy.canRead(admin, CLAIM_READ_ALL, CLAIM_READ_OWN, 8L));
+    }
+
+    @Test
     void readsAllDependsOnTheAllPermission() {
         assertTrue(Policy.readsAll(as(Role.AGENT), CONTRACT_READ_ALL, CONTRACT_READ_OWN));
         assertTrue(Policy.readsAll(as(Role.ADMIN), CLAIM_READ_ALL, CLAIM_READ_OWN));
